@@ -11,40 +11,67 @@ class DashboardController extends Controller
         $storage = UserStorage::fromSession();
         $today   = date('Y-m-d');
 
-        $todayStats     = $storage->getSholatStats($today);
-        $gymWeekly      = $storage->getGymWeeklyCount();
-        $gymMonthly     = $storage->getGymMonthlyCount();
-        $isGymToday     = $storage->getGym($today)['done'];
-        $intimacyToday  = $storage->getIntimacy($today);
-        $intimacyMonthly= $storage->getIntimacyMonthlyCount();
-        $caloriesWeek   = $storage->getTotalCaloriesThisWeek();
-        $streak         = $storage->getSholatStreak();
-        $weekKey        = UserStorage::getWeekKey();
-        $dailyTodos     = $storage->getDailyTodos($today);
-        $weeklyTodos    = $storage->getWeeklyTodos($weekKey);
+        $todayStats      = $storage->getSholatStats($today);
+        $gymWeekly       = $storage->getGymWeeklyCount();
+        $gymMonthly      = $storage->getGymMonthlyCount();
+        $isGymToday      = $storage->getGym($today)['done'];
+        $intimacyToday   = $storage->getIntimacy($today);
+        $intimacyMonthly = $storage->getIntimacyMonthlyCount();
+        $caloriesWeek    = $storage->getTotalCaloriesThisWeek();
+        $streak          = $storage->getSholatStreak();
+        $weekKey         = UserStorage::getWeekKey();
+        $dailyTodos      = $storage->getDailyTodos($today);
+        $weeklyTodos     = $storage->getWeeklyTodos($weekKey);
 
-        // Week chart data
-        $weekDates = UserStorage::getWeekDates();
-        $weekSpiritualData = array_map(fn($d) => $storage->getSholatStats($d)['total'], $weekDates);
-        $weekFitnessData   = array_map(fn($d) => $storage->getGym($d)['done'] ? 1 : 0, $weekDates);
+        // Life Score for today
+        $lifeScore = $storage->getLifeScore($today);
 
-        // Month sholat days
-        $monthPrefix    = date('Y-m');
-        $sholatDaysThisMonth = count(array_filter(
-            array_keys($storage->toArray()['sholat']),
-            fn($d) => str_starts_with($d, $monthPrefix)
-        ));
+        // Today's mood
+        $todayMood = $storage->getMood($today);
 
-        // Run data for dashboard
+        // Run data
         $runWeeklyCount = $storage->getRunWeeklyCount();
         $runMonthlyDist = $storage->getRunMonthlyDistance();
 
+        // Profile + spiritual data (non-Islam)
+        $profile    = $storage->getProfile();
+        $religion   = $profile['religion'] ?? '';
+        $spiritualPracticeTotal = match($religion) {
+            'kristen'        => 4,
+            'hindu','buddha' => 3,
+            'lainnya'        => 2,
+            default          => 0,
+        };
+        $todaySpiritualData = $storage->getSpiritualDay($today);
+        $spiritualDoneToday = count(array_filter($todaySpiritualData));
+        $spiritualStreak    = $storage->getSpiritualStreak(
+            $spiritualPracticeTotal > 0 ? array_keys($todaySpiritualData ?: ['practice' => false]) : []
+        );
+
+        // Sort daily todos: incomplete + high priority first
+        $priOrder = ['high' => 0, 'medium' => 1, 'low' => 2];
+        usort($dailyTodos, fn($a, $b) =>
+            ($a['done'] <=> $b['done']) ?:
+            ($priOrder[$a['priority'] ?? 'medium'] <=> $priOrder[$b['priority'] ?? 'medium'])
+        );
+
+        // Time-based greeting
+        $hour     = (int) date('G');
+        $greeting = match(true) {
+            $hour < 11  => __('Selamat pagi'),
+            $hour < 15  => __('Selamat siang'),
+            $hour < 18  => __('Selamat sore'),
+            default     => __('Selamat malam'),
+        };
+
         return view('pages.dashboard', compact(
-            'today', 'todayStats', 'gymWeekly', 'gymMonthly', 'isGymToday',
+            'today', 'weekKey', 'todayStats', 'gymWeekly', 'gymMonthly', 'isGymToday',
             'intimacyToday', 'intimacyMonthly', 'caloriesWeek', 'streak',
             'dailyTodos', 'weeklyTodos',
-            'weekDates', 'weekSpiritualData', 'weekFitnessData', 'sholatDaysThisMonth',
-            'runWeeklyCount', 'runMonthlyDist'
+            'runWeeklyCount', 'runMonthlyDist',
+            'lifeScore', 'todayMood', 'greeting',
+            'profile', 'religion', 'spiritualPracticeTotal',
+            'spiritualDoneToday', 'spiritualStreak'
         ));
     }
 }

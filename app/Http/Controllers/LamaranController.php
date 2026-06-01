@@ -35,24 +35,42 @@ class LamaranController extends Controller
         $total  = count($storage->getApplications());
         $active = array_sum(array_filter($counts, fn($v, $k) => !in_array($k, ['hired', 'rejected']), ARRAY_FILTER_USE_BOTH));
 
-        return view('pages.lamaran.index', compact('apps', 'counts', 'total', 'active', 'filterStatus'));
+        // Plan limits
+        $lamaranLimit = $storage->getLamaranLimit();      // null if unlimited
+        $atLimit      = $storage->isAtLamaranLimit();
+        $isFreemium   = $storage->isFreemium();
+
+        return view('pages.lamaran.index', compact(
+            'apps', 'counts', 'total', 'active', 'filterStatus',
+            'lamaranLimit', 'atLimit', 'isFreemium'
+        ));
     }
 
     public function store(Request $request)
     {
+        $storage = UserStorage::fromSession();
+
+        // Plan enforcement
+        if ($storage->isAtLamaranLimit()) {
+            return redirect()->route('lamaran.index')
+                ->with('toast', __('Sudah mencapai batas :n lamaran. Upgrade ke Plus untuk tanpa batas.', [
+                    'n' => $storage->getLamaranLimit(),
+                ]));
+        }
+
         $validated = $request->validate([
             'company'      => 'required|string|max:255',
             'position'     => 'required|string|max:255',
             'location'     => 'nullable|string|max:255',
             'salary'       => 'nullable|string|max:100',
             'applied_date' => 'required|date',
-            'status'       => 'required|in:applied,review,interview,offer,hired,rejected',
+            'status'       => 'required|in:wishlist,applied,review,interview,offer,hired,rejected',
+            'job_type'     => 'nullable|in:fulltime,parttime,internship,freelance,contract',
+            'channel'      => 'nullable|in:linkedin,jobstreet,glints,upwork,fiverr,kontrakhub,email,referral,website,other',
             'job_url'      => 'nullable|url|max:500',
-            'stage'        => 'nullable|string|max:255',
             'notes'        => 'nullable|string',
         ]);
 
-        $storage = UserStorage::fromSession();
         $storage->addApplication($validated);
         $storage->save();
 
@@ -68,9 +86,10 @@ class LamaranController extends Controller
             'location'     => 'nullable|string|max:255',
             'salary'       => 'nullable|string|max:100',
             'applied_date' => 'required|date',
-            'status'       => 'required|in:applied,review,interview,offer,hired,rejected',
+            'status'       => 'required|in:wishlist,applied,review,interview,offer,hired,rejected',
+            'job_type'     => 'nullable|in:fulltime,parttime,internship,freelance,contract',
+            'channel'      => 'nullable|in:linkedin,jobstreet,glints,upwork,fiverr,kontrakhub,email,referral,website,other',
             'job_url'      => 'nullable|url|max:500',
-            'stage'        => 'nullable|string|max:255',
             'notes'        => 'nullable|string',
         ]);
 
@@ -97,20 +116,28 @@ class LamaranController extends Controller
     public function export()
     {
         $storage = UserStorage::fromSession();
-        $apps    = $storage->getApplications();
+
+        // Plan enforcement — PDF/CSV export only for Pro
+        if (!$storage->isPro()) {
+            return redirect()->route('lamaran.index')
+                ->with('toast', __('Export laporan hanya tersedia di paket Pro.'));
+        }
+
+        $apps = $storage->getApplications();
 
         usort($apps, fn($a, $b) => strcmp($b['applied_date'] ?? '', $a['applied_date'] ?? ''));
 
-        $csv = "Perusahaan,Posisi,Lokasi,Gaji,Tanggal Melamar,Status,Tahap,URL,Catatan\n";
+        $csv = "Perusahaan,Posisi,Tipe,Channel,Lokasi,Gaji,Tanggal Melamar,Status,URL,Catatan\n";
         foreach ($apps as $app) {
             $csv .= implode(',', [
                 '"' . str_replace('"', '""', $app['company'] ?? '') . '"',
                 '"' . str_replace('"', '""', $app['position'] ?? '') . '"',
+                '"' . str_replace('"', '""', $app['job_type'] ?? '') . '"',
+                '"' . str_replace('"', '""', $app['channel'] ?? '') . '"',
                 '"' . str_replace('"', '""', $app['location'] ?? '') . '"',
                 '"' . str_replace('"', '""', $app['salary'] ?? '') . '"',
                 $app['applied_date'] ?? '',
                 $app['status'] ?? '',
-                '"' . str_replace('"', '""', $app['stage'] ?? '') . '"',
                 '"' . str_replace('"', '""', $app['job_url'] ?? '') . '"',
                 '"' . str_replace('"', '""', $app['notes'] ?? '') . '"',
             ]) . "\n";

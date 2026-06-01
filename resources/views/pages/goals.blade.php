@@ -20,8 +20,8 @@
         [
             'key'      => 'sholat',
             'feature'  => 'sholat',
-            'label'    => 'Sholat 5 Wajib',
-            'unit'     => 'hari',
+            'label'    => __('Sholat 5 Wajib'),
+            'unit'     => __('hari'),
             'achieved' => $daysSholatComplete,
             'default'  => 25,
             'max'      => count($monthDates),
@@ -30,8 +30,8 @@
         [
             'key'      => 'gym',
             'feature'  => 'gym',
-            'label'    => 'Sesi Gym',
-            'unit'     => 'sesi',
+            'label'    => __('Sesi Gym'),
+            'unit'     => __('sesi'),
             'achieved' => $gymMonthly,
             'default'  => 16,
             'max'      => count($monthDates),
@@ -40,18 +40,18 @@
         [
             'key'      => 'run',
             'feature'  => 'run',
-            'label'    => 'Sesi Lari',
-            'unit'     => 'sesi',
+            'label'    => __('Sesi Lari'),
+            'unit'     => __('sesi'),
             'achieved' => $runMonthlyCount,
             'default'  => 12,
             'max'      => count($monthDates),
-            'sub'      => number_format($runMonthlyDist, 1) . ' km total bulan ini',
+            'sub'      => number_format($runMonthlyDist, 1) . ' ' . __('km total bulan ini'),
         ],
         [
             'key'      => 'intimacy',
             'feature'  => 'intimasi',
-            'label'    => 'Intimasi',
-            'unit'     => 'kali',
+            'label'    => __('Intimasi'),
+            'unit'     => __('kali'),
             'achieved' => $intimacyMonthly,
             'default'  => 12,
             'max'      => 60,
@@ -74,17 +74,17 @@
     /* ── Reminders — grouped by feature ── */
     $allReminderGroups = [
         'sholat'  => [
-            'Subuh'   => 'Sholat Subuh',
-            'Dzuhur'  => 'Sholat Dzuhur',
-            'Ashar'   => 'Sholat Ashar',
-            'Maghrib' => 'Sholat Maghrib',
-            'Isya'    => 'Sholat Isya',
+            'Subuh'   => __('Sholat Subuh'),
+            'Dzuhur'  => __('Sholat Dzuhur'),
+            'Ashar'   => __('Sholat Ashar'),
+            'Maghrib' => __('Sholat Maghrib'),
+            'Isya'    => __('Sholat Isya'),
             'Tahajud' => 'Tahajud',
-            'Dhuha'   => 'Sholat Dhuha',
+            'Dhuha'   => __('Sholat Dhuha'),
         ],
-        'gym'   => ['Gym'      => 'Sesi Gym'],
-        'run'   => ['Run'      => 'Sesi Lari'],
-        'tasks' => ['Refleksi' => 'Refleksi Harian'],
+        'gym'   => ['Gym'      => __('Sesi Gym')],
+        'run'   => ['Run'      => __('Sesi Lari')],
+        'tasks' => ['Refleksi' => __('Refleksi Harian')],
     ];
 
     $reminderItems = [];   // key => label
@@ -101,10 +101,10 @@
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-start justify-between mb-4 md:mb-6 flex-wrap gap-2">
             <div>
-                <h3 class="text-base md:text-lg font-bold">Target Bulan Ini</h3>
+                <h3 class="text-base md:text-lg font-bold">{{ __('Target Bulan Ini') }}</h3>
                 <p class="text-xs text-gray-400 mt-0.5">{{ $monthLabel }}</p>
             </div>
-            <span class="text-[10px] font-bold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full">Tetap realistis &amp; bertahap</span>
+            <span class="text-[10px] font-bold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full">{{ __('Tetap realistis & bertahap') }}</span>
         </div>
 
         @if($goalCount === 0)
@@ -116,8 +116,8 @@
                         d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                 </svg>
             </div>
-            <p class="text-sm font-bold text-gray-400">Belum ada fitur yang aktif</p>
-            <p class="text-xs text-gray-400 mt-1">Aktifkan fitur di <a href="{{ route('settings') }}" class="underline">Pengaturan</a> untuk mulai menetapkan target.</p>
+            <p class="text-sm font-bold text-gray-400">{{ __('Belum ada fitur yang aktif') }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ __('Aktifkan fitur di') }} <a href="{{ route('settings') }}" class="underline">{{ __('Pengaturan') }}</a> {{ __('untuk mulai menetapkan target.') }}</p>
         </div>
         @else
         <div class="grid {{ $gridClass }} gap-4">
@@ -132,7 +132,7 @@
                 <div class="flex items-center justify-between mb-3">
                     <p class="text-xs font-bold {{ $a['text'] }}">{{ $g['label'] }}</p>
                     @if($onTrack)
-                    <span class="text-[9px] font-bold text-white bg-green-500 px-2 py-0.5 rounded-full">TERCAPAI</span>
+                    <span class="text-[9px] font-bold text-white bg-green-500 px-2 py-0.5 rounded-full">{{ __('TERCAPAI') }}</span>
                     @endif
                 </div>
 
@@ -149,17 +149,16 @@
                 <p class="text-[10px] {{ $a['text'] }} mb-3">{{ $g['sub'] }}</p>
                 @endif
 
-                <form method="POST" action="{{ route('goals.update') }}" class="flex items-center gap-2">
+                <form method="POST" action="{{ route('goals.update') }}">
                     @csrf
                     <input type="hidden" name="field" value="{{ $g['key'] }}">
-                    <span class="text-[10px] text-gray-500 font-bold uppercase">Target:</span>
-                    <input type="number" name="value" min="0" max="{{ $g['max'] }}" value="{{ $target }}"
-                        class="w-20 px-2 py-1 bg-white border border-gray-200 rounded-lg text-sm font-bold text-center outline-none focus:border-gray-400">
-                    <button type="submit"
-                        class="text-[10px] font-bold bg-white border border-gray-200 px-2 py-1 rounded-lg hover:bg-gray-50 transition-all">
-                        Set
-                    </button>
-                    <span class="text-[10px] text-gray-400">{{ $g['unit'] }}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Target</span>
+                        <input type="number" name="value" min="0" max="{{ $g['max'] }}" value="{{ $target }}"
+                            onchange="this.form.submit()"
+                            class="w-16 px-2 py-1 bg-white border border-gray-200 rounded-lg text-sm font-bold text-center outline-none focus:border-gray-400 transition-all">
+                        <span class="text-[10px] text-gray-400">{{ $g['unit'] }}</span>
+                    </div>
                 </form>
             </div>
             @endforeach
@@ -177,9 +176,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
-                    Waktu Pengingat
+                    {{ __('Waktu Pengingat') }}
                 </h3>
-                <p class="text-xs text-gray-400 mt-1">Set jam pengingat untuk setiap aktivitas.</p>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Set jam pengingat untuk setiap aktivitas.') }}</p>
             </div>
         </div>
 
@@ -190,7 +189,7 @@
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-bold truncate">{{ $label }}</p>
                     <p class="text-[10px] {{ $time ? 'text-gray-400' : 'text-gray-400' }}">
-                        {{ $time ? 'Pengingat ' . $time : 'Belum diatur' }}
+                        {{ $time ? __('Pengingat') . ' ' . $time : __('Belum diatur') }}
                     </p>
                 </div>
                 <form method="POST" action="{{ route('reminders.update') }}" class="flex items-center gap-1">
@@ -203,7 +202,7 @@
                     @if($time)
                     <button type="submit" name="time" value=""
                         class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white"
-                        title="Hapus pengingat">
+                        title="{{ __('Hapus pengingat') }}">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -221,8 +220,7 @@
                     clip-rule="evenodd"/>
             </svg>
             <p class="text-xs text-yellow-900 leading-relaxed">
-                <span class="font-bold">Tips:</span> Set pengingat 5–10 menit sebelum waktu sholat.
-                Pengingat ini bersifat manual sesuai jam yang kamu set dan akan ditampilkan saat kamu membuka aplikasi.
+                <span class="font-bold">Tips:</span> {{ __('Set pengingat 5–10 menit sebelum waktu sholat. Pengingat ini bersifat manual sesuai jam yang kamu set dan akan ditampilkan saat kamu membuka aplikasi.') }}
             </p>
         </div>
     </div>

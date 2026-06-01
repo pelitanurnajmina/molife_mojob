@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('title', 'Run / Lari')
 @section('page-title', 'Run / Lari')
 @section('breadcrumb', 'Run')
@@ -10,7 +10,7 @@
         'tempo'    => 'Tempo',
         'interval' => 'Interval',
         'long_run' => 'Long Run',
-        'race'     => 'Lomba',
+        'race'     => __('Lomba'),
     ];
     $typeBadge = [
         'easy'     => 'bg-emerald-100 text-emerald-700',
@@ -19,26 +19,17 @@
         'long_run' => 'bg-blue-100 text-blue-700',
         'race'     => 'bg-purple-100 text-purple-700',
     ];
-    $typePill = [
-        'easy'     => 'hover:border-emerald-400 data-active:border-emerald-500 data-active:bg-emerald-500',
-        'tempo'    => 'hover:border-orange-400',
-        'interval' => 'hover:border-red-400',
-        'long_run' => 'hover:border-blue-400',
-        'race'     => 'hover:border-purple-400',
-    ];
-    $idDays   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
-    $idMonths = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    $days   = [__('Min'),__('Sen'),__('Sel'),__('Rab'),__('Kam'),__('Jum'),__('Sab')];
+    $months = ['',__('Jan'),__('Feb'),__('Mar'),__('Apr'),__('Mei'),__('Jun'),__('Jul'),__('Agu'),__('Sep'),__('Okt'),__('Nov'),__('Des')];
 @endphp
 
 <div class="space-y-6">
 
-    {{-- ===== ROW 1: Input + Stats ===== --}}
+    {{-- ROW 1: Input + Stats --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
 
         {{-- INPUT CARD --}}
         <div class="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border border-gray-50">
-
-            {{-- Header --}}
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
@@ -47,26 +38,24 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 class="font-bold text-base">Lari Hari Ini</h2>
+                        <h2 class="font-bold text-base">{{ __('Lari Hari Ini') }}</h2>
                         <p class="text-xs text-gray-400">{{ date('l, j F Y') }}</p>
                     </div>
                 </div>
                 @if($todayRun['done'])
                 <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    Sudah Lari
+                    {{ __('Sudah Lari') }}
                 </div>
                 @endif
             </div>
 
-            {{-- FORM --}}
             <form action="{{ route('run.update') }}" method="POST" id="runForm">
                 @csrf
                 <input type="hidden" name="date" value="{{ $today }}">
 
-                {{-- Type Selector --}}
                 <div class="mb-5">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Tipe Lari</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">{{ __('Tipe Lari') }}</label>
                     <div class="flex flex-wrap gap-2">
                         @foreach($typeLabels as $val => $label)
                         <button type="button"
@@ -83,10 +72,9 @@
                     <input type="hidden" name="type" id="typeInput" value="{{ $todayRun['type'] ?? 'easy' }}">
                 </div>
 
-                {{-- Jarak · Durasi · Pace --}}
                 <div class="grid grid-cols-3 gap-3 mb-4">
                     <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Jarak</label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{{ __('Jarak') }}</label>
                         <div class="relative">
                             <input type="number" name="distance" id="distInput"
                                 value="{{ $todayRun['distance'] > 0 ? $todayRun['distance'] : '' }}"
@@ -97,14 +85,14 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Durasi</label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{{ __('Durasi') }}</label>
                         <div class="relative">
                             <input type="number" name="duration" id="durInput"
                                 value="{{ $todayRun['duration'] > 0 ? $todayRun['duration'] : '' }}"
                                 placeholder="0" step="1" min="0" max="1440"
                                 class="w-full bg-gray-50 rounded-xl px-3 py-3 text-xl font-bold focus:ring-2 focus:ring-black outline-none border-0 pr-10"
                                 oninput="calcPace()">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">mnt</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">{{ __('mnt') }}</span>
                         </div>
                     </div>
                     <div>
@@ -117,9 +105,7 @@
                                     if ($d0 > 0 && $t0 > 0) {
                                         $p = $t0 / $d0;
                                         echo floor($p) . ':' . str_pad(round(fmod($p, 1) * 60), 2, '0', STR_PAD_LEFT);
-                                    } else {
-                                        echo '--:--';
-                                    }
+                                    } else { echo '--:--'; }
                                 @endphp
                             </span>
                             <span class="text-[10px] text-emerald-500 font-bold">/km</span>
@@ -127,10 +113,9 @@
                     </div>
                 </div>
 
-                {{-- Kalori + Catatan --}}
                 <div class="grid grid-cols-2 gap-3 mb-5">
                     <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Kalori <span class="normal-case font-normal">(opsional)</span></label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{{ __('Kalori') }} <span class="normal-case font-normal">({{ __('opsional') }})</span></label>
                         <div class="relative">
                             <input type="number" name="calories"
                                 value="{{ ($todayRun['calories'] ?? 0) > 0 ? $todayRun['calories'] : '' }}"
@@ -140,19 +125,18 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Catatan <span class="normal-case font-normal">(opsional)</span></label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{{ __('Catatan') }} <span class="normal-case font-normal">({{ __('opsional') }})</span></label>
                         <input type="text" name="notes"
                             value="{{ $todayRun['notes'] ?? '' }}"
-                            placeholder="Rute, kondisi, perasaan..."
+                            placeholder="{{ __('Rute, kondisi, perasaan...') }}"
                             class="w-full bg-gray-50 rounded-xl px-3 py-3 font-medium focus:ring-2 focus:ring-black outline-none border-0">
                     </div>
                 </div>
 
-                {{-- Actions --}}
                 <div class="flex items-center gap-3">
                     <button type="submit"
                         class="flex-1 bg-black text-white py-3 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all">
-                        {{ $todayRun['done'] ? 'Perbarui Data Lari' : '🏃 Catat Lari Hari Ini' }}
+                        {{ $todayRun['done'] ? __('Perbarui Data Lari') : __('Catat Lari Hari Ini') }}
                     </button>
                     @if($todayRun['done'])
                     <form action="{{ route('run.toggle') }}" method="POST" class="flex-shrink-0">
@@ -160,7 +144,7 @@
                         <input type="hidden" name="date" value="{{ $today }}">
                         <button type="submit"
                             class="px-4 py-3 rounded-xl border-2 border-red-200 text-red-500 text-sm font-bold hover:bg-red-50 transition-all whitespace-nowrap">
-                            Batalkan
+                            {{ __('Batalkan') }}
                         </button>
                     </form>
                     @endif
@@ -170,20 +154,17 @@
 
         {{-- STATS PANEL --}}
         <div class="flex flex-col gap-4">
-
-            {{-- Weekly --}}
             <div class="bg-white rounded-2xl p-5 border border-gray-50">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Minggu Ini</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ __('Minggu Ini') }}</p>
                 <div class="flex items-end gap-2 mt-2 mb-1">
                     <span class="text-3xl font-bold">{{ number_format($weeklyDist, 1) }}</span>
                     <span class="text-sm text-gray-400 mb-0.5">km</span>
-                    <span class="ml-auto text-xs text-gray-500 mb-0.5">{{ $weeklyCount }}× lari</span>
+                    <span class="ml-auto text-xs text-gray-500 mb-0.5">{{ $weeklyCount }}× {{ __('lari') }}</span>
                 </div>
-                {{-- 7-day bar --}}
                 <div class="flex gap-1 mt-3">
-                    @foreach(['Sen','Sel','Rab','Kam','Jum','Sab','Min'] as $i => $day)
+                    @foreach([__('Sen'),__('Sel'),__('Rab'),__('Kam'),__('Jum'),__('Sab'),__('Min')] as $i => $day)
                     @php $wr = $weekRuns[$i] ?? []; $ran = $wr['done'] ?? false; $km = $wr['distance'] ?? 0; @endphp
-                    <div class="flex-1 flex flex-col items-center gap-1" title="{{ $ran ? number_format($km,1).' km' : 'Tidak lari' }}">
+                    <div class="flex-1 flex flex-col items-center gap-1" title="{{ $ran ? number_format($km,1).' km' : __('Tidak lari') }}">
                         <div class="relative w-full">
                             <div class="w-full h-8 rounded-lg bg-gray-100 overflow-hidden flex items-end">
                                 @if($ran && $km > 0 && $weeklyDist > 0)
@@ -200,57 +181,51 @@
                 </div>
             </div>
 
-            {{-- Monthly --}}
             <div class="bg-white rounded-2xl p-5 border border-gray-50">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Bulan Ini</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Bulan Ini') }}</p>
                 <div class="flex items-end gap-2 mt-1">
                     <span class="text-3xl font-bold">{{ number_format($monthlyDist, 1) }}</span>
                     <span class="text-sm text-gray-400 mb-0.5">km</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">{{ $monthlyCount }} sesi lari</p>
+                <p class="text-xs text-gray-500 mt-1">{{ $monthlyCount }} {{ __('sesi lari') }}</p>
             </div>
 
-            {{-- Personal Best --}}
             <div class="bg-white rounded-2xl p-5 border border-gray-50">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Personal Best</p>
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 bg-yellow-50 rounded-lg flex items-center justify-center">
-                                <span class="text-xs">🏅</span>
+                            <div class="w-6 h-6 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                             </div>
-                            <span class="text-xs text-gray-500">Jarak Terjauh</span>
+                            <span class="text-xs text-gray-500">{{ __('Jarak Terjauh') }}</span>
                         </div>
-                        <span class="font-bold text-sm">
-                            {{ $pbs['distance'] > 0 ? number_format($pbs['distance'], 1).' km' : '—' }}
-                        </span>
+                        <span class="font-bold text-sm">{{ $pbs['distance'] > 0 ? number_format($pbs['distance'], 1).' km' : '—' }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 bg-yellow-50 rounded-lg flex items-center justify-center">
-                                <span class="text-xs">⚡</span>
+                            <div class="w-6 h-6 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
-                            <span class="text-xs text-gray-500">Pace Terbaik</span>
+                            <span class="text-xs text-gray-500">{{ __('Pace Terbaik') }}</span>
                         </div>
                         <span class="font-bold text-sm">
                             @if($pbs['pace'] > 0)
                                 @php $pm = floor($pbs['pace']); $ps = round(fmod($pbs['pace'], 1) * 60); @endphp
                                 {{ $pm }}:{{ str_pad($ps, 2, '0', STR_PAD_LEFT) }} /km
-                            @else
-                                —
+                            @else —
                             @endif
                         </span>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    {{-- ===== ROW 2: Riwayat ===== --}}
+    {{-- Riwayat --}}
     @if(count($history) > 0)
     <div class="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border border-gray-50">
-        <h3 class="font-bold mb-5">Riwayat Lari</h3>
+        <h3 class="font-bold mb-5">{{ __('Riwayat Lari') }}</h3>
         <div class="space-y-1">
             @foreach($history as $run)
             @php
@@ -262,20 +237,14 @@
                 $isToday = $run['date'] === $today;
             @endphp
             <div class="flex items-center gap-3 md:gap-5 py-3 {{ !$loop->last ? 'border-b border-gray-50' : '' }}">
-
-                {{-- Date tile --}}
                 <div class="flex-shrink-0 w-12 text-center">
-                    <p class="text-[9px] font-bold text-gray-400 uppercase">{{ $idDays[$d->format('w')] }}</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase">{{ $days[$d->format('w')] }}</p>
                     <p class="text-lg font-bold leading-tight">{{ $d->format('j') }}</p>
-                    <p class="text-[9px] text-gray-400">{{ $idMonths[(int)$d->format('n')] }}</p>
+                    <p class="text-[9px] text-gray-400">{{ $months[(int)$d->format('n')] }}</p>
                 </div>
-
-                {{-- Type badge --}}
                 <span class="flex-shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-lg {{ $typeBadge[$run['type']] ?? 'bg-gray-100 text-gray-600' }}">
                     {{ $typeLabels[$run['type']] ?? $run['type'] }}
                 </span>
-
-                {{-- Metrics --}}
                 <div class="flex-1 flex items-center gap-4 md:gap-8 min-w-0">
                     <div class="text-center">
                         <p class="text-base md:text-lg font-bold leading-tight">{{ $dist > 0 ? number_format($dist, 1) : '—' }}</p>
@@ -289,7 +258,7 @@
                     @endif
                     <div class="text-center">
                         <p class="text-base md:text-lg font-bold leading-tight">{{ $dur > 0 ? $dur : '—' }}</p>
-                        <p class="text-[9px] text-gray-400">mnt</p>
+                        <p class="text-[9px] text-gray-400">{{ __('mnt') }}</p>
                     </div>
                     @if(($run['calories'] ?? 0) > 0)
                     <div class="text-center hidden sm:block">
@@ -301,26 +270,22 @@
                     <p class="text-xs text-gray-400 truncate hidden md:block flex-1">{{ $run['notes'] }}</p>
                     @endif
                 </div>
-
-                {{-- Today badge --}}
                 @if($isToday)
-                <span class="flex-shrink-0 text-[10px] font-bold bg-gray-100 text-black px-2.5 py-1 rounded-lg">Hari ini</span>
+                <span class="flex-shrink-0 text-[10px] font-bold bg-gray-100 text-black px-2.5 py-1 rounded-lg">{{ __('Hari ini') }}</span>
                 @endif
-
             </div>
             @endforeach
         </div>
     </div>
     @else
-    {{-- Empty state --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-10 md:p-16 border border-gray-50 text-center">
         <div class="w-14 h-14 bg-emerald-50 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 12h-4l-3 9L9 3l-3 9H2"/>
             </svg>
         </div>
-        <p class="font-bold text-gray-700">Belum ada catatan lari</p>
-        <p class="text-sm text-gray-400 mt-1">Catat sesi lari pertamamu di atas!</p>
+        <p class="font-bold text-gray-700">{{ __('Belum ada catatan lari') }}</p>
+        <p class="text-sm text-gray-400 mt-1">{{ __('Catat sesi lari pertamamu di atas!') }}</p>
     </div>
     @endif
 
@@ -359,8 +324,6 @@ function calcPace() {
         el.classList.add('text-gray-400');
     }
 }
-
-// Init pace on load if data exists
 calcPace();
 </script>
 @endpush

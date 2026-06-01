@@ -14,13 +14,23 @@ class PersiapanController extends Controller
         $links     = $storage->getLinks();
         $files     = $storage->getFiles();
         $templates = $storage->getTemplates();
+        $practiceQA = $storage->getPracticeQA();
 
         // Sort newest first
         usort($links,     fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
         usort($files,     fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
         usort($templates, fn($a, $b) => strcmp($b['updated_at'], $a['updated_at']));
+        usort($practiceQA, fn($a, $b) => strcmp($b['updated_at'], $a['updated_at']));
 
-        return view('pages.persiapan.index', compact('links', 'files', 'templates'));
+        // Confidence stats
+        $qaCount      = count($practiceQA);
+        $avgConfidence = $qaCount > 0
+            ? round(array_sum(array_column($practiceQA, 'confidence')) / $qaCount, 1)
+            : 0;
+
+        return view('pages.persiapan.index', compact(
+            'links', 'files', 'templates', 'practiceQA', 'qaCount', 'avgConfidence'
+        ));
     }
 
     /* ---- Links ---- */
@@ -114,6 +124,59 @@ class PersiapanController extends Controller
         }
 
         return back()->with('toast', 'File berhasil dihapus.');
+    }
+
+    /* ---- Practice Q&A ---- */
+
+    public function storeQA(Request $request)
+    {
+        $validated = $request->validate([
+            'question'       => 'required|string|max:1000',
+            'answer'         => 'nullable|string',
+            'category'       => 'required|in:general,behavioral,technical,situational,star',
+            'confidence'     => 'required|integer|min:1|max:5',
+            'star_situation' => 'nullable|string',
+            'star_task'      => 'nullable|string',
+            'star_action'    => 'nullable|string',
+            'star_result'    => 'nullable|string',
+        ]);
+
+        $storage = UserStorage::fromSession();
+        $storage->addPracticeQA($validated);
+        $storage->save();
+
+        return back()->with('toast', __('Pertanyaan disimpan.'));
+    }
+
+    public function updateQA(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'question'       => 'required|string|max:1000',
+            'answer'         => 'nullable|string',
+            'category'       => 'required|in:general,behavioral,technical,situational,star',
+            'confidence'     => 'required|integer|min:1|max:5',
+            'star_situation' => 'nullable|string',
+            'star_task'      => 'nullable|string',
+            'star_action'    => 'nullable|string',
+            'star_result'    => 'nullable|string',
+        ]);
+
+        $storage = UserStorage::fromSession();
+        if (!$storage->findPracticeQA($id)) abort(404);
+        $storage->updatePracticeQA($id, $validated);
+        $storage->save();
+
+        return back()->with('toast', __('Pertanyaan diperbarui.'));
+    }
+
+    public function destroyQA(string $id)
+    {
+        $storage = UserStorage::fromSession();
+        if (!$storage->findPracticeQA($id)) abort(404);
+        $storage->deletePracticeQA($id);
+        $storage->save();
+
+        return back()->with('toast', __('Pertanyaan dihapus.'));
     }
 
     /* ---- Templates ---- */

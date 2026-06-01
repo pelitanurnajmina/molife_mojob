@@ -15,21 +15,32 @@ class UserStorage
     public function __construct(array $data = [])
     {
         $this->data = array_merge([
-            'sholat'       => [],
-            'gym'          => [],
-            'run'          => [],
-            'intimacy'     => [],
-            'todos'        => ['daily' => [], 'weekly' => []],
-            'notes'        => [],
-            'reflections'  => [],
-            'goals'        => [],
-            'reminders'    => [],
-            'applications' => [],
-            'interviews'   => [],
-            'links'        => [],
-            'files'        => [],
-            'templates'    => [],
-            'features'     => [],
+            'profile'       => [],
+            'finance'       => ['transactions' => [], 'budgets' => [], 'savings_goals' => []],
+            'sholat'        => [],
+            'spiritual'     => [],
+            'gym'           => [],
+            'run'           => [],
+            'cycling'       => [],
+            'swimming'      => [],
+            'racket'        => [],
+            'custom_sport'  => [],
+            'intimacy'      => [],
+            'todos'         => ['daily' => [], 'weekly' => []],
+            'notes'         => [],
+            'reflections'   => [],
+            'goals'         => [],
+            'reminders'     => [],
+            'applications'  => [],
+            'interviews'    => [],
+            'links'         => [],
+            'files'         => [],
+            'templates'     => [],
+            'features'      => [],
+            'moods'         => [],
+            'career_goals'  => [],
+            'practice_qa'   => [],
+            'contacts'      => [],
         ], $data);
 
         if (!isset($this->data['todos']['daily']))  $this->data['todos']['daily']  = [];
@@ -40,6 +51,10 @@ class UserStorage
         if (!isset($this->data['links']))           $this->data['links']           = [];
         if (!isset($this->data['files']))           $this->data['files']           = [];
         if (!isset($this->data['templates']))       $this->data['templates']       = [];
+        if (!isset($this->data['moods']))           $this->data['moods']           = [];
+        if (!isset($this->data['career_goals']))    $this->data['career_goals']    = [];
+        if (!isset($this->data['practice_qa']))     $this->data['practice_qa']     = [];
+        if (!isset($this->data['contacts']))        $this->data['contacts']        = [];
     }
 
     public static function fromSession(): self
@@ -323,14 +338,24 @@ class UserStorage
 
     /* ---- Todos ---- */
 
-    public function addDailyTodo(string $date, string $text): void
+    public function addDailyTodo(string $date, string $text, string $priority = 'medium'): void
     {
-        $this->data['todos']['daily'][$date][] = ['id' => uniqid('todo_'), 'text' => $text, 'done' => false];
+        $this->data['todos']['daily'][$date][] = [
+            'id'       => uniqid('todo_'),
+            'text'     => $text,
+            'done'     => false,
+            'priority' => in_array($priority, ['high', 'medium', 'low']) ? $priority : 'medium',
+        ];
     }
 
-    public function addWeeklyTodo(string $weekKey, string $text): void
+    public function addWeeklyTodo(string $weekKey, string $text, string $priority = 'medium'): void
     {
-        $this->data['todos']['weekly'][$weekKey][] = ['id' => uniqid('todo_'), 'text' => $text, 'done' => false];
+        $this->data['todos']['weekly'][$weekKey][] = [
+            'id'       => uniqid('todo_'),
+            'text'     => $text,
+            'done'     => false,
+            'priority' => in_array($priority, ['high', 'medium', 'low']) ? $priority : 'medium',
+        ];
     }
 
     public function toggleDailyTodo(string $date, string $id): void
@@ -456,11 +481,17 @@ class UserStorage
             $d->modify("-$i days");
             $ds    = $d->format('Y-m-d');
             $out[] = [
-                'date'     => $ds,
-                'sholat'   => $this->getSholatStats($ds),
-                'gym'      => $this->getGym($ds),
-                'run'      => $this->getRun($ds),
-                'intimacy' => $this->getIntimacy($ds),
+                'date'      => $ds,
+                'sholat'    => $this->getSholatStats($ds),
+                'spiritual' => $this->getSpiritualDay($ds),
+                'gym'       => $this->getGym($ds),
+                'run'       => $this->getRun($ds),
+                'cycling'   => $this->getCycling($ds),
+                'swimming'  => $this->getSwimming($ds),
+                'racket'    => $this->getRacket($ds),
+                'custom'    => $this->getCustomSport($ds),
+                'intimacy'  => $this->getIntimacy($ds),
+                'mood'      => $this->getMood($ds),
             ];
         }
         return $out;
@@ -742,28 +773,675 @@ class UserStorage
         return null;
     }
 
+    /* ---- Career Goals ---- */
+
+    public function getCareerGoals(): array
+    {
+        return array_merge([
+            'target_role'    => '',
+            'target_company' => '',
+            'target_salary'  => '',
+            'target_date'    => '',
+            'notes'          => '',
+            'skills'         => [],
+        ], $this->data['career_goals'] ?? []);
+    }
+
+    public function updateCareerGoals(array $data): void
+    {
+        $this->data['career_goals'] = array_merge($this->getCareerGoals(), $data);
+    }
+
+    /* ---- Practice Q&A ---- */
+
+    public function getPracticeQA(): array { return $this->data['practice_qa'] ?? []; }
+
+    public function addPracticeQA(array $data): string
+    {
+        $id = uniqid('qa_');
+        $this->data['practice_qa'][] = array_merge([
+            'id'             => $id,
+            'question'       => '',
+            'answer'         => '',
+            'category'       => 'general',
+            'confidence'     => 3,
+            'star_situation' => '',
+            'star_task'      => '',
+            'star_action'    => '',
+            'star_result'    => '',
+            'created_at'     => date('Y-m-d H:i:s'),
+            'updated_at'     => date('Y-m-d H:i:s'),
+        ], $data, ['id' => $id]);
+        return $id;
+    }
+
+    public function updatePracticeQA(string $id, array $data): void
+    {
+        foreach ($this->data['practice_qa'] as &$qa) {
+            if ($qa['id'] === $id) {
+                $qa = array_merge($qa, $data, ['id' => $id, 'updated_at' => date('Y-m-d H:i:s')]);
+                break;
+            }
+        }
+        unset($qa);
+    }
+
+    public function deletePracticeQA(string $id): void
+    {
+        $this->data['practice_qa'] = array_values(
+            array_filter($this->data['practice_qa'] ?? [], fn($q) => $q['id'] !== $id)
+        );
+    }
+
+    public function findPracticeQA(string $id): ?array
+    {
+        foreach ($this->data['practice_qa'] ?? [] as $qa) {
+            if ($qa['id'] === $id) return $qa;
+        }
+        return null;
+    }
+
+    /* ---- Networking Contacts ---- */
+
+    public function getContacts(): array { return $this->data['contacts'] ?? []; }
+
+    public function addContact(array $data): string
+    {
+        $id = uniqid('cnt_');
+        $this->data['contacts'][] = array_merge([
+            'id'           => $id,
+            'name'         => '',
+            'company'      => '',
+            'role'         => '',
+            'channel'      => 'linkedin',
+            'notes'        => '',
+            'connected_at' => date('Y-m-d'),
+            'created_at'   => date('Y-m-d H:i:s'),
+        ], $data, ['id' => $id]);
+        return $id;
+    }
+
+    public function deleteContact(string $id): void
+    {
+        $this->data['contacts'] = array_values(
+            array_filter($this->data['contacts'] ?? [], fn($c) => $c['id'] !== $id)
+        );
+    }
+
+    public function findContact(string $id): ?array
+    {
+        foreach ($this->data['contacts'] ?? [] as $c) {
+            if ($c['id'] === $id) return $c;
+        }
+        return null;
+    }
+
+    /* ---- Mood / Mental ---- */
+
+    public function saveMood(string $date, int $score, int $energy, string $note = ''): void
+    {
+        $this->data['moods'][$date] = [
+            'score'  => max(1, min(5, $score)),
+            'energy' => max(1, min(5, $energy)),
+            'note'   => $note,
+            'time'   => date('H:i'),
+        ];
+    }
+
+    public function getMood(string $date): array
+    {
+        return $this->data['moods'][$date] ?? ['score' => 0, 'energy' => 0, 'note' => ''];
+    }
+
+    public function getMoodHistory(int $days = 30): array
+    {
+        $out = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d  = new \DateTime();
+            $d->modify("-$i days");
+            $ds   = $d->format('Y-m-d');
+            $mood = $this->getMood($ds);
+            $out[] = [
+                'date'   => $ds,
+                'score'  => $mood['score'],
+                'energy' => $mood['energy'],
+                'note'   => $mood['note'],
+            ];
+        }
+        return $out;
+    }
+
+    public function getMoodAvg(int $days = 7): float
+    {
+        $scores = [];
+        for ($i = 0; $i < $days; $i++) {
+            $d = new \DateTime();
+            $d->modify("-$i days");
+            $m = $this->getMood($d->format('Y-m-d'));
+            if ($m['score'] > 0) $scores[] = $m['score'];
+        }
+        return empty($scores) ? 0.0 : round(array_sum($scores) / count($scores), 1);
+    }
+
+    public function getEnergyAvg(int $days = 7): float
+    {
+        $scores = [];
+        for ($i = 0; $i < $days; $i++) {
+            $d = new \DateTime();
+            $d->modify("-$i days");
+            $m = $this->getMood($d->format('Y-m-d'));
+            if ($m['energy'] > 0) $scores[] = $m['energy'];
+        }
+        return empty($scores) ? 0.0 : round(array_sum($scores) / count($scores), 1);
+    }
+
+    public function getLifeScore(string $date = ''): array
+    {
+        if (!$date) $date = date('Y-m-d');
+
+        // Spiritual (25%): sholat wajib completed
+        $sholatStats = $this->getSholatStats($date);
+        $spiritual   = min(100, ($sholatStats['wajib'] / 5) * 100);
+
+        // Health (25%): gym + run, 50 pts each
+        $gymDone = $this->getGym($date)['done'] ? 50 : 0;
+        $runDone = $this->getRun($date)['done'] ? 50 : 0;
+        $health  = min(100, $gymDone + $runDone);
+
+        // Mental (25%): mood score /5 * 100
+        $mood   = $this->getMood($date);
+        $mental = $mood['score'] > 0 ? ($mood['score'] / 5) * 100 : 0;
+
+        // Productivity (25%): tasks done / total
+        $todos       = $this->getDailyTodos($date);
+        $total       = count($todos);
+        $done        = count(array_filter($todos, fn($t) => $t['done']));
+        $productivity = $total > 0 ? ($done / $total) * 100 : 0;
+
+        // Overall: average of what's been logged
+        $parts = [$spiritual, $health];
+        if ($mood['score'] > 0) $parts[] = $mental;
+        if ($total > 0)         $parts[] = $productivity;
+        $overall = empty($parts) ? 0 : round(array_sum($parts) / count($parts));
+
+        return [
+            'overall'      => $overall,
+            'spiritual'    => round($spiritual),
+            'health'       => round($health),
+            'mental'       => round($mental),
+            'productivity' => round($productivity),
+            'hasMood'      => $mood['score'] > 0,
+            'hasTasks'     => $total > 0,
+        ];
+    }
+
+    public function getInsights(): array
+    {
+        $insights = [];
+        $today    = date('Y-m-d');
+
+        // Sholat streak
+        $streak = $this->getSholatStreak();
+        if ($streak >= 7) {
+            $insights[] = ['type' => 'success', 'icon' => 'streak', 'text' => "Streak sholat {$streak} hari berturut-turut! Luar biasa."];
+        } elseif ($streak >= 3) {
+            $insights[] = ['type' => 'info', 'icon' => 'prayer', 'text' => "Streak sholat {$streak} hari. Terus jaga!"];
+        } elseif ($streak === 0) {
+            $insights[] = ['type' => 'warning', 'icon' => 'warning', 'text' => 'Sholat kemarin belum lengkap. Mulai lagi hari ini!'];
+        }
+
+        // Gym
+        $gymMonthly = $this->getGymMonthlyCount();
+        if ($gymMonthly >= 16) {
+            $insights[] = ['type' => 'success', 'icon' => 'gym', 'text' => "{$gymMonthly}× gym bulan ini. Target on track!"];
+        } elseif ($gymMonthly >= 8) {
+            $insights[] = ['type' => 'info', 'icon' => 'gym', 'text' => "{$gymMonthly}× gym bulan ini. Tambah frekuensi agar capai target!"];
+        }
+
+        // Run
+        $runMonthly = $this->getRunMonthlyCount();
+        $runDist    = $this->getRunMonthlyDistance();
+        if ($runDist >= 1) {
+            $insights[] = ['type' => 'info', 'icon' => 'run', 'text' => number_format($runDist, 1) . " km total lari bulan ini ({$runMonthly} sesi)."];
+        }
+
+        // Mood trend
+        $moodAvg = $this->getMoodAvg(7);
+        if ($moodAvg >= 4) {
+            $insights[] = ['type' => 'success', 'icon' => 'mood-good', 'text' => "Rata-rata mood 7 hari: {$moodAvg}/5. Kondisi mental sangat baik!"];
+        } elseif ($moodAvg > 0 && $moodAvg < 3) {
+            $insights[] = ['type' => 'warning', 'icon' => 'mood-bad', 'text' => "Mood rata-rata minggu ini {$moodAvg}/5. Perlu lebih banyak self-care."];
+        } elseif ($moodAvg > 0) {
+            $insights[] = ['type' => 'info', 'icon' => 'mood-ok', 'text' => "Rata-rata mood 7 hari: {$moodAvg}/5."];
+        }
+
+        // Productivity — today's tasks
+        $dailyTodos = $this->getDailyTodos($today);
+        if (count($dailyTodos) > 0) {
+            $doneTasks  = count(array_filter($dailyTodos, fn($t) => $t['done']));
+            $totalTasks = count($dailyTodos);
+            if ($doneTasks === $totalTasks) {
+                $insights[] = ['type' => 'success', 'icon' => 'tasks-done', 'text' => "Semua {$totalTasks} task harian selesai hari ini!"];
+            } else {
+                $insights[] = ['type' => 'info', 'icon' => 'tasks', 'text' => "{$doneTasks}/{$totalTasks} task harian selesai hari ini."];
+            }
+        }
+
+        // Career
+        $counts = $this->getApplicationCounts();
+        $active = ($counts['applied'] ?? 0) + ($counts['review'] ?? 0) + ($counts['interview'] ?? 0);
+        if ($active > 0) {
+            $insights[] = ['type' => 'info', 'icon' => 'career', 'text' => "{$active} lamaran aktif sedang menunggu respon."];
+        }
+        if (($counts['interview'] ?? 0) > 0) {
+            $insights[] = ['type' => 'success', 'icon' => 'interview', 'text' => ($counts['interview']) . " lamaran sudah sampai tahap interview!"];
+        }
+
+        if (empty($insights)) {
+            $insights[] = ['type' => 'info', 'icon' => 'intro', 'text' => 'Mulai tracking aktivitasmu untuk mendapatkan insight personal.'];
+        }
+
+        return $insights;
+    }
+
     /* ---- Feature Visibility ---- */
+
+    /* ---- Finance ---- */
+
+    public function addTransaction(array $tx): void
+    {
+        if (!isset($this->data['finance']['transactions'])) $this->data['finance']['transactions'] = [];
+        $this->data['finance']['transactions'][] = $tx;
+    }
+
+    public function getTransactions(?string $monthKey = null): array
+    {
+        $txs = $this->data['finance']['transactions'] ?? [];
+        if ($monthKey) {
+            $txs = array_values(array_filter($txs, fn($t) => str_starts_with($t['date'] ?? '', $monthKey)));
+        }
+        usort($txs, fn($a, $b) => ($b['date'] ?? '') <=> ($a['date'] ?? ''));
+        return $txs;
+    }
+
+    public function updateTransaction(string $id, array $data): void
+    {
+        foreach ($this->data['finance']['transactions'] ?? [] as &$tx) {
+            if (($tx['id'] ?? '') === $id) { $tx = array_merge($tx, $data); break; }
+        }
+    }
+
+    public function deleteTransaction(string $id): void
+    {
+        $this->data['finance']['transactions'] = array_values(
+            array_filter($this->data['finance']['transactions'] ?? [], fn($t) => ($t['id'] ?? '') !== $id)
+        );
+    }
+
+    public function getFinanceSummary(string $monthKey): array
+    {
+        $txs     = $this->getTransactions($monthKey);
+        $income  = array_sum(array_map(fn($t) => $t['amount'] ?? 0, array_filter($txs, fn($t) => $t['type'] === 'income')));
+        $expense = array_sum(array_map(fn($t) => $t['amount'] ?? 0, array_filter($txs, fn($t) => $t['type'] === 'expense')));
+        return ['income' => $income, 'expense' => $expense, 'balance' => $income - $expense];
+    }
+
+    public function getSpentByCategory(string $monthKey): array
+    {
+        $result = [];
+        foreach ($this->getTransactions($monthKey) as $tx) {
+            if ($tx['type'] === 'expense') {
+                $result[$tx['category']] = ($result[$tx['category']] ?? 0) + ($tx['amount'] ?? 0);
+            }
+        }
+        return $result;
+    }
+
+    public function getBudget(string $monthKey): array  { return $this->data['finance']['budgets'][$monthKey] ?? []; }
+
+    public function setBudget(string $monthKey, string $cat, int $amount): void
+    {
+        $this->data['finance']['budgets'][$monthKey][$cat] = $amount;
+    }
+
+    public function getSavingsGoals(): array { return array_values($this->data['finance']['savings_goals'] ?? []); }
+
+    public function saveSavingsGoal(array $goal): void
+    {
+        $goals = $this->data['finance']['savings_goals'] ?? [];
+        $found = false;
+        foreach ($goals as &$g) {
+            if (($g['id'] ?? '') === $goal['id']) { $g = $goal; $found = true; break; }
+        }
+        if (!$found) $goals[] = $goal;
+        $this->data['finance']['savings_goals'] = $goals;
+    }
+
+    public function deleteSavingsGoal(string $id): void
+    {
+        $this->data['finance']['savings_goals'] = array_values(
+            array_filter($this->data['finance']['savings_goals'] ?? [], fn($g) => ($g['id'] ?? '') !== $id)
+        );
+    }
+
+    /* ---- Profile ---- */
+
+    public function getProfile(): array
+    {
+        return array_merge([
+            'setup_done'   => false,
+            'display_name' => '',
+            'religion'     => '',
+            'sports'       => [],
+            'custom_sport_name' => '',
+        ], $this->data['profile'] ?? []);
+    }
+
+    public function updateProfile(array $data): void
+    {
+        $this->data['profile'] = array_merge($this->getProfile(), $data);
+    }
+
+    /* ---- Subscription Plan ---- */
+
+    public function getPlan(): string
+    {
+        return $this->data['profile']['plan'] ?? 'freemium';
+    }
+
+    public function isFreemium(): bool { return $this->getPlan() === 'freemium'; }
+    public function isPlus(): bool     { return $this->getPlan() === 'plus'; }
+    public function isPro(): bool      { return $this->getPlan() === 'pro'; }
+    public function hasPaidPlan(): bool { return in_array($this->getPlan(), ['plus','pro']); }
+
+    /** Limits per plan */
+    public const LAMARAN_LIMIT_FREEMIUM      = 10;
+    public const FINANCE_DAYS_LIMIT_FREEMIUM = 7;
+
+    public function getLamaranLimit(): ?int
+    {
+        return $this->isFreemium() ? self::LAMARAN_LIMIT_FREEMIUM : null;
+    }
+
+    public function getFinanceDaysLimit(): ?int
+    {
+        return $this->isFreemium() ? self::FINANCE_DAYS_LIMIT_FREEMIUM : null;
+    }
+
+    public function isAtLamaranLimit(): bool
+    {
+        $limit = $this->getLamaranLimit();
+        if ($limit === null) return false;
+        return count($this->data['applications'] ?? []) >= $limit;
+    }
+
+    /**
+     * Auto-generate contextual notifications based on user state.
+     * Returns array of ['id', 'type', 'icon', 'title', 'message', 'link', 'time']
+     * Newest first.
+     */
+    public function getNotifications(): array
+    {
+        $today      = date('Y-m-d');
+        $features   = $this->getFeatures();
+        $notifs     = [];
+
+        /* Plan: at lamaran limit */
+        if ($this->isAtLamaranLimit()) {
+            $notifs[] = [
+                'id'      => 'plan.lamaran_limit',
+                'type'    => 'warning',
+                'icon'    => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
+                'title'   => __('Batas lamaran tercapai'),
+                'message' => __('Kamu sudah mencapai batas 10 lamaran. Upgrade ke Plus untuk tanpa batas.'),
+                'link'    => route('settings.langganan'),
+                'time'    => __('Sekarang'),
+            ];
+        }
+
+        /* Sholat: not done today (Islam users only) */
+        if (($features['sholat'] ?? false) && (int) date('G') >= 12) {
+            $today_stats = $this->getSholatStats($today);
+            if ($today_stats['wajib'] < 5) {
+                $notifs[] = [
+                    'id'      => 'sholat.incomplete',
+                    'type'    => 'info',
+                    'icon'    => 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+                    'title'   => __('Sholat hari ini: :n/5', ['n' => $today_stats['wajib']]),
+                    'message' => __('Masih ada waktu untuk melengkapi sholat hari ini.'),
+                    'link'    => route('sholat'),
+                    'time'    => __('Hari ini'),
+                ];
+            }
+        }
+
+        /* Streak milestone */
+        $streak = $this->getSholatStreak();
+        if (in_array($streak, [3, 7, 14, 30, 60, 100])) {
+            $notifs[] = [
+                'id'      => 'streak.milestone.' . $streak,
+                'type'    => 'success',
+                'icon'    => 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z',
+                'title'   => __(':n hari streak! 🔥', ['n' => $streak]),
+                'message' => __('Pertahankan konsistensimu, kamu sedang dalam ritme yang bagus.'),
+                'link'    => route('statistik'),
+                'time'    => __('Hari ini'),
+            ];
+        }
+
+        /* Finance: budget warning (≥90%) */
+        if ($features['finance'] ?? false) {
+            $monthKey = date('Y-m');
+            $budget   = $this->getBudget($monthKey);
+            $spent    = $this->getSpentByCategory($monthKey);
+            foreach ($budget as $cat => $limit) {
+                if ($limit <= 0) continue;
+                $usedPct = ($spent[$cat] ?? 0) / $limit * 100;
+                if ($usedPct >= 90) {
+                    $notifs[] = [
+                        'id'      => 'budget.warning.' . $cat,
+                        'type'    => 'warning',
+                        'icon'    => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+                        'title'   => __('Anggaran :cat hampir habis', ['cat' => $cat]),
+                        'message' => __(':p% sudah terpakai bulan ini.', ['p' => (int) $usedPct]),
+                        'link'    => route('finance.anggaran'),
+                        'time'    => __('Bulan ini'),
+                    ];
+                    if (count($notifs) >= 8) break; // cap
+                }
+            }
+        }
+
+        /* Interview reminder: today or tomorrow */
+        if ($features['lamaran'] ?? false) {
+            foreach ($this->data['applications'] ?? [] as $app) {
+                if (($app['status'] ?? '') !== 'interview') continue;
+                $intDate = $app['interview_date'] ?? null;
+                if (!$intDate) continue;
+                if ($intDate === $today) {
+                    $notifs[] = [
+                        'id'      => 'interview.today.' . ($app['id'] ?? ''),
+                        'type'    => 'info',
+                        'icon'    => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
+                        'title'   => __('Interview hari ini'),
+                        'message' => ($app['company'] ?? '?') . ' — ' . ($app['position'] ?? '?'),
+                        'link'    => route('lamaran.index'),
+                        'time'    => __('Hari ini'),
+                    ];
+                } elseif ($intDate === date('Y-m-d', strtotime('+1 day'))) {
+                    $notifs[] = [
+                        'id'      => 'interview.tomorrow.' . ($app['id'] ?? ''),
+                        'type'    => 'info',
+                        'icon'    => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+                        'title'   => __('Interview besok'),
+                        'message' => ($app['company'] ?? '?') . ' — ' . ($app['position'] ?? '?'),
+                        'link'    => route('lamaran.index'),
+                        'time'    => __('Besok'),
+                    ];
+                }
+            }
+        }
+
+        /* Mood: not logged today */
+        if (($features['mental'] ?? false) && (int) date('G') >= 18) {
+            $mood = $this->getMood($today);
+            if (($mood['score'] ?? 0) === 0) {
+                $notifs[] = [
+                    'id'      => 'mood.unlogged',
+                    'type'    => 'info',
+                    'icon'    => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                    'title'   => __('Catat mood hari ini'),
+                    'message' => __('Refleksikan perasaanmu sebelum hari berakhir.'),
+                    'link'    => route('mental'),
+                    'time'    => __('Hari ini'),
+                ];
+            }
+        }
+
+        return $notifs;
+    }
+
+    /* ---- Spiritual (non-Islam) ---- */
+
+    public function getSpiritualDay(string $date): array
+    {
+        return $this->data['spiritual'][$date] ?? [];
+    }
+
+    public function toggleSpiritual(string $date, string $type): bool
+    {
+        $current = $this->data['spiritual'][$date][$type] ?? false;
+        $this->data['spiritual'][$date][$type] = !$current;
+        return !$current;
+    }
+
+    public function getSpiritualStreak(array $types): int
+    {
+        $streak = 0;
+        $d = new \DateTime('yesterday');
+        for ($i = 0; $i < 60; $i++) {
+            $day  = $this->getSpiritualDay($d->format('Y-m-d'));
+            $done = (bool) count(array_filter($types, fn($t) => !empty($day[$t])));
+            if (!$done) break;
+            $streak++;
+            $d->modify('-1 day');
+        }
+        return $streak;
+    }
+
+    /* ---- Cycling ---- */
+
+    public function getCycling(string $date): array
+    {
+        return array_merge(['done' => false, 'km' => 0, 'duration' => 0],
+            $this->data['cycling'][$date] ?? []);
+    }
+
+    public function saveCycling(string $date, float $km, int $duration): void
+    {
+        $this->data['cycling'][$date] = ['done' => true, 'km' => $km, 'duration' => $duration];
+    }
+
+    public function resetCycling(string $date): void
+    {
+        $this->data['cycling'][$date] = ['done' => false, 'km' => 0, 'duration' => 0];
+    }
+
+    public function getAllCycling(): array { return $this->data['cycling'] ?? []; }
+
+    /* ---- Swimming ---- */
+
+    public function getSwimming(string $date): array
+    {
+        return array_merge(['done' => false, 'laps' => 0, 'duration' => 0],
+            $this->data['swimming'][$date] ?? []);
+    }
+
+    public function saveSwimming(string $date, int $laps, int $duration): void
+    {
+        $this->data['swimming'][$date] = ['done' => true, 'laps' => $laps, 'duration' => $duration];
+    }
+
+    public function resetSwimming(string $date): void
+    {
+        $this->data['swimming'][$date] = ['done' => false, 'laps' => 0, 'duration' => 0];
+    }
+
+    public function getAllSwimming(): array { return $this->data['swimming'] ?? []; }
+
+    /* ---- Racket Sports (Tennis/Badminton) ---- */
+
+    public function getRacket(string $date): array
+    {
+        return array_merge(['done' => false, 'sets' => 0],
+            $this->data['racket'][$date] ?? []);
+    }
+
+    public function saveRacket(string $date, int $sets): void
+    {
+        $this->data['racket'][$date] = ['done' => true, 'sets' => $sets];
+    }
+
+    public function resetRacket(string $date): void
+    {
+        $this->data['racket'][$date] = ['done' => false, 'sets' => 0];
+    }
+
+    public function getAllRacket(): array { return $this->data['racket'] ?? []; }
+
+    /* ---- Custom Sport ---- */
+
+    public function getCustomSport(string $date): array
+    {
+        return array_merge(['done' => false, 'duration' => 0],
+            $this->data['custom_sport'][$date] ?? []);
+    }
+
+    public function saveCustomSport(string $date, int $duration): void
+    {
+        $this->data['custom_sport'][$date] = ['done' => true, 'duration' => $duration];
+    }
+
+    public function resetCustomSport(string $date): void
+    {
+        $this->data['custom_sport'][$date] = ['done' => false, 'duration' => 0];
+    }
+
+    /* ---- Features ---- */
 
     public function getFeatures(): array
     {
         $defaults = [
-            'sholat'    => true,
-            'gym'       => true,
-            'run'       => true,
-            'intimasi'  => true,
-            'tasks'     => true,
-            'statistik' => true,
-            'goals'     => true,
-            'lamaran'   => true,
-            'persiapan' => true,
+            'sholat'       => true,
+            'spiritual'    => false,
+            'gym'          => true,
+            'run'          => true,
+            'cycling'      => false,
+            'swimming'     => false,
+            'racket'       => false,
+            'custom_sport' => false,
+            'intimasi'     => true,
+            'tasks'        => true,
+            'statistik'    => true,
+            'goals'        => true,
+            'lamaran'      => true,
+            'persiapan'    => true,
+            'mental'       => true,
+            'insights'     => true,
+            'finance'      => true,
         ];
         return array_merge($defaults, $this->data['features'] ?? []);
     }
 
+    public function setFeature(string $key, bool $value): void
+    {
+        $this->data['features'][$key] = $value;
+    }
+
     public function toggleFeature(string $key): bool
     {
-        $features       = $this->getFeatures();
-        $new            = !($features[$key] ?? true);
+        $features                     = $this->getFeatures();
+        $new                          = !($features[$key] ?? true);
         $this->data['features'][$key] = $new;
         return $new;
     }

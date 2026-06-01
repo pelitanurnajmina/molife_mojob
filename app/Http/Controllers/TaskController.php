@@ -33,18 +33,24 @@ class TaskController extends Controller
 
     public function addDaily(Request $request)
     {
-        $request->validate(['text' => 'required|string|max:255']);
+        $request->validate([
+            'text'     => 'required|string|max:255',
+            'priority' => 'in:high,medium,low',
+        ]);
         $storage = UserStorage::fromSession();
-        $storage->addDailyTodo(date('Y-m-d'), $request->text);
+        $storage->addDailyTodo(date('Y-m-d'), $request->text, $request->priority ?? 'medium');
         $storage->save();
         return redirect()->back();
     }
 
     public function addWeekly(Request $request)
     {
-        $request->validate(['text' => 'required|string|max:255']);
+        $request->validate([
+            'text'     => 'required|string|max:255',
+            'priority' => 'in:high,medium,low',
+        ]);
         $storage = UserStorage::fromSession();
-        $storage->addWeeklyTodo(UserStorage::getWeekKey(), $request->text);
+        $storage->addWeeklyTodo(UserStorage::getWeekKey(), $request->text, $request->priority ?? 'medium');
         $storage->save();
         return redirect()->back();
     }

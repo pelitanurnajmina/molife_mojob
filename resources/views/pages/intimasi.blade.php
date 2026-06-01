@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title', 'Intimasi')
+@section('title', __('Intimasi'))
 @section('page-title', 'Intimacy Tracking')
-@section('breadcrumb', 'Intimasi')
+@section('breadcrumb', __('Intimasi'))
 
 @section('content')
 <div class="space-y-4 md:space-y-6">
@@ -9,20 +9,26 @@
 
         {{-- Tracking --}}
         <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-            <h3 class="text-base md:text-lg font-bold mb-4 md:mb-6">Tracking Intimasi</h3>
+            <h3 class="text-base md:text-lg font-bold mb-4 md:mb-6">{{ __('Tracking Intimasi') }}</h3>
             <div class="space-y-4 md:space-y-6">
                 <div>
-                    <label class="text-xs font-bold text-gray-400 block mb-2 uppercase">Pilih Tanggal</label>
-                    <form method="GET" action="{{ route('intimasi') }}">
-                        <input type="date" name="date" value="{{ $date }}" max="{{ $today }}"
-                            onchange="this.form.submit()"
-                            class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:border-pink-400 transition-all">
+                    <label class="text-xs font-bold text-gray-400 block mb-2 uppercase">{{ __('Pilih Tanggal') }}</label>
+                    <style>#intimasiDateInput::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer;position:absolute;right:0;top:0;width:2.5rem;height:100%}</style>
+                    <form method="GET" action="{{ route('intimasi') }}" style="display:inline-flex">
+                        <div class="relative">
+                            <input id="intimasiDateInput" type="date" name="date" value="{{ $date }}" max="{{ $today }}"
+                                onchange="this.form.submit()"
+                                class="px-3 py-2 pr-9 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:border-pink-400 transition-all">
+                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
                     </form>
                 </div>
 
                 <div class="text-center p-6 md:p-8 bg-pink-50 rounded-2xl md:rounded-3xl">
                     <p class="text-xs md:text-sm font-bold text-pink-700 mb-3 md:mb-4">
-                        @if($date === $today) Jumlah Hari Ini
+                        @if($date === $today) {{ __('Jumlah Hari Ini') }}
                         @else {{ (new DateTime($date))->format('j F') }} @endif
                     </p>
                     <div class="text-5xl md:text-6xl font-bold mb-4 md:mb-6">{{ $count }}</div>
@@ -44,26 +50,27 @@
 
                 <div class="p-4 md:p-6 bg-gray-50 rounded-2xl">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs md:text-sm font-bold">Bulan Ini (Total)</span>
+                        <span class="text-xs md:text-sm font-bold">{{ __('Bulan Ini (Total)') }}</span>
                         <span class="text-xl md:text-2xl font-bold">{{ $monthlyCount }}x</span>
                     </div>
                     <div class="w-full bg-white h-2 rounded-full">
                         <div class="bg-pink-500 h-2 rounded-full transition-all" style="width:{{ min(($monthlyCount/20)*100,100) }}%"></div>
                     </div>
-                    <p class="text-[10px] text-gray-500 mt-2">Hari ini: {{ $todayCount }}x</p>
+                    <p class="text-[10px] text-gray-500 mt-2">{{ __('Hari ini:') }} {{ $todayCount }}x</p>
                 </div>
             </div>
         </div>
 
         {{-- Calendar --}}
         <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-            <h3 class="text-base md:text-lg font-bold mb-4 md:mb-6">Kalender Bulan Ini</h3>
+            <h3 class="text-base md:text-lg font-bold mb-4 md:mb-6">{{ __('Kalender Bulan Ini') }}</h3>
             @php
                 $firstDow = (new DateTime($monthDates[0]))->format('N');
                 $offset   = $firstDow - 1;
+                $dayHeaders = [__('Sen'),__('Sel'),__('Rab'),__('Kam'),__('Jum'),__('Sab'),__('Min')];
             @endphp
             <div class="grid grid-cols-7 gap-1.5 md:gap-2 mb-4 md:mb-6">
-                @foreach(['Sen','Sel','Rab','Kam','Jum','Sab','Min'] as $d)
+                @foreach($dayHeaders as $d)
                 <div class="text-center text-[10px] font-bold text-gray-400 pb-1">{{ $d }}</div>
                 @endforeach
                 @for($i=0;$i<$offset;$i++)<div></div>@endfor
@@ -80,8 +87,8 @@
                 @endforeach
             </div>
             <div class="flex items-center gap-4 text-xs text-gray-500">
-                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-100 rounded"></div><span>Tidak ada</span></div>
-                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-pink-500 rounded"></div><span>Ada aktivitas</span></div>
+                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-100 rounded"></div><span>{{ __('Tidak ada') }}</span></div>
+                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-pink-500 rounded"></div><span>{{ __('Ada aktivitas') }}</span></div>
             </div>
         </div>
     </div>
