@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class SwimmingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $storage   = UserStorage::fromSession();
         $today     = date('Y-m-d');
@@ -25,8 +25,23 @@ class SwimmingController extends Controller
             if (($rec['laps'] ?? 0) > $bestLaps) $bestLaps = $rec['laps'];
         }
 
+        // ── Range filter ──
+        $range  = $request->query('range', 'month');
+        $months = UserStorage::rangeToMonths($range) ?? 1;
+        $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        $result = UserStorage::buildStripRows($months, function ($d) use ($storage, $monthShort) {
+            $rec  = $storage->getSwimming($d);
+            $done = !empty($rec['done']);
+            $laps = $rec['laps'] ?? 0;
+            $dt   = new \DateTime($d);
+            return ['active' => $done, 'value' => $done ? 1 : 0,
+                    'title' => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($done ? $laps.' lap' : 'Rest')];
+        });
+        $stripRows = $result['rows']; $rangeActive = $result['activeDays']; $rangeTitle = $result['title'];
+
         return view('pages.sports.swimming', compact(
-            'today', 'todayData', 'weekDates', 'weekData', 'weekDone', 'bestLaps'
+            'today', 'todayData', 'weekDates', 'weekData', 'weekDone', 'bestLaps',
+            'range', 'stripRows', 'rangeActive', 'rangeTitle'
         ));
     }
 

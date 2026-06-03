@@ -51,6 +51,7 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::get('/today', fn() => redirect()->route('dashboard'))->name('today');
     Route::get('/mental', [MentalController::class, 'index'])->name('mental');
     Route::post('/mental/mood', [MentalController::class, 'storeMood'])->name('mental.mood');
+    Route::delete('/mental/reflection', [MentalController::class, 'deleteReflection'])->name('mental.reflection.delete');
     Route::get('/insights', [InsightsController::class, 'index'])->name('insights');
 
     // Spiritual (Islam)
@@ -141,6 +142,8 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::get('/settings/profil',      [SettingsController::class, 'profil'])->name('settings.profil');
     Route::get('/settings/tampilan',    [SettingsController::class, 'tampilan'])->name('settings.tampilan');
     Route::get('/settings/langganan',   [SettingsController::class, 'langganan'])->name('settings.langganan');
+    Route::get('/settings/referral',    [SettingsController::class, 'referral'])->name('settings.referral');
+    Route::post('/settings/referral/payout', [SettingsController::class, 'requestPayout'])->name('settings.referral.payout');
     // Settings — POST actions
     Route::post('/settings/profile',        [SettingsController::class, 'updateProfile'])->name('settings.profile');
     Route::post('/settings/password',       [SettingsController::class, 'updatePassword'])->name('settings.password');

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('title', __('Keuangan'))
 @section('page-title', __('Keuangan'))
 @section('breadcrumb', __('Finance › Overview'))
@@ -69,7 +69,7 @@
         <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-bold text-sm">{{ __('Anggaran Bulan Ini') }}</h3>
-                <a href="{{ route('finance.anggaran') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Kelola') }} →</a>
+                <a href="{{ route('finance.anggaran') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Kelola') }}</a>
             </div>
             @if(empty($budget))
             <div class="text-center py-6">
@@ -98,7 +98,7 @@
         <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-bold text-sm">{{ __('Transaksi Terakhir') }}</h3>
-                <a href="{{ route('finance.transaksi') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Lihat semua') }} →</a>
+                <a href="{{ route('finance.transaksi') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Lihat semua') }}</a>
             </div>
             @if(empty($recentTxs))
             <div class="text-center py-6">
@@ -133,7 +133,7 @@
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold">{{ __('Tujuan Tabungan') }}</h3>
-            <a href="{{ route('finance.tabungan') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Kelola') }} →</a>
+            <a href="{{ route('finance.tabungan') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Kelola') }}</a>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             @foreach($savingsGoals as $goal)

@@ -222,6 +222,55 @@
         </div>
     </div>
 
+    {{-- Konsistensi: kalender / strip --}}
+    <div class="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border border-gray-50">
+        <div class="flex items-center justify-between mb-6 gap-3">
+            <h3 class="font-bold">{{ $months === null ? __('Kalender Lari Bulan Ini') : $rangeTitle }}</h3>
+            <x-range-filter :range="$range" route="run" />
+        </div>
+
+        @if($months === null)
+        {{-- ── Monthly calendar (default) ── --}}
+        @php
+            $dayHeaders = [__('Sen'),__('Sel'),__('Rab'),__('Kam'),__('Jum'),__('Sab'),__('Min')];
+            $firstDow = (new DateTime($monthDates[0]))->format('N');
+            $offset   = $firstDow - 1;
+        @endphp
+        <div class="grid grid-cols-7 gap-1.5 md:gap-2 mb-2">
+            @foreach($dayHeaders as $d)
+            <div class="text-center text-[10px] font-bold text-gray-400 pb-1">{{ $d }}</div>
+            @endforeach
+            @for($i = 0; $i < $offset; $i++)<div></div>@endfor
+            @foreach($monthDates as $md)
+            @php
+                $r = $runAll[$md] ?? [];
+                $ran = $r['done'] ?? false;
+                $km  = $r['distance'] ?? 0;
+                $day = (int)explode('-', $md)[2];
+                $isToday = $md === $today;
+            @endphp
+            <div class="aspect-square rounded-lg flex flex-col items-center justify-center text-xs font-bold transition-all {{ $ran ? 'bg-emerald-500 text-white' : 'bg-gray-100' }} {{ $isToday ? 'ring-2 ring-emerald-400 ring-offset-1' : '' }}"
+                 title="{{ $md }}: {{ $ran ? ($km > 0 ? $km.' km' : 'Lari') : 'Tidak lari' }}">
+                <span class="text-[10px]">{{ $day }}</span>
+                @if($ran && $km > 0)<span class="text-[8px] mt-0.5">{{ $km }}</span>@endif
+            </div>
+            @endforeach
+        </div>
+        <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
+            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-100 rounded"></div><span>{{ __('Tidak lari') }}</span></div>
+            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-emerald-500 rounded"></div><span>{{ __('Lari') }}</span></div>
+        </div>
+        @else
+        {{-- ── Multi-month strip ── --}}
+        <div class="mb-6">
+            <p class="text-2xl font-bold text-emerald-600">{{ $rangeActive }}</p>
+            <p class="text-[10px] text-gray-400 font-bold">{{ __('Total sesi lari') }}</p>
+        </div>
+        <x-activity-strip :rows="$stripRows" color="emerald"
+            :legendOff="__('Tidak lari')" :legendOn="__('Lari')" />
+        @endif
+    </div>
+
     {{-- Riwayat --}}
     @if(count($history) > 0)
     <div class="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border border-gray-50">

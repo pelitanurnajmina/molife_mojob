@@ -22,24 +22,21 @@ class MentalController extends Controller
 
         $daysLogged = count(array_filter($moodHistory, fn($d) => $d['score'] > 0));
 
-        // Reflection streak + history (last 7 days)
-        $reflectionStreak  = 0;
-        $reflectionHistory = [];
+        // Reflection streak (last 7 days)
+        $reflectionStreak = 0;
         for ($i = 1; $i <= 7; $i++) {
             $d = new \DateTime();
             $d->modify("-$i days");
-            $dateStr = $d->format('Y-m-d');
-            $r = $storage->getReflection($dateStr);
-            if (!empty($r['good']) || !empty($r['improve'])) {
-                $reflectionStreak++;
-                $reflectionHistory[] = [
-                    'date'    => $dateStr,
-                    'label'   => $d->format('l, j F Y'),
-                    'good'    => $r['good']    ?? '',
-                    'improve' => $r['improve'] ?? '',
-                ];
-            }
+            $r = $storage->getReflection($d->format('Y-m-d'));
+            if (!empty($r['good']) || !empty($r['improve'])) $reflectionStreak++;
         }
+
+        // Full reflection history (newest first), today included & flagged
+        $reflectionHistory = array_map(function ($entry) use ($today) {
+            $entry['label']   = (new \DateTime($entry['date']))->format('l, j F Y');
+            $entry['isToday'] = $entry['date'] === $today;
+            return $entry;
+        }, $storage->getAllReflections());
 
         return view('pages.mental', compact(
             'today', 'todayMood', 'moodHistory',
@@ -47,6 +44,15 @@ class MentalController extends Controller
             'todayReflection', 'todayNote', 'daysLogged',
             'reflectionStreak', 'reflectionHistory'
         ));
+    }
+
+    public function deleteReflection(Request $request)
+    {
+        $request->validate(['date' => 'required|date']);
+        $storage = UserStorage::fromSession();
+        $storage->deleteReflection($request->date);
+        $storage->save();
+        return redirect()->back()->with('toast', __('Refleksi dihapus.'));
     }
 
     public function storeMood(Request $request)

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class CustomSportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $storage   = UserStorage::fromSession();
         $profile   = $storage->getProfile();
@@ -26,8 +26,23 @@ class CustomSportController extends Controller
             if ($storage->getCustomSport($d)['done']) $monthTotal++;
         }
 
+        // ── Range filter ──
+        $range  = $request->query('range', 'month');
+        $months = UserStorage::rangeToMonths($range) ?? 1;
+        $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        $result = UserStorage::buildStripRows($months, function ($d) use ($storage, $monthShort) {
+            $rec  = $storage->getCustomSport($d);
+            $done = !empty($rec['done']);
+            $dur  = $rec['duration'] ?? 0;
+            $dt   = new \DateTime($d);
+            return ['active' => $done, 'value' => $done ? 1 : 0,
+                    'title' => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($done ? $dur.' mnt' : 'Rest')];
+        });
+        $stripRows = $result['rows']; $rangeActive = $result['activeDays']; $rangeTitle = $result['title'];
+
         return view('pages.sports.custom', compact(
-            'today', 'todayData', 'weekDates', 'weekData', 'weekDone', 'monthTotal', 'profile'
+            'today', 'todayData', 'weekDates', 'weekData', 'weekDone', 'monthTotal', 'profile',
+            'range', 'stripRows', 'rangeActive', 'rangeTitle'
         ));
     }
 

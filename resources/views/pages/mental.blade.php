@@ -202,12 +202,28 @@
             <button type="submit" class="w-full py-3 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
                 {{ __('Simpan Refleksi') }}
             </button>
+            <p class="text-[11px] text-gray-400 text-center mt-2.5 flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                {{ __('Tersimpan otomatis & bisa dilihat di riwayat bawah') }}
+            </p>
         </form>
 
         {{-- Riwayat Refleksi --}}
-        @if(count($reflectionHistory) > 0)
         <div class="mt-6 pt-6 border-t border-gray-100">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{{ __('Riwayat 7 Hari Terakhir') }}</p>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                {{ __('Riwayat Refleksi') }}
+                @if(count($reflectionHistory) > 0)<span class="text-gray-300">· {{ count($reflectionHistory) }}</span>@endif
+            </p>
+
+            @if(count($reflectionHistory) === 0)
+            <div class="text-center py-8">
+                <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <p class="text-sm font-medium text-gray-500">{{ __('Belum ada refleksi tersimpan') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Refleksi yang kamu simpan akan muncul di sini') }}</p>
+            </div>
+            @else
             <div class="space-y-3">
                 @foreach($reflectionHistory as $entry)
                 <div class="rounded-2xl border border-gray-100 bg-gray-50 overflow-hidden">
@@ -215,6 +231,19 @@
                     <div class="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-gray-100">
                         <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span class="text-xs font-bold text-gray-600">{{ $entry['label'] }}</span>
+                        @if($entry['isToday'] ?? false)
+                        <span class="text-[10px] font-bold bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full">{{ __('Hari Ini') }}</span>
+                        @endif
+                        <form method="POST" action="{{ route('mental.reflection.delete') }}" class="ml-auto flex items-center">
+                            @csrf @method('DELETE')
+                            <input type="hidden" name="date" value="{{ $entry['date'] }}">
+                            <button type="button"
+                                onclick="askDelete(this, '{{ __('Hapus refleksi tanggal ini?') }}')"
+                                class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                                title="{{ __('Hapus') }}">
+                                <svg class="w-3.5 h-3.5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </form>
                     </div>
                     {{-- Content --}}
                     <div class="p-4 space-y-3">
@@ -238,8 +267,8 @@
                 </div>
                 @endforeach
             </div>
+            @endif
         </div>
-        @endif
 
     </div>
 

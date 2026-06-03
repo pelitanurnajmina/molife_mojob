@@ -36,30 +36,28 @@
                     ($a['done'] <=> $b['done']) ?:
                     ($priOrder[$a['priority'] ?? 'medium'] <=> $priOrder[$b['priority'] ?? 'medium'])
                 );
-                $priDot   = ['high' => 'bg-red-500', 'medium' => 'bg-orange-400', 'low' => 'bg-gray-300'];
                 $priBadge = ['high' => 'bg-red-50 text-red-500 border border-red-200', 'medium' => 'bg-orange-50 text-orange-500 border border-orange-200', 'low' => 'bg-gray-100 text-gray-400 border border-gray-200'];
             @endphp
             <div class="space-y-2">
                 @forelse($dailyTodos as $todo)
                 @php $p = $todo['priority'] ?? 'medium'; @endphp
-                <div class="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">
-                    <form method="POST" action="{{ route('tasks.daily.toggle', $todo['id']) }}">
+                <div class="flex items-center gap-3 px-3 md:px-4 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">
+                    <form method="POST" action="{{ route('tasks.daily.toggle', $todo['id']) }}" class="flex items-center flex-shrink-0 m-0 leading-none">
                         @csrf
-                        <button type="submit" class="w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all {{ $todo['done'] ? 'bg-black border-black text-white' : 'border-gray-300 hover:border-black' }}">
+                        <button type="submit" class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all {{ $todo['done'] ? 'bg-black border-black text-white' : 'border-gray-300 hover:border-black' }}">
                             @if($todo['done'])<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>@endif
                         </button>
                     </form>
-                    <span class="w-2 h-2 rounded-full flex-shrink-0 {{ $priDot[$p] }} {{ $todo['done'] ? 'opacity-30' : '' }}"></span>
-                    <span class="flex-1 text-sm {{ $todo['done'] ? 'line-through text-gray-400' : '' }}">{{ $todo['text'] }}</span>
+                    <span class="flex-1 text-sm leading-none {{ $todo['done'] ? 'line-through text-gray-400' : '' }}">{{ $todo['text'] }}</span>
                     @if(!$todo['done'])
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 {{ $priBadge[$p] }}">
+                    <span class="text-[9px] font-bold px-2 py-1 rounded-full shrink-0 leading-none {{ $priBadge[$p] }}">
                         {{ $p === 'high' ? __('Tinggi') : ($p === 'low' ? __('Rendah') : __('Sedang')) }}
                     </span>
                     @endif
-                    <form method="POST" action="{{ route('tasks.daily.delete', $todo['id']) }}">
+                    <form method="POST" action="{{ route('tasks.daily.delete', $todo['id']) }}" class="flex items-center flex-shrink-0 m-0 leading-none">
                         @csrf @method('DELETE')
-                        <button type="button" onclick="askDelete(this, '{{ __('Hapus task ini?') }}')" class="text-gray-300 hover:text-red-400 transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" onclick="askDelete(this, '{{ __('Hapus task ini?') }}')" class="w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-400 hover:bg-gray-200 transition-all">
+                            <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </form>
                 </div>
@@ -112,24 +110,23 @@
             <div class="space-y-2">
                 @forelse($weeklyTodos as $todo)
                 @php $p = $todo['priority'] ?? 'medium'; @endphp
-                <div class="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">
-                    <form method="POST" action="{{ route('tasks.weekly.toggle', $todo['id']) }}">
+                <div class="flex items-center gap-3 px-3 md:px-4 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">
+                    <form method="POST" action="{{ route('tasks.weekly.toggle', $todo['id']) }}" class="flex items-center flex-shrink-0 m-0 leading-none">
                         @csrf
-                        <button type="submit" class="w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all {{ $todo['done'] ? 'bg-black border-black text-white' : 'border-gray-300 hover:border-black' }}">
+                        <button type="submit" class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all {{ $todo['done'] ? 'bg-black border-black text-white' : 'border-gray-300 hover:border-black' }}">
                             @if($todo['done'])<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>@endif
                         </button>
                     </form>
-                    <span class="w-2 h-2 rounded-full flex-shrink-0 {{ $priDot[$p] }} {{ $todo['done'] ? 'opacity-30' : '' }}"></span>
-                    <span class="flex-1 text-sm {{ $todo['done'] ? 'line-through text-gray-400' : '' }}">{{ $todo['text'] }}</span>
+                    <span class="flex-1 text-sm leading-none {{ $todo['done'] ? 'line-through text-gray-400' : '' }}">{{ $todo['text'] }}</span>
                     @if(!$todo['done'])
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 {{ $priBadge[$p] }}">
+                    <span class="text-[9px] font-bold px-2 py-1 rounded-full shrink-0 leading-none {{ $priBadge[$p] }}">
                         {{ $p === 'high' ? __('Tinggi') : ($p === 'low' ? __('Rendah') : __('Sedang')) }}
                     </span>
                     @endif
-                    <form method="POST" action="{{ route('tasks.weekly.delete', $todo['id']) }}">
+                    <form method="POST" action="{{ route('tasks.weekly.delete', $todo['id']) }}" class="flex items-center flex-shrink-0 m-0 leading-none">
                         @csrf @method('DELETE')
-                        <button type="button" onclick="askDelete(this, '{{ __('Hapus task ini?') }}')" class="text-gray-300 hover:text-red-400 transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" onclick="askDelete(this, '{{ __('Hapus task ini?') }}')" class="w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-400 hover:bg-gray-200 transition-all">
+                            <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </form>
                 </div>

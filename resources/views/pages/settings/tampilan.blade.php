@@ -39,12 +39,12 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     @foreach($religions as $rel)
                     <label class="flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all
-                        {{ $currentReligion === $rel['value'] ? 'border-orange-500 bg-orange-50/50' : 'border-gray-100 hover:border-gray-200' }}"
+                        {{ $currentReligion === $rel['value'] ? 'border-orange-100 bg-orange-50' : 'border-gray-100 hover:border-gray-200' }}"
                         id="relLabel_{{ $rel['value'] }}">
                         <input type="radio" name="religion" value="{{ $rel['value'] }}"
                             {{ $currentReligion === $rel['value'] ? 'checked' : '' }}
                             class="form-radio-orange mt-0.5"
-                            onchange="document.querySelectorAll('[id^=relLabel_]').forEach(function(l){ l.classList.remove('border-orange-500','bg-orange-50/50'); l.classList.add('border-gray-100'); }); this.closest('label').classList.add('border-orange-500','bg-orange-50/50'); this.closest('label').classList.remove('border-gray-100');">
+                            onchange="document.querySelectorAll('[id^=relLabel_]').forEach(function(l){ l.classList.remove('border-orange-100','bg-orange-50'); l.classList.add('border-gray-100'); }); this.closest('label').classList.add('border-orange-100','bg-orange-50'); this.closest('label').classList.remove('border-gray-100');">
                         <div>
                             <p class="font-bold text-xs text-gray-800">{{ $rel['label'] }}</p>
                             <p class="text-[10px] text-gray-400 leading-relaxed mt-0.5">{{ $rel['sub'] }}</p>
@@ -71,11 +71,11 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
                     @foreach($sportOptions as $sp)
                     @php $checked = in_array($sp['value'], $currentSports); @endphp
-                    <label class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all {{ $checked ? 'border-orange-500 bg-orange-50/50' : 'border-gray-100 hover:border-gray-200' }}"
+                    <label class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all {{ $checked ? 'border-orange-100 bg-orange-50' : 'border-gray-100 hover:border-gray-200' }}"
                         id="spLabel_{{ $sp['value'] }}">
                         <input type="checkbox" name="sports[]" value="{{ $sp['value'] }}" {{ $checked ? 'checked' : '' }}
                             class="form-check-orange"
-                            onchange="this.closest('label').classList.toggle('border-orange-500', this.checked); this.closest('label').classList.toggle('bg-orange-50/50', this.checked); this.closest('label').classList.toggle('border-gray-100', !this.checked)">
+                            onchange="this.closest('label').classList.toggle('border-orange-100', this.checked); this.closest('label').classList.toggle('bg-orange-50', this.checked); this.closest('label').classList.toggle('border-gray-100', !this.checked)">
                         <svg class="sport-icon w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $sp['icon'] }}"/>
                         </svg>

@@ -123,9 +123,15 @@ $days = [__('Min'),__('Sen'),__('Sel'),__('Rab'),__('Kam'),__('Jum'),__('Sab')];
         </div>
     </div>
 
-    {{-- Weekly activity --}}
+    {{-- Activity: weekly grid / multi-month strip --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-        <h3 class="font-bold mb-6">{{ __('Aktivitas Minggu Ini') }}</h3>
+        <div class="flex items-center justify-between mb-6 gap-3">
+            <h3 class="font-bold">{{ $months === null ? __('Aktivitas Minggu Ini') : $rangeTitle }}</h3>
+            <x-range-filter :range="$range" route="gym" />
+        </div>
+
+        @if($months === null)
+        {{-- ── Weekly grid (default) ── --}}
         <div class="grid grid-cols-7 gap-2">
             @foreach($weekDates as $wd)
             @php
@@ -147,6 +153,15 @@ $days = [__('Min'),__('Sen'),__('Sel'),__('Rab'),__('Kam'),__('Jum'),__('Sab')];
             </a>
             @endforeach
         </div>
+        @else
+        {{-- ── Multi-month strip ── --}}
+        <div class="mb-6">
+            <p class="text-2xl font-bold text-blue-600">{{ $rangeActive }}</p>
+            <p class="text-[10px] text-gray-400 font-bold">{{ __('Total sesi gym') }}</p>
+        </div>
+        <x-activity-strip :rows="$stripRows" color="blue"
+            :legendOff="__('Rest')" :legendOn="__('Gym')" />
+        @endif
     </div>
 </div>
 @endsection

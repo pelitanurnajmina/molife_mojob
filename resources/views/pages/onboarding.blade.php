@@ -28,19 +28,7 @@
 
     {{-- Logo --}}
     <div class="flex justify-center mb-8">
-        <svg class="h-10 w-auto" viewBox="0 0 260 85" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="mjGrad" x1="0" y1="1" x2="1" y2="0" gradientUnits="objectBoundingBox">
-                    <stop offset="0%" stop-color="#c94b00"/>
-                    <stop offset="50%" stop-color="#ef7015"/>
-                    <stop offset="100%" stop-color="#f9b418"/>
-                </linearGradient>
-            </defs>
-            <path d="M 8 58 C 3 74 22 83 48 74 C 64 68 75 55 70 46 C 65 37 50 44 36 54 C 22 64 10 62 8 58 Z" fill="url(#mjGrad)"/>
-            <ellipse cx="37" cy="25" rx="15" ry="23" transform="rotate(-10 37 25)" fill="#111111"/>
-            <ellipse cx="55" cy="56" rx="11" ry="16" transform="rotate(8 55 56)" fill="#111111"/>
-            <text x="90" y="60" font-family="'Plus Jakarta Sans','Arial Black',sans-serif" font-weight="800" font-size="50" fill="#111111">Mojob</text>
-        </svg>
+        <img src="{{ asset('images/logo.png') }}" class="h-12 w-auto" alt="Mojob">
     </div>
 
     {{-- Progress bar --}}
@@ -70,7 +58,7 @@
 
             <button type="button" onclick="goStep(2)"
                 class="w-full mt-6 py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
-                Lanjut →
+                Lanjut
             </button>
         </div>
 
@@ -110,10 +98,10 @@
             </div>
 
             <div class="flex gap-3 mt-6">
-                <button type="button" onclick="goStep(1)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">← Kembali</button>
+                <button type="button" onclick="goStep(1)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
                 <button type="button" onclick="goStep(3)" id="btnStep2Next" disabled
                     class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                    Lanjut →
+                    Lanjut
                 </button>
             </div>
         </div>
@@ -158,10 +146,10 @@
             </div>
 
             <div class="flex gap-3 mt-2">
-                <button type="button" onclick="goStep(2)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">← Kembali</button>
+                <button type="button" onclick="goStep(2)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
                 <button type="submit" id="btnFinish"
                     class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
-                    Mulai Sekarang →
+                    Mulai Sekarang
                 </button>
             </div>
             <p class="text-center text-xs text-gray-400 mt-3">Bisa diubah kapan saja di Pengaturan.</p>

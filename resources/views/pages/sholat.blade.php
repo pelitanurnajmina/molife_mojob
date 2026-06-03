@@ -148,9 +148,15 @@
         </div>
     </div>
 
-    {{-- Month calendar --}}
+    {{-- Calendar / Strip --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-        <h3 class="font-bold mb-6">{{ __('Kalender Sholat Bulan Ini') }}</h3>
+        <div class="flex items-center justify-between mb-6 gap-3">
+            <h3 class="font-bold">{{ $months === null ? __('Kalender Sholat Bulan Ini') : $rangeTitle }}</h3>
+            <x-range-filter :range="$range" route="sholat" />
+        </div>
+
+        @if($months === null)
+        {{-- ── Monthly calendar (default) ── --}}
         @php
             $firstDow = (new DateTime($monthDates[0]))->format('N');
             $offset   = $firstDow - 1;
@@ -181,6 +187,15 @@
             <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-400 rounded"></div><span>{{ __('Sebagian') }}</span></div>
             <div class="flex items-center gap-2"><div class="w-4 h-4 bg-green-500 rounded"></div><span>{{ __('Lengkap 5 Wajib') }}</span></div>
         </div>
+        @else
+        {{-- ── Multi-month strip ── --}}
+        <div class="mb-6">
+            <p class="text-2xl font-bold text-green-600">{{ $rangeActive }}</p>
+            <p class="text-[10px] text-gray-400 font-bold">{{ __('Hari lengkap (5 wajib)') }}</p>
+        </div>
+        <x-activity-strip :rows="$stripRows" color="green"
+            :legendOff="__('Belum lengkap')" :legendOn="__('5 wajib lengkap')" />
+        @endif
     </div>
 </div>
 @endsection

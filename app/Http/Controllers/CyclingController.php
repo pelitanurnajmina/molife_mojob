@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class CyclingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $storage   = UserStorage::fromSession();
         $today     = date('Y-m-d');
@@ -30,8 +30,23 @@ class CyclingController extends Controller
             if ($rec['km'] > $bestKm) $bestKm = $rec['km'];
         }
 
+        // ── Range filter ── (sports have no monthly calendar → "Bulan Ini" = 1-month strip)
+        $range  = $request->query('range', 'month');
+        $months = UserStorage::rangeToMonths($range) ?? 1;
+        $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        $result = UserStorage::buildStripRows($months, function ($d) use ($storage, $monthShort) {
+            $rec  = $storage->getCycling($d);
+            $done = !empty($rec['done']);
+            $km   = $rec['km'] ?? 0;
+            $dt   = new \DateTime($d);
+            return ['active' => $done, 'value' => $done ? 1 : 0,
+                    'title' => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($done ? $km.' km' : 'Rest')];
+        });
+        $stripRows = $result['rows']; $rangeActive = $result['activeDays']; $rangeTitle = $result['title'];
+
         return view('pages.sports.cycling', compact(
-            'today', 'todayData', 'weekDates', 'weekData', 'weekDone', 'weekKm', 'bestKm'
+            'today', 'todayData', 'weekDates', 'weekData', 'weekDone', 'weekKm', 'bestKm',
+            'range', 'stripRows', 'rangeActive', 'rangeTitle'
         ));
     }
 

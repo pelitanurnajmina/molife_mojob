@@ -408,6 +408,28 @@ class UserStorage
         return $this->data['reflections'][$date] ?? ['good' => '', 'improve' => ''];
     }
 
+    public function deleteReflection(string $date): void
+    {
+        unset($this->data['reflections'][$date]);
+    }
+
+    /**
+     * All reflections that have content, newest first.
+     * Returns [ ['date'=>, 'good'=>, 'improve'=>], ... ]
+     */
+    public function getAllReflections(): array
+    {
+        $out = [];
+        foreach ($this->data['reflections'] ?? [] as $date => $r) {
+            $good    = $r['good']    ?? '';
+            $improve = $r['improve'] ?? '';
+            if ($good === '' && $improve === '') continue;
+            $out[] = ['date' => $date, 'good' => $good, 'improve' => $improve];
+        }
+        usort($out, fn($a, $b) => strcmp($b['date'], $a['date'])); // newest first
+        return $out;
+    }
+
     /* ---- Goals ---- */
 
     public function updateGoal(string $mk, string $field, int $value): void { $this->data['goals'][$mk][$field] = $value; }
@@ -456,6 +478,96 @@ class UserStorage
     public static function getWeekKey(?string $date = null): string
     {
         return self::getWeekDates($date)[0];
+    }
+
+    /**
+     * Return all dates (Y-m-d) from N months ago up to today, inclusive.
+     * Used for multi-month heatmap views.
+     */
+    public static function getRangeDates(int $months): array
+    {
+        $end    = new \DateTime('today');
+        $cursor = (new \DateTime('today'))->modify("-{$months} months")->modify('+1 day');
+        $out    = [];
+        while ($cursor <= $end) {
+            $out[] = $cursor->format('Y-m-d');
+            $cursor->modify('+1 day');
+        }
+        return $out;
+    }
+
+    /** Map a UI range key to a month count (null = monthly calendar view). */
+    public static function rangeToMonths(string $range): ?int
+    {
+        return match ($range) {
+            '3m'  => 3,
+            '6m'  => 6,
+            '12m' => 12,
+            default => null, // 'month'
+        };
+    }
+
+    /**
+     * Build per-month rows of daily cells for the multi-month strip view.
+     *
+     * $cellFn(string $date): array  must return ['active' => bool, 'value' => int, 'title' => string]
+     *
+     * Returns: [
+     *   'rows'       => [ ['label' => '4 Mar – 3 Apr', 'cells' => [['active'=>bool,'title'=>str], ...]], ... ],
+     *   'activeDays' => int,
+     *   'total'      => int,
+     *   'title'      => '4 Mar – 3 Jun 2026',
+     * ]
+     */
+    public static function buildStripRows(int $months, callable $cellFn): array
+    {
+        $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        $todayDt = new \DateTime('today');
+        $anchor  = (new \DateTime('today'))->modify("-{$months} months")->modify('+1 day');
+
+        // Show year on row labels only when the range crosses calendar years
+        $crossYear = $anchor->format('Y') !== $todayDt->format('Y');
+        $fmt = fn(\DateTime $d) => $d->format('j') . ' ' . $monthShort[(int)$d->format('n')]
+                                . ($crossYear ? " '" . $d->format('y') : '');
+
+        $rows = [];
+        $activeDays = 0;
+        $total = 0;
+
+        for ($i = 0; $i < $months; $i++) {
+            $pStart = (clone $anchor)->modify("+{$i} months");
+            $pEnd   = (clone $anchor)->modify('+' . ($i + 1) . ' months')->modify('-1 day');
+            if ($pEnd > $todayDt) $pEnd = clone $todayDt;
+
+            $cells  = [];
+            $cursor = clone $pStart;
+            while ($cursor <= $pEnd) {
+                $cell = $cellFn($cursor->format('Y-m-d'));
+                if (!empty($cell['active'])) $activeDays++;
+                $total += (int) ($cell['value'] ?? 0);
+                $cells[] = ['active' => (bool) ($cell['active'] ?? false), 'title' => $cell['title'] ?? ''];
+                $cursor->modify('+1 day');
+            }
+
+            $rows[] = [
+                'label' => $fmt($pStart) . ' – ' . $fmt($pEnd),
+                'cells' => $cells,
+            ];
+        }
+
+        $startYear = $anchor->format('Y');
+        $endYear   = $todayDt->format('Y');
+        $title = $anchor->format('j') . ' ' . $monthShort[(int)$anchor->format('n')]
+               . ($startYear !== $endYear ? ' ' . $startYear : '')
+               . ' – ' . $todayDt->format('j') . ' ' . $monthShort[(int)$todayDt->format('n')]
+               . ' ' . $endYear;
+
+        return [
+            'rows'       => $rows,
+            'activeDays' => $activeDays,
+            'total'      => $total,
+            'title'      => $title,
+        ];
     }
 
     public function getMissedDays(): array
@@ -1140,6 +1252,48 @@ class UserStorage
     public function updateProfile(array $data): void
     {
         $this->data['profile'] = array_merge($this->getProfile(), $data);
+    }
+
+    /* ---- Referral ---- */
+
+    /** Stable referral code for this user (generated once, persisted). */
+    public function getReferralCode(): string
+    {
+        $code = $this->data['profile']['referral_code'] ?? null;
+        if (!$code) {
+            $name = $this->data['profile']['display_name'] ?? (auth()->user()->username ?? 'user');
+            $slug = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $name));
+            $slug = substr($slug ?: 'USER', 0, 4);
+            $code = $slug . strtoupper(substr(md5((string) (auth()->id() ?? '') . $name . microtime()), 0, 4));
+            $this->data['profile']['referral_code'] = $code;
+        }
+        return $code;
+    }
+
+    public function getReferralStats(): array
+    {
+        return array_merge([
+            'invited'   => 0,   // total signed up via code
+            'converted' => 0,   // upgraded to paid
+            'earnings'  => 0,   // available commission to withdraw (Rp)
+            'pending'   => 0,   // pending payout (Rp)
+        ], $this->data['profile']['referral_stats'] ?? []);
+    }
+
+    public function getPayoutRequests(): array
+    {
+        $list = $this->data['profile']['payouts'] ?? [];
+        return array_reverse($list); // newest first
+    }
+
+    public function addPayoutRequest(array $payout): void
+    {
+        $this->data['profile']['payouts'][] = $payout;
+        // Move withdrawn amount from earnings → pending
+        $stats = $this->getReferralStats();
+        $stats['pending']  = ($stats['pending'] ?? 0) + ($payout['amount'] ?? 0);
+        $stats['earnings'] = max(0, ($stats['earnings'] ?? 0) - ($payout['amount'] ?? 0));
+        $this->data['profile']['referral_stats'] = $stats;
     }
 
     /* ---- Subscription Plan ---- */

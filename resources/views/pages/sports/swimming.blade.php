@@ -62,19 +62,16 @@
     </div>
 
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-        <h3 class="font-bold mb-4 text-sm">{{ __('7 Hari Terakhir') }}</h3>
-        <div class="flex items-center gap-2">
-            @foreach($weekData as $i => $d)
-            <div class="flex-1 flex flex-col items-center gap-1">
-                <div class="{{ $d['done'] ? 'bg-blue-500' : 'bg-gray-100' }} w-full rounded-lg h-10 flex items-center justify-center">
-                    @if($d['done'])
-                    <span class="text-[9px] font-bold text-white">{{ $d['laps'] }}</span>
-                    @endif
-                </div>
-                <span class="text-[9px] text-gray-400">{{ date('D', strtotime($weekDates[$i]))[0] }}</span>
-            </div>
-            @endforeach
+        <div class="flex items-center justify-between mb-6 gap-3">
+            <h3 class="font-bold">{{ $rangeTitle }}</h3>
+            <x-range-filter :range="$range" route="swimming" />
         </div>
+        <div class="mb-6">
+            <p class="text-2xl font-bold text-blue-600">{{ $rangeActive }}</p>
+            <p class="text-[10px] text-gray-400 font-bold">{{ __('Total sesi renang') }}</p>
+        </div>
+        <x-activity-strip :rows="$stripRows" color="blue"
+            :legendOff="__('Rest')" :legendOn="__('Renang')" />
     </div>
 
 </div>

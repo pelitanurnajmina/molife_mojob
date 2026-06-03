@@ -14,7 +14,6 @@
         4 => 'M14 14a2 2 0 01-4 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
         5 => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
     ];
-    $priDot   = ['high' => 'bg-red-500', 'medium' => 'bg-orange-400', 'low' => 'bg-gray-300'];
     $priBadge = ['high' => 'bg-red-50 text-red-500', 'medium' => 'bg-orange-50 text-orange-500', 'low' => 'bg-gray-100 text-gray-400'];
     $doneTasks   = count(array_filter($dailyTodos, fn($t) => $t['done']));
     $totalTasks  = count($dailyTodos);
@@ -24,9 +23,24 @@
 <div class="space-y-4 md:space-y-6">
 
     {{-- ── Today Snapshot Cards ── --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    @php
+        $_featsD = \App\Models\UserStorage::fromSession()->getFeatures();
+        // Count how many snapshot cards will render so the grid fits exactly
+        $_cardCount = 1; // Streak always shown
+        if (($_featsD['sholat'] ?? true) || ($_featsD['spiritual'] ?? false)) $_cardCount++;
+        if ($_featsD['gym'] ?? true) $_cardCount++;
+        if ($_featsD['run'] ?? true) $_cardCount++;
+        $_gridCols = [
+            1 => 'grid-cols-1',
+            2 => 'grid-cols-2',
+            3 => 'grid-cols-2 sm:grid-cols-3',
+            4 => 'grid-cols-2 sm:grid-cols-4',
+            5 => 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
+            6 => 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
+        ][$_cardCount] ?? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4';
+    @endphp
+    <div class="grid {{ $_gridCols }} gap-3">
         {{-- Spiritual --}}
-        @php $_featsD = \App\Models\UserStorage::fromSession()->getFeatures(); @endphp
         @if($_featsD['sholat'] ?? true)
         <a href="{{ route('sholat') }}" class="bg-white rounded-2xl p-4 flex flex-col gap-2 hover:shadow-sm transition-all border border-gray-50">
             <div class="w-9 h-9 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
@@ -252,7 +266,7 @@
 
             @if($totalTasks > 5)
             <a href="{{ route('tasks') }}" class="block text-center text-xs text-gray-400 hover:text-black font-bold py-2 transition-all">
-                +{{ $totalTasks - 5 }} task lainnya →
+                +{{ $totalTasks - 5 }} task lainnya
             </a>
             @endif
         </div>

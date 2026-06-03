@@ -21,6 +21,8 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .nav-active { background-color: #000; color: #fff !important; }
+        summary::-webkit-details-marker { display: none; }
+        summary::marker { content: ''; }
         .nav-item { transition: all .15s; }
         input[type=time]::-webkit-calendar-picker-indicator { opacity: .5; cursor: pointer; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
@@ -310,6 +312,7 @@
                 ['route'=>'settings.profil',    'match'=>'settings.profil',    'label'=>__('Profil & Akun'),    'icon'=>'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
                 ['route'=>'settings.tampilan',  'match'=>'settings.tampilan',  'label'=>__('Tampilan & Fitur'), 'icon'=>'M4 6h16M4 12h16M4 18h7'],
                 ['route'=>'settings.langganan', 'match'=>'settings.langganan', 'label'=>__('Langganan'),        'icon'=>'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'],
+                ['route'=>'settings.referral',  'match'=>'settings.referral',  'label'=>__('Referral'),         'icon'=>'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'],
             ];
 
             /* Determine which section is active */
@@ -322,7 +325,7 @@
                 ['id'=>'life',     'label'=>'Life',     'items'=>$lifeNav],
                 ['id'=>'karir',    'label'=>'Karir',    'items'=>$careerNav],
                 ['id'=>'finance',  'label'=>'Finance',  'items'=>$financeNav],
-                ['id'=>'settings', 'label'=>'Settings', 'items'=>$settingsNav],
+                ['id'=>'settings', 'label'=>'Settings & Referral', 'items'=>$settingsNav],
             ];
             @endphp
 
@@ -816,25 +819,52 @@
         }
     }
 
+    /* Accordion: only ONE section open at a time, always one open */
     window.toggleSection = function(id) {
         var el = document.getElementById('section-' + id);
         if (!el) return;
-        var open = el.style.maxHeight === '0px' || el.style.maxHeight === '';
-        applySection(id, open, true);
-        setState(id, open);
+        var isOpen = !(el.style.maxHeight === '0px' || el.style.maxHeight === '');
+
+        /* Clicking the already-open section keeps it open (always one open) */
+        if (isOpen) return;
+
+        /* Close every other section, open this one */
+        SECTIONS.forEach(function(other) {
+            if (other === id) return;
+            var oel = document.getElementById('section-' + other);
+            if (oel && !(oel.style.maxHeight === '0px' || oel.style.maxHeight === '')) {
+                applySection(other, false, true);
+            }
+        });
+        applySection(id, true, true);
+
+        try { localStorage.setItem('sbOpen', id); } catch(e) {}
     };
 
-    /* Initial state: render sections in final state WITHOUT animation
-       (set immediately, before paint, to avoid drop-down flash) */
+    /* Initial state: open exactly ONE section (no animation, before paint) */
     function initSidebar() {
-        var state = getState();
+        var savedOpen = null;
+        try { savedOpen = localStorage.getItem('sbOpen'); } catch(e) {}
+
+        /* Priority: section with active page > saved > ACTIVE > first */
+        var openId = null;
+        SECTIONS.forEach(function(id) {
+            var el = document.getElementById('section-' + id);
+            if (el && el.querySelector('.nav-active')) openId = id;
+        });
+        if (!openId && savedOpen && document.getElementById('section-' + savedOpen)) openId = savedOpen;
+        if (!openId) openId = ACTIVE;
+        if (!openId || !document.getElementById('section-' + openId)) {
+            /* fallback to first existing section */
+            for (var i = 0; i < SECTIONS.length; i++) {
+                if (document.getElementById('section-' + SECTIONS[i])) { openId = SECTIONS[i]; break; }
+            }
+        }
+
         SECTIONS.forEach(function(id) {
             var el = document.getElementById('section-' + id);
             if (!el) return;
-            var hasActivePage = !!el.querySelector('.nav-active');
-            var isActive      = (id === ACTIVE) || hasActivePage;
-            var shouldOpen    = isActive ? true : (state[id] === true);
-            applySection(id, shouldOpen, false);  /* animate = false */
+            applySection(id, id === openId, false);  /* animate = false */
         });
     }
 

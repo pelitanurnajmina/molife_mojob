@@ -22,7 +22,32 @@ class GymController extends Controller
 
         $gymDataAll  = $storage->toArray()['gym'];
 
-        return view('pages.gym', compact('date', 'today', 'gymData', 'gymWeekly', 'gymMonthly', 'caloriesWeek', 'weekDates', 'monthDates', 'gymDataAll'));
+        // ── Range filter ──
+        $range  = $request->query('range', 'month');
+        $months = UserStorage::rangeToMonths($range);
+
+        $stripRows = []; $rangeActive = 0; $rangeTitle = '';
+        if ($months !== null) {
+            $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+            $result = UserStorage::buildStripRows($months, function ($d) use ($gymDataAll, $monthShort) {
+                $done = !empty($gymDataAll[$d]['done']);
+                $dt   = new \DateTime($d);
+                return [
+                    'active' => $done,
+                    'value'  => $done ? 1 : 0,
+                    'title'  => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($done ? 'Gym' : 'Rest'),
+                ];
+            });
+            $stripRows   = $result['rows'];
+            $rangeActive = $result['activeDays'];
+            $rangeTitle  = $result['title'];
+        }
+
+        return view('pages.gym', compact(
+            'date', 'today', 'gymData', 'gymWeekly', 'gymMonthly', 'caloriesWeek',
+            'weekDates', 'monthDates', 'gymDataAll',
+            'range', 'months', 'stripRows', 'rangeActive', 'rangeTitle'
+        ));
     }
 
     public function toggle(Request $request)

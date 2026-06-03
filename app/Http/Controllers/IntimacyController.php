@@ -19,7 +19,37 @@ class IntimacyController extends Controller
         $monthDates   = UserStorage::getMonthDates();
         $intimacyAll  = $storage->toArray()['intimacy'];
 
-        return view('pages.intimasi', compact('date', 'today', 'count', 'todayCount', 'monthlyCount', 'monthDates', 'intimacyAll'));
+        // ── Range filter (month | 3m | 6m | 12m) ──
+        $range  = $request->query('range', 'month');
+        $months = UserStorage::rangeToMonths($range);
+
+        $stripRows  = [];
+        $rangeTotal = 0;
+        $activeDays = 0;
+        $rangeTitle = '';
+        $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+        if ($months !== null) {
+            $result = UserStorage::buildStripRows($months, function ($d) use ($intimacyAll, $monthShort) {
+                $c  = $intimacyAll[$d] ?? 0;
+                $dt = new \DateTime($d);
+                return [
+                    'active' => $c > 0,
+                    'value'  => $c,
+                    'title'  => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . $c . 'x',
+                ];
+            });
+            $stripRows  = $result['rows'];
+            $rangeTotal = $result['total'];
+            $activeDays = $result['activeDays'];
+            $rangeTitle = $result['title'];
+        }
+
+        return view('pages.intimasi', compact(
+            'date', 'today', 'count', 'todayCount', 'monthlyCount',
+            'monthDates', 'intimacyAll', 'range', 'months',
+            'stripRows', 'rangeTotal', 'activeDays', 'rangeTitle'
+        ));
     }
 
     public function change(Request $request)

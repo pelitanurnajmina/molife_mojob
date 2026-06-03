@@ -63,19 +63,18 @@
         </form>
     </div>
 
-    {{-- Weekly chart --}}
+    {{-- Riwayat (strip) --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-        <h3 class="font-bold mb-4 text-sm">{{ __('7 Hari Terakhir') }}</h3>
-        <div class="flex items-end gap-2">
-            @foreach($weekData as $i => $d)
-            @php $h = $d['km'] > 0 ? max(8, min(80, (int)($d['km'] / max(1, ...array_column($weekData, 'km')) * 80))) : 8; @endphp
-            <div class="flex-1 flex flex-col items-center gap-1">
-                <span class="text-[9px] text-gray-400">{{ $d['km'] > 0 ? number_format($d['km'],1) : '' }}</span>
-                <div class="{{ $d['done'] ? 'bg-green-500' : 'bg-gray-100' }} w-full rounded-lg transition-all" style="height:{{ $h }}px"></div>
-                <span class="text-[9px] text-gray-400">{{ date('D', strtotime($weekDates[$i]))[0] }}</span>
-            </div>
-            @endforeach
+        <div class="flex items-center justify-between mb-6 gap-3">
+            <h3 class="font-bold">{{ $rangeTitle }}</h3>
+            <x-range-filter :range="$range" route="cycling" />
         </div>
+        <div class="mb-6">
+            <p class="text-2xl font-bold text-green-600">{{ $rangeActive }}</p>
+            <p class="text-[10px] text-gray-400 font-bold">{{ __('Total sesi bersepeda') }}</p>
+        </div>
+        <x-activity-strip :rows="$stripRows" color="green"
+            :legendOff="__('Rest')" :legendOn="__('Bersepeda')" />
     </div>
 
 </div>

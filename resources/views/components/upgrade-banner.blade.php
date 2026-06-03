@@ -1,4 +1,4 @@
-@props([
+﻿@props([
     'title'   => 'Upgrade ke Plus',
     'message' => 'Buka semua batasan dengan langganan Plus',
     'cta'     => 'Lihat Plan',
@@ -34,6 +34,6 @@ $styles = match($variant) {
     </div>
     <a href="{{ route('settings.langganan') }}"
        class="flex-shrink-0 px-3 py-1.5 md:px-4 md:py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition-all whitespace-nowrap">
-        {{ $cta }} →
+        {{ $cta }}
     </a>
 </div>

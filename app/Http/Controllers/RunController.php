@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class RunController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $storage = UserStorage::fromSession();
         $today   = date('Y-m-d');
@@ -24,11 +24,39 @@ class RunController extends Controller
             UserStorage::getWeekDates()
         );
 
+        // ── Range filter ──
+        $range      = $request->query('range', 'month');
+        $months     = UserStorage::rangeToMonths($range);
+        $monthDates = UserStorage::getMonthDates();
+        $runAll     = $storage->toArray()['run'] ?? [];
+
+        $stripRows = []; $rangeActive = 0; $rangeTitle = '';
+        if ($months !== null) {
+            $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+            $result = UserStorage::buildStripRows($months, function ($d) use ($storage, $monthShort) {
+                $run  = $storage->getRun($d);
+                $done = !empty($run['done']);
+                $dist = $run['distance'] ?? 0;
+                $dt   = new \DateTime($d);
+                return [
+                    'active' => $done,
+                    'value'  => $done ? 1 : 0,
+                    'title'  => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': '
+                              . ($done ? ($dist > 0 ? $dist . ' km' : 'Lari') : 'Rest'),
+                ];
+            });
+            $stripRows   = $result['rows'];
+            $rangeActive = $result['activeDays'];
+            $rangeTitle  = $result['title'];
+        }
+
         return view('pages.run.index', compact(
             'today', 'todayRun',
             'weeklyCount', 'weeklyDist',
             'monthlyCount', 'monthlyDist',
-            'pbs', 'history', 'weekRuns'
+            'pbs', 'history', 'weekRuns',
+            'range', 'months', 'stripRows', 'rangeActive', 'rangeTitle',
+            'monthDates', 'runAll'
         ));
     }
 

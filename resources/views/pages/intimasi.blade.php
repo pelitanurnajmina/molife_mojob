@@ -61,9 +61,17 @@
             </div>
         </div>
 
-        {{-- Calendar --}}
+        {{-- Calendar / Heatmap --}}
         <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-            <h3 class="text-base md:text-lg font-bold mb-4 md:mb-6">{{ __('Kalender Bulan Ini') }}</h3>
+            <div class="flex items-center justify-between mb-4 md:mb-6 gap-3">
+                <h3 class="text-base md:text-lg font-bold">
+                    {{ $months === null ? __('Kalender Bulan Ini') : $rangeTitle }}
+                </h3>
+                <x-range-filter :range="$range" route="intimasi" />
+            </div>
+
+            @if($months === null)
+            {{-- ── Monthly calendar (default) ── --}}
             @php
                 $firstDow = (new DateTime($monthDates[0]))->format('N');
                 $offset   = $firstDow - 1;
@@ -90,6 +98,22 @@
                 <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-100 rounded"></div><span>{{ __('Tidak ada') }}</span></div>
                 <div class="flex items-center gap-2"><div class="w-4 h-4 bg-pink-500 rounded"></div><span>{{ __('Ada aktivitas') }}</span></div>
             </div>
+            @else
+            {{-- ── Multi-month: per-month rows of daily cells ── --}}
+            <div class="flex items-center gap-6 mb-6">
+                <div>
+                    <p class="text-2xl font-bold text-pink-600">{{ $rangeTotal }}x</p>
+                    <p class="text-[10px] text-gray-400 font-bold">{{ __('Total aktivitas') }}</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-800">{{ $activeDays }}</p>
+                    <p class="text-[10px] text-gray-400 font-bold">{{ __('Hari aktif') }}</p>
+                </div>
+            </div>
+
+            <x-activity-strip :rows="$stripRows" color="pink"
+                :legendOff="__('Tidak ada')" :legendOn="__('Ada aktivitas')" />
+            @endif
         </div>
     </div>
 </div>

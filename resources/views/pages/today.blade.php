@@ -13,7 +13,6 @@
         'border-green-400 bg-green-50 text-green-600',
         'border-emerald-400 bg-emerald-50 text-emerald-600',
     ];
-    $priDot   = ['high' => 'bg-red-500', 'medium' => 'bg-orange-400', 'low' => 'bg-gray-300'];
     $priBadge = [
         'high'   => 'bg-red-50 text-red-500 border border-red-200',
         'medium' => 'bg-orange-50 text-orange-500 border border-orange-200',
@@ -211,7 +210,7 @@
             <h3 class="text-base font-bold">{{ __('Task Harian') }}</h3>
             <div class="flex items-center gap-2">
                 <span class="text-xs text-gray-400">{{ count(array_filter($dailyTodos, fn($t)=>$t['done'])) }}/{{ count($dailyTodos) }}</span>
-                <a href="{{ route('tasks') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Kelola') }} →</a>
+                <a href="{{ route('tasks') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Kelola') }}</a>
             </div>
         </div>
 
@@ -234,7 +233,6 @@
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                         @endif
                     </div>
-                    <span class="w-2 h-2 rounded-full flex-shrink-0 {{ $priDot[$pri] }}"></span>
                     <span class="flex-1 text-sm {{ $todo['done'] ? 'line-through text-gray-400' : 'text-gray-700' }}">{{ $todo['text'] }}</span>
                     @if(!$todo['done'])
                     <span class="text-[9px] font-bold px-2 py-0.5 rounded-full {{ $priBadge[$pri] }}">{{ $priLabel[$pri] }}</span>

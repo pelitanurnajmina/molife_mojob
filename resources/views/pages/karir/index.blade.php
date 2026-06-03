@@ -130,7 +130,7 @@ $statusMeta = [
         <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-bold">{{ __('Pipeline Lamaran') }}</h3>
-                <a href="{{ route('lamaran.index') }}" class="text-xs text-gray-400 hover:text-black font-bold">{{ __('Kelola') }} →</a>
+                <a href="{{ route('lamaran.index') }}" class="text-xs text-gray-400 hover:text-black font-bold">{{ __('Kelola') }}</a>
             </div>
             <div class="space-y-2.5">
                 @foreach($pipeline as $stage)

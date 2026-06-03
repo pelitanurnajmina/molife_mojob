@@ -34,6 +34,48 @@ class SettingsController extends Controller
         return view('pages.settings.langganan');
     }
 
+    const PAYOUT_MIN = 50000;
+
+    public function referral()
+    {
+        $storage = UserStorage::fromSession();
+        $code    = $storage->getReferralCode();
+        $storage->save(); // persist code if newly generated
+        $stats   = $storage->getReferralStats();
+        $link    = url('/register?ref=' . $code);
+        $payoutMin = self::PAYOUT_MIN;
+        $payouts   = $storage->getPayoutRequests();
+        return view('pages.settings.referral', compact('code', 'stats', 'link', 'payoutMin', 'payouts'));
+    }
+
+    public function requestPayout(Request $request)
+    {
+        $r = $request->validate([
+            'method'  => 'required|in:bank,ewallet',
+            'account' => 'required|string|max:100',
+            'name'    => 'required|string|max:100',
+        ]);
+
+        $storage = UserStorage::fromSession();
+        $stats   = $storage->getReferralStats();
+
+        if (($stats['earnings'] ?? 0) < self::PAYOUT_MIN) {
+            return back()->with('toast', __('Saldo belum mencukupi untuk pencairan (min. Rp :n).', ['n' => number_format(self::PAYOUT_MIN, 0, ',', '.')]));
+        }
+
+        $storage->addPayoutRequest([
+            'amount'  => (int) ($stats['earnings'] ?? 0),
+            'method'  => $r['method'],
+            'account' => $r['account'],
+            'name'    => $r['name'],
+            'status'  => 'pending',
+            'date'    => date('Y-m-d H:i'),
+        ]);
+        $storage->save();
+
+        return back()->with('toast', __('Permintaan pencairan dikirim! Diproses dalam 3 hari kerja.'));
+    }
+
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
