@@ -9,7 +9,7 @@
     {{-- ── Plan limit banner (Freemium only) ── --}}
     @if($isFreemium && $lamaranLimit)
     @php
-        $used = count($storage = \App\Models\UserStorage::fromSession()->getApplications());
+        $used = $total;
         $remaining = max(0, $lamaranLimit - $used);
     @endphp
     @if($atLimit)
@@ -69,7 +69,7 @@
 
         <div class="flex-1"></div>
 
-        @php $_isPro = \App\Models\UserStorage::fromSession()->isPro(); @endphp
+        @php $_isPro = \App\Support\Profile::isPro(); @endphp
         <a href="{{ $_isPro ? route('lamaran.export') : route('settings.langganan') }}"
            class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
                   {{ $_isPro ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' : 'bg-gray-50 border border-gray-100 text-gray-400 hover:bg-gray-100' }}"

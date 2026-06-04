@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Services\StatsService;
+use App\Services\SholatService;
+use App\Support\Profile;
+use App\Support\Features;
 
 class StatistikController extends Controller
 {
     public function index()
     {
-        $storage  = UserStorage::fromSession();
-        $profile  = $storage->getProfile();
-        $features = $storage->getFeatures();
-        $stats30  = $storage->getAll30DaysStats();
+        $userId   = auth()->id();
+        $profile  = Profile::data();
+        $features = Features::map($userId);
+        $stats30  = StatsService::last30Days($userId, 30);
 
         $religion = $profile['religion'] ?? '';
         $sports   = $profile['sports']   ?? [];
@@ -151,11 +154,11 @@ class StatistikController extends Controller
         }
 
         // Monthly summary stats
-        $streak          = $storage->getSholatStreak();
-        $gymMonthly      = $storage->getGymMonthlyCount();
-        $runMonthly      = $storage->getRunMonthlyCount();
-        $intimacyMonthly = $storage->getIntimacyMonthlyCount();
-        $moodAvg30       = $storage->getMoodAvg(30);
+        $streak          = SholatService::streak($userId);
+        $gymMonthly      = StatsService::gymMonthlyCount($userId);
+        $runMonthly      = StatsService::runMonthlyCount($userId);
+        $intimacyMonthly = StatsService::intimacyMonthlyCount($userId);
+        $moodAvg30       = \App\Services\MoodService::avgScore($userId, 30);
 
         return view('pages.statistik', compact(
             'stats30', 'heatmapRows', 'profile', 'features',

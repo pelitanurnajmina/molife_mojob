@@ -26,11 +26,6 @@ class User extends Authenticatable
         ];
     }
 
-    public function userData(): \Illuminate\Database\Eloquent\Relations\HasOne
-    {
-        return $this->hasOne(UserData::class);
-    }
-
     /* ── Relational profile + activity relations ── */
     public function profile()       { return $this->hasOne(UserProfile::class); }
     public function features()      { return $this->hasMany(UserFeature::class); }

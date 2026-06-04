@@ -236,9 +236,8 @@
 @endif
 
 @php
-    $_storage = auth()->check() ? \App\Models\UserStorage::fromSession() : null;
-    $_feats   = $_storage ? $_storage->getFeatures() : [];
-    $_profile = $_storage ? $_storage->getProfile()  : [];
+    $_feats   = auth()->check() ? \App\Support\Features::map() : [];
+    $_profile = auth()->check() ? \App\Support\Profile::data() : [];
     $_f       = fn($k) => $_feats[$k] ?? false;
     $_religion = $_profile['religion'] ?? '';
     $_spiritualLabel = match($_religion) {
@@ -383,7 +382,7 @@
                 </div>
 
                 {{-- Notifications --}}
-                @php $_notifs = $_storage ? $_storage->getNotifications() : []; @endphp
+                @php $_notifs = auth()->check() ? \App\Support\Notifications::for(auth()->id()) : []; @endphp
                 <div class="relative" id="notifWrapper">
                     <button type="button" id="notifBtn" onclick="toggleNotifPanel()"
                             class="relative bg-white p-2 rounded-full border border-gray-100 hover:bg-gray-50 transition-all"

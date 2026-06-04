@@ -243,7 +243,7 @@
             @for($i = 0; $i < $offset; $i++)<div></div>@endfor
             @foreach($monthDates as $md)
             @php
-                $r = $runAll[$md] ?? [];
+                $r = $runAllArr[$md] ?? [];
                 $ran = $r['done'] ?? false;
                 $km  = $r['distance'] ?? 0;
                 $day = (int)explode('-', $md)[2];

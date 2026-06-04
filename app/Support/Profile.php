@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Support;
+
+use App\Models\UserProfile;
+
+class Profile
+{
+    /** Get-or-create the profile row for the current (or given) user. */
+    public static function model(?int $userId = null): UserProfile
+    {
+        $userId = $userId ?? auth()->id();
+        return UserProfile::firstOrCreate(['user_id' => $userId]);
+    }
+
+    /** Array view compatible with the old profile shape used in views. */
+    public static function data(?int $userId = null): array
+    {
+        $userId = $userId ?? auth()->id();
+        $p = self::model($userId);
+
+        // Sports are derived from enabled feature flags
+        $feat = Features::map($userId);
+        $sports = array_values(array_filter(
+            ['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'],
+            fn($s) => $feat[$s] ?? false
+        ));
+
+        return [
+            'setup_done'        => (bool) $p->setup_done,
+            'display_name'      => $p->display_name ?? '',
+            'religion'          => $p->religion ?? '',
+            'custom_sport_name' => $p->custom_sport_name ?? '',
+            'sports'            => $sports,
+            'plan'              => $p->plan ?? 'freemium',
+            'referral_code'     => $p->referral_code ?? '',
+        ];
+    }
+
+    /* ── Plan ── */
+    public static function plan(?int $userId = null): string
+    {
+        return self::model($userId)->plan ?? 'freemium';
+    }
+    public static function isFreemium(?int $u = null): bool { return self::plan($u) === 'freemium'; }
+    public static function isPlus(?int $u = null): bool     { return self::plan($u) === 'plus'; }
+    public static function isPro(?int $u = null): bool      { return self::plan($u) === 'pro'; }
+
+    const LAMARAN_LIMIT_FREEMIUM      = 10;
+    const FINANCE_DAYS_LIMIT_FREEMIUM = 7;
+
+    public static function lamaranLimit(?int $u = null): ?int
+    {
+        return self::isFreemium($u) ? self::LAMARAN_LIMIT_FREEMIUM : null;
+    }
+    public static function financeDaysLimit(?int $u = null): ?int
+    {
+        return self::isFreemium($u) ? self::FINANCE_DAYS_LIMIT_FREEMIUM : null;
+    }
+
+    /* ── Referral ── */
+    public static function referralCode(?int $userId = null): string
+    {
+        $userId = $userId ?? auth()->id();
+        $p = self::model($userId);
+        if (!$p->referral_code) {
+            $name = $p->display_name ?: (auth()->user()->username ?? 'user');
+            $slug = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $name));
+            $slug = substr($slug ?: 'USER', 0, 4);
+            $p->referral_code = $slug . strtoupper(substr(md5($userId . $name . microtime()), 0, 4));
+            $p->save();
+        }
+        return $p->referral_code;
+    }
+
+    public static function referralStats(?int $userId = null): array
+    {
+        $p = self::model($userId);
+        return [
+            'invited'   => (int) $p->ref_invited,
+            'converted' => (int) $p->ref_converted,
+            'earnings'  => (int) $p->ref_earnings,
+            'pending'   => (int) $p->ref_pending,
+        ];
+    }
+}

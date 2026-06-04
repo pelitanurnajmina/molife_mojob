@@ -2,29 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\Interview;
 use Illuminate\Http\Request;
 
 class WawancaraController extends Controller
 {
     public function index()
     {
-        $storage  = UserStorage::fromSession();
-        $all      = $storage->getInterviews();
-        $today    = date('Y-m-d');
+        $userId = auth()->id();
+        $today  = date('Y-m-d');
 
-        $upcoming  = array_values(array_filter($all, fn($iv) => !($iv['completed'] ?? false) && ($iv['date'] ?? '') >= $today));
-        $completed = array_values(array_filter($all, fn($iv) => ($iv['completed'] ?? false)));
+        $toArr = fn($iv) => [
+            'id' => $iv->id, 'company' => $iv->company, 'position' => $iv->position,
+            'date' => optional($iv->date)->format('Y-m-d'), 'time' => $iv->time,
+            'type' => $iv->type, 'round' => $iv->round, 'location' => $iv->location,
+            'interviewer' => $iv->interviewer, 'notes' => $iv->notes,
+            'completed' => (bool) $iv->completed, 'application_id' => $iv->application_id,
+        ];
 
-        usort($upcoming, fn($a, $b) => strcmp($a['date'] . $a['time'], $b['date'] . $b['time']));
-        usort($completed, fn($a, $b) => strcmp($b['date'] . $b['time'], $a['date'] . $a['time']));
+        $upcoming = Interview::where('user_id', $userId)->where('completed', false)
+            ->whereDate('date', '>=', $today)->orderBy('date')->orderBy('time')->get()->map($toArr)->toArray();
+        $completed = Interview::where('user_id', $userId)->where('completed', true)
+            ->orderByDesc('date')->orderByDesc('time')->get()->map($toArr)->toArray();
 
         return view('pages.wawancara.index', compact('upcoming', 'completed'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $data = $request->validate([
             'company'        => 'required|string|max:255',
             'position'       => 'required|string|max:255',
             'date'           => 'required|date',
@@ -34,20 +40,18 @@ class WawancaraController extends Controller
             'location'       => 'nullable|string|max:255',
             'interviewer'    => 'nullable|string|max:255',
             'notes'          => 'nullable|string',
-            'application_id' => 'nullable|string',
+            'application_id' => 'nullable|integer',
         ]);
+        $data['user_id'] = auth()->id();
+        Interview::create($data);
 
-        $storage = UserStorage::fromSession();
-        $storage->addInterview($validated);
-        $storage->save();
-
-        return redirect()->route('wawancara.index')
-            ->with('toast', 'Wawancara berhasil ditambahkan.');
+        return redirect()->route('wawancara.index')->with('toast', 'Wawancara berhasil ditambahkan.');
     }
 
     public function update(Request $request, string $id)
     {
-        $validated = $request->validate([
+        $iv = Interview::where('user_id', auth()->id())->findOrFail($id);
+        $iv->update($request->validate([
             'company'     => 'required|string|max:255',
             'position'    => 'required|string|max:255',
             'date'        => 'required|date',
@@ -57,35 +61,21 @@ class WawancaraController extends Controller
             'location'    => 'nullable|string|max:255',
             'interviewer' => 'nullable|string|max:255',
             'notes'       => 'nullable|string',
-        ]);
+        ]));
 
-        $storage = UserStorage::fromSession();
-        if (!$storage->findInterview($id)) abort(404);
-        $storage->updateInterview($id, $validated);
-        $storage->save();
-
-        return redirect()->route('wawancara.index')
-            ->with('toast', 'Wawancara berhasil diperbarui.');
+        return redirect()->route('wawancara.index')->with('toast', 'Wawancara berhasil diperbarui.');
     }
 
     public function destroy(string $id)
     {
-        $storage = UserStorage::fromSession();
-        if (!$storage->findInterview($id)) abort(404);
-        $storage->deleteInterview($id);
-        $storage->save();
-
-        return redirect()->route('wawancara.index')
-            ->with('toast', 'Wawancara berhasil dihapus.');
+        Interview::where('user_id', auth()->id())->findOrFail($id)->delete();
+        return redirect()->route('wawancara.index')->with('toast', 'Wawancara berhasil dihapus.');
     }
 
     public function complete(string $id)
     {
-        $storage = UserStorage::fromSession();
-        if (!$storage->findInterview($id)) abort(404);
-        $storage->completeInterview($id);
-        $storage->save();
-
+        $iv = Interview::where('user_id', auth()->id())->findOrFail($id);
+        $iv->update(['completed' => true]);
         return back()->with('toast', 'Wawancara ditandai selesai.');
     }
 }

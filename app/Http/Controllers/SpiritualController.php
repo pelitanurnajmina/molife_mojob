@@ -2,27 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Services\SpiritualService;
+use App\Support\Profile;
 use Illuminate\Http\Request;
 
 class SpiritualController extends Controller
 {
     public function index()
     {
-        $storage = UserStorage::fromSession();
-        $profile = $storage->getProfile();
+        $userId  = auth()->id();
+        $profile = Profile::data();
         $today   = date('Y-m-d');
 
         // Religion-specific practice types
         $practices = $this->getPractices($profile['religion'] ?? 'lainnya');
-        $todayData = $storage->getSpiritualDay($today);
-        $streak    = $storage->getSpiritualStreak(array_keys($practices));
+        $todayData = SpiritualService::day($userId, $today);
+        $streak    = SpiritualService::streak($userId, array_keys($practices));
 
         // Last 7 days for mini-calendar
         $week = [];
         for ($i = 6; $i >= 0; $i--) {
             $d    = date('Y-m-d', strtotime("-$i days"));
-            $data = $storage->getSpiritualDay($d);
+            $data = SpiritualService::day($userId, $d);
             $done = count(array_filter(array_keys($practices), fn($t) => !empty($data[$t])));
             $week[] = ['date' => $d, 'done' => $done, 'total' => count($practices)];
         }
@@ -33,11 +34,7 @@ class SpiritualController extends Controller
     public function toggle(Request $request)
     {
         $request->validate(['date' => 'required|date', 'type' => 'required|string|max:50']);
-
-        $storage = UserStorage::fromSession();
-        $storage->toggleSpiritual($request->date, $request->type);
-        $storage->save();
-
+        SpiritualService::toggle(auth()->id(), $request->date, $request->type);
         return redirect()->back();
     }
 

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Support\Profile;
+use App\Support\Features;
 use Illuminate\Http\Request;
 
 class OnboardingController extends Controller
 {
     public function index()
     {
-        $profile = UserStorage::fromSession()->getProfile();
-        if ($profile['setup_done']) {
+        if (Profile::model()->setup_done) {
             return redirect()->route('dashboard');
         }
         return view('pages.onboarding');
@@ -19,47 +19,43 @@ class OnboardingController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'display_name'     => 'required|string|max:100',
-            'religion'         => 'required|string|in:islam,kristen,hindu,buddha,lainnya,none',
-            'sports'           => 'nullable|array',
-            'custom_sport_name'=> 'nullable|string|max:50',
+            'display_name'      => 'required|string|max:100',
+            'religion'          => 'required|string|in:islam,kristen,hindu,buddha,lainnya,none',
+            'sports'            => 'nullable|array',
+            'custom_sport_name' => 'nullable|string|max:50',
         ]);
 
-        $storage  = UserStorage::fromSession();
+        $userId   = auth()->id();
         $religion = $request->religion;
         $sports   = $request->sports ?? [];
 
         // Save profile
-        $storage->updateProfile([
+        $profile = Profile::model($userId);
+        $profile->fill([
             'setup_done'        => true,
             'display_name'      => trim($request->display_name),
             'religion'          => $religion,
-            'sports'            => $sports,
             'custom_sport_name' => trim($request->custom_sport_name ?? ''),
-        ]);
+        ])->save();
 
-        // Sync feature flags from religion choice
+        // Spiritual features from religion
         if ($religion === 'islam') {
-            $storage->setFeature('sholat',    true);
-            $storage->setFeature('spiritual', false);
+            Features::set($userId, 'sholat', true);
+            Features::set($userId, 'spiritual', false);
         } elseif ($religion === 'none') {
-            $storage->setFeature('sholat',    false);
-            $storage->setFeature('spiritual', false);
+            Features::set($userId, 'sholat', false);
+            Features::set($userId, 'spiritual', false);
         } else {
-            $storage->setFeature('sholat',    false);
-            $storage->setFeature('spiritual', true);
+            Features::set($userId, 'sholat', false);
+            Features::set($userId, 'spiritual', true);
         }
 
-        // Sync feature flags from sports choices
-        $allSports = ['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'];
-        foreach ($allSports as $sport) {
-            $storage->setFeature($sport, in_array($sport, $sports));
+        // Sport features
+        foreach (['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'] as $sport) {
+            Features::set($userId, $sport, in_array($sport, $sports));
         }
 
-        $storage->save();
-
-        $name = $request->display_name;
         return redirect()->route('dashboard')
-            ->with('toast', __('Selamat datang, :name! Profile kamu sudah siap.', ['name' => $name]));
+            ->with('toast', __('Selamat datang, :name! Profile kamu sudah siap.', ['name' => $request->display_name]));
     }
 }

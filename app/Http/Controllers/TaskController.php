@@ -2,110 +2,97 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\Note;
+use App\Models\Todo;
+use App\Services\ReflectionService;
+use App\Support\Dates;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
     public function index()
     {
-        $storage   = UserStorage::fromSession();
-        $today     = date('Y-m-d');
-        $weekKey   = UserStorage::getWeekKey();
+        $userId  = auth()->id();
+        $today   = date('Y-m-d');
+        $weekKey = Dates::weekKey();
 
-        $dailyTodos  = $storage->getDailyTodos($today);
-        $weeklyTodos = $storage->getWeeklyTodos($weekKey);
-        $note        = $storage->getNote($today);
-        $reflection  = $storage->getReflection($today);
-
-        // Count reflection streak last 7 days
-        $reflectionStreak = 0;
-        for ($i = 0; $i < 7; $i++) {
-            $d  = new \DateTime();
-            $d->modify("-$i days");
-            $ds = $d->format('Y-m-d');
-            $r  = $storage->getReflection($ds);
-            if ($r['good'] || $r['improve']) $reflectionStreak++;
-        }
+        $dailyTodos  = self::todos($userId, 'daily', $today);
+        $weeklyTodos = self::todos($userId, 'weekly', $weekKey);
+        $note        = Note::where('user_id', $userId)->whereDate('date', $today)->value('content') ?? '';
+        $reflection  = ReflectionService::get($userId, $today);
+        $reflectionStreak = ReflectionService::streak($userId);
 
         return view('pages.tasks', compact('today', 'weekKey', 'dailyTodos', 'weeklyTodos', 'note', 'reflection', 'reflectionStreak'));
     }
 
+    /** Array list (priority-sorted, incomplete first) for a scope+period. */
+    public static function todos(int $userId, string $scope, string $periodKey): array
+    {
+        $pri = ['high' => 0, 'medium' => 1, 'low' => 2];
+        return Todo::where('user_id', $userId)->where('scope', $scope)->where('period_key', $periodKey)
+            ->get()
+            ->sortBy(fn($t) => [$t->done ? 1 : 0, $pri[$t->priority] ?? 1])
+            ->map(fn($t) => ['id' => $t->id, 'text' => $t->text, 'priority' => $t->priority, 'done' => (bool) $t->done])
+            ->values()->toArray();
+    }
+
     public function addDaily(Request $request)
     {
-        $request->validate([
-            'text'     => 'required|string|max:255',
-            'priority' => 'in:high,medium,low',
+        $request->validate(['text' => 'required|string|max:255', 'priority' => 'in:high,medium,low']);
+        Todo::create([
+            'user_id' => auth()->id(), 'scope' => 'daily', 'period_key' => date('Y-m-d'),
+            'text' => $request->text, 'priority' => $request->priority ?? 'medium', 'done' => false,
         ]);
-        $storage = UserStorage::fromSession();
-        $storage->addDailyTodo(date('Y-m-d'), $request->text, $request->priority ?? 'medium');
-        $storage->save();
         return redirect()->back();
     }
 
     public function addWeekly(Request $request)
     {
-        $request->validate([
-            'text'     => 'required|string|max:255',
-            'priority' => 'in:high,medium,low',
+        $request->validate(['text' => 'required|string|max:255', 'priority' => 'in:high,medium,low']);
+        Todo::create([
+            'user_id' => auth()->id(), 'scope' => 'weekly', 'period_key' => Dates::weekKey(),
+            'text' => $request->text, 'priority' => $request->priority ?? 'medium', 'done' => false,
         ]);
-        $storage = UserStorage::fromSession();
-        $storage->addWeeklyTodo(UserStorage::getWeekKey(), $request->text, $request->priority ?? 'medium');
-        $storage->save();
         return redirect()->back();
     }
 
-    public function toggleDaily(Request $request, string $id)
+    public function toggleDaily(Request $request, string $id) { return $this->toggle($id); }
+    public function toggleWeekly(Request $request, string $id) { return $this->toggle($id); }
+
+    private function toggle(string $id)
     {
-        $storage = UserStorage::fromSession();
-        $storage->toggleDailyTodo(date('Y-m-d'), $id);
-        $storage->save();
+        $t = Todo::where('user_id', auth()->id())->find($id);
+        if ($t) { $t->done = !$t->done; $t->save(); }
         return redirect()->back();
     }
 
-    public function toggleWeekly(Request $request, string $id)
-    {
-        $storage = UserStorage::fromSession();
-        $storage->toggleWeeklyTodo(UserStorage::getWeekKey(), $id);
-        $storage->save();
-        return redirect()->back();
-    }
+    public function deleteDaily(string $id)  { return $this->remove($id); }
+    public function deleteWeekly(string $id) { return $this->remove($id); }
 
-    public function deleteDaily(string $id)
+    private function remove(string $id)
     {
-        $storage = UserStorage::fromSession();
-        $storage->deleteDailyTodo(date('Y-m-d'), $id);
-        $storage->save();
-        return redirect()->back();
-    }
-
-    public function deleteWeekly(string $id)
-    {
-        $storage = UserStorage::fromSession();
-        $storage->deleteWeeklyTodo(UserStorage::getWeekKey(), $id);
-        $storage->save();
+        Todo::where('user_id', auth()->id())->where('id', $id)->delete();
         return redirect()->back();
     }
 
     public function updateNote(Request $request)
     {
-        $storage = UserStorage::fromSession();
-        $storage->updateNote(date('Y-m-d'), $request->note ?? '');
-        $storage->save();
-
-        if ($request->wantsJson()) {
-            return response()->json(['ok' => true]);
-        }
+        Note::updateOrCreate(
+            ['user_id' => auth()->id(), 'date' => date('Y-m-d')],
+            ['content' => $request->note ?? '']
+        );
+        if ($request->wantsJson()) return response()->json(['ok' => true]);
         return redirect()->back()->with('toast', 'Catatan tersimpan.');
     }
 
     public function updateReflection(Request $request)
     {
-        $storage = UserStorage::fromSession();
-        $today   = date('Y-m-d');
-        if ($request->has('good'))    $storage->updateReflection($today, 'good', $request->good ?? '');
-        if ($request->has('improve')) $storage->updateReflection($today, 'improve', $request->improve ?? '');
-        $storage->save();
+        $userId = auth()->id();
+        $today  = date('Y-m-d');
+        $cur    = ReflectionService::get($userId, $today);
+        $good    = $request->has('good')    ? ($request->good ?? '')    : $cur['good'];
+        $improve = $request->has('improve') ? ($request->improve ?? '') : $cur['improve'];
+        ReflectionService::update($userId, $today, $good, $improve);
         return redirect()->back()->with('toast', 'Refleksi tersimpan.');
     }
 }

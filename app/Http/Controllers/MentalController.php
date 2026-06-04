@@ -2,41 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\Note;
+use App\Services\MoodService;
+use App\Services\ReflectionService;
 use Illuminate\Http\Request;
 
 class MentalController extends Controller
 {
     public function index()
     {
-        $storage  = UserStorage::fromSession();
-        $today    = date('Y-m-d');
+        $userId = auth()->id();
+        $today  = date('Y-m-d');
 
-        $todayMood      = $storage->getMood($today);
-        $moodHistory    = $storage->getMoodHistory(30);
-        $moodAvg7       = $storage->getMoodAvg(7);
-        $moodAvg30      = $storage->getMoodAvg(30);
-        $energyAvg7     = $storage->getEnergyAvg(7);
-        $todayReflection = $storage->getReflection($today);
-        $todayNote      = $storage->getNote($today);
+        $todayMood   = MoodService::get($userId, $today);
+        $moodHistory = MoodService::history($userId, 30);
+        $moodAvg7    = MoodService::avgScore($userId, 7);
+        $moodAvg30   = MoodService::avgScore($userId, 30);
+        $energyAvg7  = MoodService::avgEnergy($userId, 7);
+
+        $todayReflection = ReflectionService::get($userId, $today);
+        $todayNote       = Note::where('user_id', $userId)->whereDate('date', $today)->value('content') ?? '';
 
         $daysLogged = count(array_filter($moodHistory, fn($d) => $d['score'] > 0));
 
-        // Reflection streak (last 7 days)
-        $reflectionStreak = 0;
-        for ($i = 1; $i <= 7; $i++) {
-            $d = new \DateTime();
-            $d->modify("-$i days");
-            $r = $storage->getReflection($d->format('Y-m-d'));
-            if (!empty($r['good']) || !empty($r['improve'])) $reflectionStreak++;
-        }
-
-        // Full reflection history (newest first), today included & flagged
+        $reflectionStreak  = ReflectionService::streak($userId);
         $reflectionHistory = array_map(function ($entry) use ($today) {
             $entry['label']   = (new \DateTime($entry['date']))->format('l, j F Y');
             $entry['isToday'] = $entry['date'] === $today;
             return $entry;
-        }, $storage->getAllReflections());
+        }, ReflectionService::all($userId));
 
         return view('pages.mental', compact(
             'today', 'todayMood', 'moodHistory',
@@ -46,33 +40,24 @@ class MentalController extends Controller
         ));
     }
 
-    public function deleteReflection(Request $request)
-    {
-        $request->validate(['date' => 'required|date']);
-        $storage = UserStorage::fromSession();
-        $storage->deleteReflection($request->date);
-        $storage->save();
-        return redirect()->back()->with('toast', __('Refleksi dihapus.'));
-    }
-
     public function storeMood(Request $request)
     {
-        $validated = $request->validate([
+        $v = $request->validate([
             'date'   => 'required|date',
             'score'  => 'required|integer|min:1|max:5',
             'energy' => 'required|integer|min:1|max:5',
             'note'   => 'nullable|string|max:500',
         ]);
 
-        $storage = UserStorage::fromSession();
-        $storage->saveMood(
-            $validated['date'],
-            (int) $validated['score'],
-            (int) $validated['energy'],
-            $validated['note'] ?? ''
-        );
-        $storage->save();
+        MoodService::save(auth()->id(), $v['date'], (int) $v['score'], (int) $v['energy'], $v['note'] ?? '');
 
         return redirect()->back()->with('toast', __('Mood tercatat!'));
+    }
+
+    public function deleteReflection(Request $request)
+    {
+        $request->validate(['date' => 'required|date']);
+        ReflectionService::delete(auth()->id(), $request->date);
+        return redirect()->back()->with('toast', __('Refleksi dihapus.'));
     }
 }

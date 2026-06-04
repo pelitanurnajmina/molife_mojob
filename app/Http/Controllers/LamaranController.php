@@ -2,43 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\JobApplication;
+use App\Services\InsightService;
+use App\Support\Profile;
 use Illuminate\Http\Request;
 
 class LamaranController extends Controller
 {
+    private array $rules = [
+        'company'      => 'required|string|max:255',
+        'position'     => 'required|string|max:255',
+        'location'     => 'nullable|string|max:255',
+        'salary'       => 'nullable|string|max:100',
+        'applied_date' => 'required|date',
+        'status'       => 'required|in:wishlist,applied,review,interview,offer,hired,rejected',
+        'job_type'     => 'nullable|in:fulltime,parttime,internship,freelance,contract',
+        'channel'      => 'nullable|in:linkedin,jobstreet,glints,upwork,fiverr,kontrakhub,email,referral,website,other',
+        'job_url'      => 'nullable|url|max:500',
+        'notes'        => 'nullable|string',
+    ];
+
     public function index(Request $request)
     {
-        $storage = UserStorage::fromSession();
-        $apps    = $storage->getApplications();
+        $userId = auth()->id();
+        $query  = JobApplication::where('user_id', $userId);
 
-        // Filter by status
         $filterStatus = $request->input('status', 'all');
-        if ($filterStatus !== 'all') {
-            $apps = array_values(array_filter($apps, fn($a) => ($a['status'] ?? '') === $filterStatus));
-        }
-
-        // Search
+        if ($filterStatus !== 'all') $query->where('status', $filterStatus);
         if ($q = $request->input('q')) {
-            $q    = strtolower($q);
-            $apps = array_values(array_filter(
-                $apps,
-                fn($a) => str_contains(strtolower($a['company'] ?? ''), $q)
-                       || str_contains(strtolower($a['position'] ?? ''), $q)
-            ));
+            $query->where(fn($w) => $w->where('company', 'like', "%$q%")->orWhere('position', 'like', "%$q%"));
         }
 
-        // Sort
-        usort($apps, fn($a, $b) => strcmp($b['applied_date'] ?? '', $a['applied_date'] ?? ''));
+        $apps = $query->orderByDesc('applied_date')->get()->map(fn($a) => [
+            'id' => $a->id, 'company' => $a->company, 'position' => $a->position,
+            'location' => $a->location, 'salary' => $a->salary,
+            'applied_date' => optional($a->applied_date)->format('Y-m-d'),
+            'status' => $a->status, 'job_type' => $a->job_type, 'channel' => $a->channel,
+            'job_url' => $a->job_url, 'notes' => $a->notes,
+        ])->toArray();
 
-        $counts = $storage->getApplicationCounts();
-        $total  = count($storage->getApplications());
-        $active = array_sum(array_filter($counts, fn($v, $k) => !in_array($k, ['hired', 'rejected']), ARRAY_FILTER_USE_BOTH));
+        $counts = InsightService::applicationCounts($userId);
+        $total  = JobApplication::where('user_id', $userId)->count();
+        $active = ($counts['applied'] ?? 0) + ($counts['review'] ?? 0) + ($counts['interview'] ?? 0)
+                + ($counts['offer'] ?? 0) + ($counts['wishlist'] ?? 0);
 
-        // Plan limits
-        $lamaranLimit = $storage->getLamaranLimit();      // null if unlimited
-        $atLimit      = $storage->isAtLamaranLimit();
-        $isFreemium   = $storage->isFreemium();
+        $lamaranLimit = Profile::lamaranLimit($userId);
+        $atLimit      = $lamaranLimit !== null && $total >= $lamaranLimit;
+        $isFreemium   = Profile::isFreemium($userId);
 
         return view('pages.lamaran.index', compact(
             'apps', 'counts', 'total', 'active', 'filterStatus',
@@ -48,98 +58,54 @@ class LamaranController extends Controller
 
     public function store(Request $request)
     {
-        $storage = UserStorage::fromSession();
-
-        // Plan enforcement
-        if ($storage->isAtLamaranLimit()) {
+        $userId = auth()->id();
+        $limit  = Profile::lamaranLimit($userId);
+        if ($limit !== null && JobApplication::where('user_id', $userId)->count() >= $limit) {
             return redirect()->route('lamaran.index')
-                ->with('toast', __('Sudah mencapai batas :n lamaran. Upgrade ke Plus untuk tanpa batas.', [
-                    'n' => $storage->getLamaranLimit(),
-                ]));
+                ->with('toast', __('Sudah mencapai batas :n lamaran. Upgrade ke Plus untuk tanpa batas.', ['n' => $limit]));
         }
 
-        $validated = $request->validate([
-            'company'      => 'required|string|max:255',
-            'position'     => 'required|string|max:255',
-            'location'     => 'nullable|string|max:255',
-            'salary'       => 'nullable|string|max:100',
-            'applied_date' => 'required|date',
-            'status'       => 'required|in:wishlist,applied,review,interview,offer,hired,rejected',
-            'job_type'     => 'nullable|in:fulltime,parttime,internship,freelance,contract',
-            'channel'      => 'nullable|in:linkedin,jobstreet,glints,upwork,fiverr,kontrakhub,email,referral,website,other',
-            'job_url'      => 'nullable|url|max:500',
-            'notes'        => 'nullable|string',
-        ]);
+        $data = $request->validate($this->rules);
+        $data['user_id'] = $userId;
+        JobApplication::create($data);
 
-        $storage->addApplication($validated);
-        $storage->save();
-
-        return redirect()->route('lamaran.index')
-            ->with('toast', 'Lamaran berhasil ditambahkan.');
+        return redirect()->route('lamaran.index')->with('toast', 'Lamaran berhasil ditambahkan.');
     }
 
     public function update(Request $request, string $id)
     {
-        $validated = $request->validate([
-            'company'      => 'required|string|max:255',
-            'position'     => 'required|string|max:255',
-            'location'     => 'nullable|string|max:255',
-            'salary'       => 'nullable|string|max:100',
-            'applied_date' => 'required|date',
-            'status'       => 'required|in:wishlist,applied,review,interview,offer,hired,rejected',
-            'job_type'     => 'nullable|in:fulltime,parttime,internship,freelance,contract',
-            'channel'      => 'nullable|in:linkedin,jobstreet,glints,upwork,fiverr,kontrakhub,email,referral,website,other',
-            'job_url'      => 'nullable|url|max:500',
-            'notes'        => 'nullable|string',
-        ]);
-
-        $storage = UserStorage::fromSession();
-        if (!$storage->findApplication($id)) abort(404);
-        $storage->updateApplication($id, $validated);
-        $storage->save();
-
-        return redirect()->route('lamaran.index')
-            ->with('toast', 'Lamaran berhasil diperbarui.');
+        $app = JobApplication::where('user_id', auth()->id())->findOrFail($id);
+        $app->update($request->validate($this->rules));
+        return redirect()->route('lamaran.index')->with('toast', 'Lamaran berhasil diperbarui.');
     }
 
     public function destroy(string $id)
     {
-        $storage = UserStorage::fromSession();
-        if (!$storage->findApplication($id)) abort(404);
-        $storage->deleteApplication($id);
-        $storage->save();
-
-        return redirect()->route('lamaran.index')
-            ->with('toast', 'Lamaran berhasil dihapus.');
+        JobApplication::where('user_id', auth()->id())->findOrFail($id)->delete();
+        return redirect()->route('lamaran.index')->with('toast', 'Lamaran berhasil dihapus.');
     }
 
     public function export()
     {
-        $storage = UserStorage::fromSession();
-
-        // Plan enforcement — PDF/CSV export only for Pro
-        if (!$storage->isPro()) {
-            return redirect()->route('lamaran.index')
-                ->with('toast', __('Export laporan hanya tersedia di paket Pro.'));
+        if (!Profile::isPro()) {
+            return redirect()->route('lamaran.index')->with('toast', __('Export laporan hanya tersedia di paket Pro.'));
         }
 
-        $apps = $storage->getApplications();
-
-        usort($apps, fn($a, $b) => strcmp($b['applied_date'] ?? '', $a['applied_date'] ?? ''));
+        $apps = JobApplication::where('user_id', auth()->id())->orderByDesc('applied_date')->get();
 
         $csv = "Perusahaan,Posisi,Tipe,Channel,Lokasi,Gaji,Tanggal Melamar,Status,URL,Catatan\n";
-        foreach ($apps as $app) {
+        foreach ($apps as $a) {
             $csv .= implode(',', [
-                '"' . str_replace('"', '""', $app['company'] ?? '') . '"',
-                '"' . str_replace('"', '""', $app['position'] ?? '') . '"',
-                '"' . str_replace('"', '""', $app['job_type'] ?? '') . '"',
-                '"' . str_replace('"', '""', $app['channel'] ?? '') . '"',
-                '"' . str_replace('"', '""', $app['location'] ?? '') . '"',
-                '"' . str_replace('"', '""', $app['salary'] ?? '') . '"',
-                $app['applied_date'] ?? '',
-                $app['status'] ?? '',
-                '"' . str_replace('"', '""', $app['job_url'] ?? '') . '"',
-                '"' . str_replace('"', '""', $app['notes'] ?? '') . '"',
+                '"' . str_replace('"', '""', $a->company ?? '') . '"',
+                '"' . str_replace('"', '""', $a->position ?? '') . '"',
+                '"' . str_replace('"', '""', $a->job_type ?? '') . '"',
+                '"' . str_replace('"', '""', $a->channel ?? '') . '"',
+                '"' . str_replace('"', '""', $a->location ?? '') . '"',
+                '"' . str_replace('"', '""', $a->salary ?? '') . '"',
+                optional($a->applied_date)->format('Y-m-d') ?? '',
+                $a->status ?? '',
+                '"' . str_replace('"', '""', $a->job_url ?? '') . '"',
+                '"' . str_replace('"', '""', $a->notes ?? '') . '"',
             ]) . "\n";
         }
 

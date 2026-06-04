@@ -2,42 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\Goal;
+use App\Models\Reminder;
+use App\Services\StatsService;
+use App\Support\Dates;
+use App\Support\Features;
 use Illuminate\Http\Request;
 
 class GoalController extends Controller
 {
     public function index()
     {
-        $storage    = UserStorage::fromSession();
-        $features   = $storage->getFeatures();
+        $userId     = auth()->id();
+        $features   = Features::map($userId);
         $monthKey   = date('Y-m');
-        $goals      = $storage->getGoals($monthKey);
-        $monthDates = UserStorage::getMonthDates();
-        $reminders  = $storage->getReminders();
+        $goals      = Goal::where('user_id', $userId)->where('month_key', $monthKey)
+            ->pluck('value', 'field')->toArray();
+        $monthDates = Dates::monthDates();
+        $reminders  = Reminder::where('user_id', $userId)->pluck('time', 'key')->toArray();
 
-        $daysSholatComplete = ($features['sholat']   ?? true)
-            ? count(array_filter($monthDates, fn($d) => $storage->getSholatStats($d)['wajib'] >= 5))
-            : 0;
-        $gymMonthly      = ($features['gym']      ?? true) ? $storage->getGymMonthlyCount()      : 0;
-        $runMonthlyCount = ($features['run']      ?? true) ? $storage->getRunMonthlyCount()       : 0;
-        $runMonthlyDist  = ($features['run']      ?? true) ? $storage->getRunMonthlyDistance()    : 0.0;
-        $intimacyMonthly = ($features['intimasi'] ?? true) ? $storage->getIntimacyMonthlyCount() : 0;
+        $daysSholatComplete = ($features['sholat']   ?? true) ? StatsService::sholatDaysComplete($userId, $monthDates) : 0;
+        $gymMonthly         = ($features['gym']      ?? true) ? StatsService::gymMonthlyCount($userId)      : 0;
+        $runMonthlyCount    = ($features['run']      ?? true) ? StatsService::runMonthlyCount($userId)      : 0;
+        $runMonthlyDist     = ($features['run']      ?? true) ? StatsService::runMonthlyDistance($userId)   : 0.0;
+        $intimacyMonthly    = ($features['intimasi'] ?? true) ? StatsService::intimacyMonthlyCount($userId) : 0;
 
         return view('pages.goals', compact(
             'monthKey', 'goals', 'monthDates', 'features',
-            'daysSholatComplete', 'gymMonthly',
-            'runMonthlyCount', 'runMonthlyDist',
+            'daysSholatComplete', 'gymMonthly', 'runMonthlyCount', 'runMonthlyDist',
             'intimacyMonthly', 'reminders'
         ));
     }
 
     public function update(Request $request)
     {
-        $storage  = UserStorage::fromSession();
-        $monthKey = date('Y-m');
-        $storage->updateGoal($monthKey, $request->field, (int) $request->value);
-        $storage->save();
+        Goal::updateOrCreate(
+            ['user_id' => auth()->id(), 'month_key' => date('Y-m'), 'field' => $request->field],
+            ['value' => (int) $request->value]
+        );
         return redirect()->back();
     }
 }

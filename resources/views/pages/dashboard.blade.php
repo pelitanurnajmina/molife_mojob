@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 @section('title', 'Home')
-@section('page-title', $greeting . ', ' . (\App\Models\UserStorage::fromSession()->getProfile()['display_name'] ?: auth()->user()->username ?? 'User') . '!')
+@section('page-title', $greeting . ', ' . ($profile['display_name'] ?: auth()->user()->username ?? 'User') . '!')
 @section('breadcrumb', 'Home')
 
 @section('content')
@@ -24,7 +24,7 @@
 
     {{-- ── Today Snapshot Cards ── --}}
     @php
-        $_featsD = \App\Models\UserStorage::fromSession()->getFeatures();
+        $_featsD = \App\Support\Features::map();
         // Count how many snapshot cards will render so the grid fits exactly
         $_cardCount = 1; // Streak always shown
         if (($_featsD['sholat'] ?? true) || ($_featsD['spiritual'] ?? false)) $_cardCount++;

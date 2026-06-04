@@ -168,7 +168,7 @@
             @for($i = 0; $i < $offset; $i++)<div></div>@endfor
             @foreach($monthDates as $md)
             @php
-                $s = \App\Models\UserStorage::fromSession()->getSholatStats($md);
+                $s = $monthStats[$md] ?? ['wajib' => 0];
                 $day = (int)explode('-', $md)[2];
                 $isToday = $md === $today;
                 $bg = $s['wajib'] >= 5 ? 'bg-green-500 text-white' : ($s['wajib'] > 0 ? 'bg-yellow-400' : 'bg-gray-100');

@@ -2,68 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\GymLog;
+use App\Support\Dates;
 use Illuminate\Http\Request;
 
 class GymController extends Controller
 {
     public function index(Request $request)
     {
-        $storage    = UserStorage::fromSession();
-        $today      = date('Y-m-d');
-        $date       = $request->query('date', $today);
+        $userId = auth()->id();
+        $today  = date('Y-m-d');
+        $date   = $request->query('date', $today);
 
-        $gymData     = $storage->getGym($date);
-        $gymWeekly   = $storage->getGymWeeklyCount();
-        $gymMonthly  = $storage->getGymMonthlyCount();
-        $caloriesWeek= $storage->getTotalCaloriesThisWeek();
-        $weekDates   = UserStorage::getWeekDates();
-        $monthDates  = UserStorage::getMonthDates();
+        $gymData   = $this->dayData($userId, $date);
+        $weekDates = Dates::weekDates();
+        $monthKey  = date('Y-m');
 
-        $gymDataAll  = $storage->toArray()['gym'];
+        // Map of all gym logs keyed by date (for week grid + strip)
+        $gymDataAll = GymLog::where('user_id', $userId)->get()
+            ->keyBy(fn($g) => $g->date->format('Y-m-d'))
+            ->map(fn($g) => ['done' => (bool) $g->done, 'calories' => (int) $g->calories])
+            ->toArray();
+
+        $gymWeekly   = count(array_filter($weekDates, fn($d) => $gymDataAll[$d]['done'] ?? false));
+        $gymMonthly  = GymLog::where('user_id', $userId)->where('done', true)
+            ->whereRaw("DATE_FORMAT(date,'%Y-%m') = ?", [$monthKey])->count();
+        $caloriesWeek = array_sum(array_map(fn($d) => $gymDataAll[$d]['calories'] ?? 0, $weekDates));
 
         // ── Range filter ──
         $range  = $request->query('range', 'month');
-        $months = UserStorage::rangeToMonths($range);
-
+        $months = Dates::rangeToMonths($range);
         $stripRows = []; $rangeActive = 0; $rangeTitle = '';
         if ($months !== null) {
             $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-            $result = UserStorage::buildStripRows($months, function ($d) use ($gymDataAll, $monthShort) {
-                $done = !empty($gymDataAll[$d]['done']);
+            $result = Dates::buildStripRows($months, function ($d) use ($gymDataAll, $monthShort) {
+                $done = $gymDataAll[$d]['done'] ?? false;
                 $dt   = new \DateTime($d);
-                return [
-                    'active' => $done,
-                    'value'  => $done ? 1 : 0,
-                    'title'  => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($done ? 'Gym' : 'Rest'),
-                ];
+                return ['active' => $done, 'value' => $done ? 1 : 0,
+                        'title' => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($done ? 'Gym' : 'Rest')];
             });
-            $stripRows   = $result['rows'];
-            $rangeActive = $result['activeDays'];
-            $rangeTitle  = $result['title'];
+            $stripRows = $result['rows']; $rangeActive = $result['activeDays']; $rangeTitle = $result['title'];
         }
 
         return view('pages.gym', compact(
             'date', 'today', 'gymData', 'gymWeekly', 'gymMonthly', 'caloriesWeek',
-            'weekDates', 'monthDates', 'gymDataAll',
-            'range', 'months', 'stripRows', 'rangeActive', 'rangeTitle'
+            'weekDates', 'gymDataAll', 'range', 'months', 'stripRows', 'rangeActive', 'rangeTitle'
         ));
+    }
+
+    private function dayData(int $userId, string $date): array
+    {
+        $g = GymLog::where('user_id', $userId)->whereDate('date', $date)->first();
+        return ['done' => (bool) ($g->done ?? false), 'calories' => (int) ($g->calories ?? 0)];
     }
 
     public function toggle(Request $request)
     {
-        $storage = UserStorage::fromSession();
-        $calories = (int)($request->calories ?? 0);
-        $storage->toggleGym($request->date, $calories);
-        $storage->save();
+        $userId   = auth()->id();
+        $date     = $request->date;
+        $calories = (int) ($request->calories ?? 0);
+        $g = GymLog::firstOrNew(['user_id' => $userId, 'date' => $date]);
+        if ($g->exists && $g->done) {
+            $g->done = false; $g->calories = 0;
+        } else {
+            $g->done = true; $g->calories = $calories;
+        }
+        $g->save();
         return redirect()->back();
     }
 
     public function updateCalories(Request $request)
     {
-        $storage = UserStorage::fromSession();
-        $storage->updateGymCalories($request->date, (int)$request->calories);
-        $storage->save();
+        $g = GymLog::where('user_id', auth()->id())->whereDate('date', $request->date)->first();
+        if ($g) { $g->calories = (int) $request->calories; $g->save(); }
         return redirect()->back();
     }
 }

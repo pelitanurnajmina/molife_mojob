@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\ReferralPayout;
+use App\Support\Profile;
+use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
 {
+    const PAYOUT_MIN = 50000;
+
     public function index()
     {
         return redirect()->route('settings.profil');
@@ -16,16 +20,14 @@ class SettingsController extends Controller
 
     public function profil()
     {
-        $storage = UserStorage::fromSession();
-        $profile = $storage->getProfile();
+        $profile = Profile::data();
         return view('pages.settings.profil', compact('profile'));
     }
 
     public function tampilan()
     {
-        $storage  = UserStorage::fromSession();
-        $features = $storage->getFeatures();
-        $profile  = $storage->getProfile();
+        $features = Features::map();
+        $profile  = Profile::data();
         return view('pages.settings.tampilan', compact('features', 'profile'));
     }
 
@@ -34,17 +36,23 @@ class SettingsController extends Controller
         return view('pages.settings.langganan');
     }
 
-    const PAYOUT_MIN = 50000;
-
     public function referral()
     {
-        $storage = UserStorage::fromSession();
-        $code    = $storage->getReferralCode();
-        $storage->save(); // persist code if newly generated
-        $stats   = $storage->getReferralStats();
-        $link    = url('/register?ref=' . $code);
+        $code      = Profile::referralCode();
+        $stats     = Profile::referralStats();
+        $link      = url('/register?ref=' . $code);
         $payoutMin = self::PAYOUT_MIN;
-        $payouts   = $storage->getPayoutRequests();
+        $payouts   = ReferralPayout::where('user_id', auth()->id())
+            ->latest()->get()
+            ->map(fn($p) => [
+                'amount'  => $p->amount,
+                'method'  => $p->method,
+                'account' => $p->account,
+                'name'    => $p->name,
+                'status'  => $p->status,
+                'date'    => $p->created_at->format('Y-m-d H:i'),
+            ])->toArray();
+
         return view('pages.settings.referral', compact('code', 'stats', 'link', 'payoutMin', 'payouts'));
     }
 
@@ -56,22 +64,28 @@ class SettingsController extends Controller
             'name'    => 'required|string|max:100',
         ]);
 
-        $storage = UserStorage::fromSession();
-        $stats   = $storage->getReferralStats();
+        $userId  = auth()->id();
+        $profile = Profile::model($userId);
 
-        if (($stats['earnings'] ?? 0) < self::PAYOUT_MIN) {
+        if ($profile->ref_earnings < self::PAYOUT_MIN) {
             return back()->with('toast', __('Saldo belum mencukupi untuk pencairan (min. Rp :n).', ['n' => number_format(self::PAYOUT_MIN, 0, ',', '.')]));
         }
 
-        $storage->addPayoutRequest([
-            'amount'  => (int) ($stats['earnings'] ?? 0),
+        $amount = (int) $profile->ref_earnings;
+
+        ReferralPayout::create([
+            'user_id' => $userId,
+            'amount'  => $amount,
             'method'  => $r['method'],
             'account' => $r['account'],
             'name'    => $r['name'],
             'status'  => 'pending',
-            'date'    => date('Y-m-d H:i'),
         ]);
-        $storage->save();
+
+        // Move earnings → pending
+        $profile->ref_pending  += $amount;
+        $profile->ref_earnings  = 0;
+        $profile->save();
 
         return back()->with('toast', __('Permintaan pencairan dikirim! Diproses dalam 3 hari kerja.'));
     }
@@ -87,12 +101,7 @@ class SettingsController extends Controller
 
         $user->update(['username' => $validated['username']]);
 
-        // Update display_name in profile storage
-        if (isset($validated['display_name'])) {
-            $storage = UserStorage::fromSession();
-            $storage->updateProfile(['display_name' => trim($validated['display_name'])]);
-            $storage->save();
-        }
+        Profile::model()->update(['display_name' => trim($validated['display_name'] ?? '')]);
 
         return back()->with('toast', __('Profil berhasil diperbarui.'));
     }
@@ -105,34 +114,29 @@ class SettingsController extends Controller
             'custom_sport_name' => 'nullable|string|max:50',
         ]);
 
-        $storage  = UserStorage::fromSession();
+        $userId   = auth()->id();
         $religion = $request->religion;
         $sports   = $request->sports ?? [];
 
-        $storage->updateProfile([
+        Profile::model($userId)->update([
             'religion'          => $religion,
-            'sports'            => $sports,
             'custom_sport_name' => trim($request->custom_sport_name ?? ''),
         ]);
 
-        // Sync features
         if ($religion === 'islam') {
-            $storage->setFeature('sholat', true);
-            $storage->setFeature('spiritual', false);
+            Features::set($userId, 'sholat', true);
+            Features::set($userId, 'spiritual', false);
         } elseif ($religion === 'none') {
-            $storage->setFeature('sholat', false);
-            $storage->setFeature('spiritual', false);
+            Features::set($userId, 'sholat', false);
+            Features::set($userId, 'spiritual', false);
         } else {
-            $storage->setFeature('sholat', false);
-            $storage->setFeature('spiritual', true);
+            Features::set($userId, 'sholat', false);
+            Features::set($userId, 'spiritual', true);
         }
 
-        $allSports = ['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'];
-        foreach ($allSports as $sport) {
-            $storage->setFeature($sport, in_array($sport, $sports));
+        foreach (['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'] as $sport) {
+            Features::set($userId, $sport, in_array($sport, $sports));
         }
-
-        $storage->save();
 
         return back()->with('toast', __('Preferensi berhasil disimpan.'));
     }
@@ -148,9 +152,7 @@ class SettingsController extends Controller
             'new_password'     => 'required|string|min:6|confirmed',
         ]);
 
-        auth()->user()->update([
-            'password' => Hash::make($request->new_password),
-        ]);
+        auth()->user()->update(['password' => Hash::make($request->new_password)]);
 
         return back()->with('pass_toast', 'Password berhasil diubah.');
     }
@@ -158,9 +160,7 @@ class SettingsController extends Controller
     public function toggleFeature(Request $request)
     {
         $key     = $request->validate(['feature' => 'required|string'])['feature'];
-        $storage = UserStorage::fromSession();
-        $enabled = $storage->toggleFeature($key);
-        $storage->save();
+        $enabled = Features::toggle(auth()->id(), $key);
 
         return response()->json(['enabled' => $enabled]);
     }

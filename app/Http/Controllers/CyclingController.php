@@ -2,45 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\CyclingLog;
+use App\Support\Dates;
 use Illuminate\Http\Request;
 
 class CyclingController extends Controller
 {
     public function index(Request $request)
     {
-        $storage   = UserStorage::fromSession();
+        $userId    = auth()->id();
         $today     = date('Y-m-d');
-        $todayData = $storage->getCycling($today);
+        $all       = CyclingLog::where('user_id', $userId)->get()->keyBy(fn($r) => $r->date->format('Y-m-d'));
+        $todayData = $this->day($all, $today);
 
-        // Weekly summary
         $weekDates = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $weekDates[] = date('Y-m-d', strtotime("-$i days"));
-        }
-        $weekData  = array_map(fn($d) => $storage->getCycling($d), $weekDates);
-        $weekDone  = count(array_filter($weekData, fn($d) => $d['done']));
-        $weekKm    = array_sum(array_column($weekData, 'km'));
+        for ($i = 6; $i >= 0; $i--) $weekDates[] = date('Y-m-d', strtotime("-$i days"));
+        $weekData = array_map(fn($d) => $this->day($all, $d), $weekDates);
+        $weekDone = count(array_filter($weekData, fn($d) => $d['done']));
+        $weekKm   = array_sum(array_column($weekData, 'km'));
+        $bestKm   = (float) ($all->max('km') ?? 0);
 
-        // Personal best
-        $allDates  = array_keys($storage->getAllCycling());
-        $bestKm    = 0;
-        foreach ($allDates as $d) {
-            $rec = $storage->getCycling($d);
-            if ($rec['km'] > $bestKm) $bestKm = $rec['km'];
-        }
-
-        // ── Range filter ── (sports have no monthly calendar → "Bulan Ini" = 1-month strip)
         $range  = $request->query('range', 'month');
-        $months = UserStorage::rangeToMonths($range) ?? 1;
+        $months = Dates::rangeToMonths($range) ?? 1;
         $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-        $result = UserStorage::buildStripRows($months, function ($d) use ($storage, $monthShort) {
-            $rec  = $storage->getCycling($d);
-            $done = !empty($rec['done']);
-            $km   = $rec['km'] ?? 0;
+        $result = Dates::buildStripRows($months, function ($d) use ($all, $monthShort) {
+            $row  = $this->day($all, $d);
             $dt   = new \DateTime($d);
-            return ['active' => $done, 'value' => $done ? 1 : 0,
-                    'title' => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($done ? $km.' km' : 'Rest')];
+            return ['active' => $row['done'], 'value' => $row['done'] ? 1 : 0,
+                    'title' => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . ($row['done'] ? $row['km'].' km' : 'Rest')];
         });
         $stripRows = $result['rows']; $rangeActive = $result['activeDays']; $rangeTitle = $result['title'];
 
@@ -50,25 +39,28 @@ class CyclingController extends Controller
         ));
     }
 
+    private function day($all, string $date): array
+    {
+        $r = $all[$date] ?? null;
+        return ['done' => (bool) ($r->done ?? false), 'km' => (float) ($r->km ?? 0), 'duration' => (int) ($r->duration ?? 0)];
+    }
+
     public function update(Request $request)
     {
         $r = $request->validate([
-            'date'     => 'required|date',
-            'km'       => 'required|numeric|min:0|max:500',
-            'duration' => 'required|integer|min:0|max:600',
+            'date' => 'required|date', 'km' => 'required|numeric|min:0|max:500', 'duration' => 'required|integer|min:0|max:600',
         ]);
-        $storage = UserStorage::fromSession();
-        $storage->saveCycling($r['date'], (float)$r['km'], (int)$r['duration']);
-        $storage->save();
+        CyclingLog::updateOrCreate(
+            ['user_id' => auth()->id(), 'date' => $r['date']],
+            ['done' => true, 'km' => (float) $r['km'], 'duration' => (int) $r['duration']]
+        );
         return redirect()->back()->with('toast', __('Data bersepeda tersimpan!'));
     }
 
     public function reset(Request $request)
     {
         $request->validate(['date' => 'required|date']);
-        $storage = UserStorage::fromSession();
-        $storage->resetCycling($request->date);
-        $storage->save();
+        CyclingLog::where('user_id', auth()->id())->whereDate('date', $request->date)->delete();
         return redirect()->back()->with('toast', __('Data dihapus.'));
     }
 }

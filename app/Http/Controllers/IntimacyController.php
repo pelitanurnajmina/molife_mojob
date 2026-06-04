@@ -2,42 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserStorage;
+use App\Models\IntimacyLog;
+use App\Support\Dates;
 use Illuminate\Http\Request;
 
 class IntimacyController extends Controller
 {
     public function index(Request $request)
     {
-        $storage   = UserStorage::fromSession();
-        $today     = date('Y-m-d');
-        $date      = $request->query('date', $today);
+        $userId = auth()->id();
+        $today  = date('Y-m-d');
+        $date   = $request->query('date', $today);
 
-        $count        = $storage->getIntimacy($date);
-        $todayCount   = $storage->getIntimacy($today);
-        $monthlyCount = $storage->getIntimacyMonthlyCount();
-        $monthDates   = UserStorage::getMonthDates();
-        $intimacyAll  = $storage->toArray()['intimacy'];
+        $intimacyAll = IntimacyLog::where('user_id', $userId)->get()
+            ->keyBy(fn($r) => $r->date->format('Y-m-d'))
+            ->map(fn($r) => (int) $r->count)->toArray();
 
-        // ── Range filter (month | 3m | 6m | 12m) ──
+        $count        = $intimacyAll[$date] ?? 0;
+        $todayCount   = $intimacyAll[$today] ?? 0;
+        $monthKey     = date('Y-m');
+        $monthlyCount = IntimacyLog::where('user_id', $userId)
+            ->whereRaw("DATE_FORMAT(date,'%Y-%m') = ?", [$monthKey])->sum('count');
+        $monthDates   = Dates::monthDates();
+
+        // ── Range filter ──
         $range  = $request->query('range', 'month');
-        $months = UserStorage::rangeToMonths($range);
-
-        $stripRows  = [];
-        $rangeTotal = 0;
-        $activeDays = 0;
-        $rangeTitle = '';
-        $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-
+        $months = Dates::rangeToMonths($range);
+        $stripRows = []; $rangeTotal = 0; $activeDays = 0; $rangeTitle = '';
         if ($months !== null) {
-            $result = UserStorage::buildStripRows($months, function ($d) use ($intimacyAll, $monthShort) {
+            $monthShort = ['', 'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+            $result = Dates::buildStripRows($months, function ($d) use ($intimacyAll, $monthShort) {
                 $c  = $intimacyAll[$d] ?? 0;
                 $dt = new \DateTime($d);
-                return [
-                    'active' => $c > 0,
-                    'value'  => $c,
-                    'title'  => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . $c . 'x',
-                ];
+                return ['active' => $c > 0, 'value' => $c,
+                        'title' => $dt->format('j') . ' ' . $monthShort[(int)$dt->format('n')] . ': ' . $c . 'x'];
             });
             $stripRows  = $result['rows'];
             $rangeTotal = $result['total'];
@@ -54,9 +52,17 @@ class IntimacyController extends Controller
 
     public function change(Request $request)
     {
-        $storage = UserStorage::fromSession();
-        $storage->changeIntimacy($request->date, (int)$request->delta);
-        $storage->save();
+        $userId = auth()->id();
+        $date   = $request->date;
+        $delta  = (int) $request->delta;
+
+        $row = IntimacyLog::firstOrNew(['user_id' => $userId, 'date' => $date]);
+        $row->count = max(0, (int) ($row->count ?? 0) + $delta);
+        if ($row->count === 0 && $row->exists) {
+            $row->delete();
+        } else {
+            $row->save();
+        }
         return redirect()->back();
     }
 }
