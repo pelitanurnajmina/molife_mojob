@@ -276,36 +276,39 @@
         <nav class="flex-1">
             @php
             /* ── Build all three section nav arrays ── */
-            $lifeNav = array_values(array_filter([
-                ['route'=>'dashboard',   'label'=>'Home',               'match'=>'dashboard',   'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', 'show'=>true],
-                ['route'=>'sholat',     'label'=>__('Sholat'),          'match'=>'sholat',      'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z', 'show'=>$_f('sholat')],
-                ['route'=>'spiritual',  'label'=>$_spiritualLabel,      'match'=>'spiritual',   'icon'=>'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z', 'show'=>$_f('spiritual')],
-                ['route'=>'gym',        'label'=>'Gym',                 'match'=>'gym',         'icon'=>'M13 10V3L4 14h7v7l9-11h-7z',  'show'=>$_f('gym')],
-                ['route'=>'run',        'label'=>__('Lari'),            'match'=>'run',         'icon'=>'M22 12h-4l-3 9L9 3l-3 9H2',   'show'=>$_f('run')],
-                ['route'=>'cycling',    'label'=>__('Bersepeda'),       'match'=>'cycling',     'icon'=>'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4', 'show'=>$_f('cycling')],
-                ['route'=>'swimming',   'label'=>__('Renang'),          'match'=>'swimming',    'icon'=>'M7 16.5c2 1 4 1 6 0s4-1 6 0M7 11.5c2 1 4 1 6 0s4-1 6 0M3 7.5c2 1 4 1 6 0m-9 9V7.5', 'show'=>$_f('swimming')],
-                ['route'=>'racket',     'label'=>'Tenis/Badminton',    'match'=>'racket',      'icon'=>'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z', 'show'=>$_f('racket')],
-                ['route'=>'custom_sport','label'=>$_sportLabel,         'match'=>'custom_sport','icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', 'show'=>$_f('custom_sport')],
-                ['route'=>'intimasi',   'label'=>__('Intimasi'),        'match'=>'intimasi',    'icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'show'=>$_f('intimasi')],
-                ['route'=>'mental',     'label'=>__('Mental'),          'match'=>'mental',      'icon'=>'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'show'=>$_f('mental')],
-                ['route'=>'tasks',      'label'=>'Tasks & Notes',       'match'=>'tasks',       'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', 'show'=>$_f('tasks')],
-                ['route'=>'statistik',  'label'=>__('Statistik'),       'match'=>'statistik',   'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'show'=>$_f('statistik')],
-                ['route'=>'insights',   'label'=>__('Insights'),        'match'=>'insights',    'icon'=>'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'show'=>$_f('insights')],
-                ['route'=>'goals',      'label'=>__('Goals & Reminder'),'match'=>'goals',       'icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', 'show'=>$_f('goals')],
-            ], fn($i) => $i['show']));
+            $lifeNav = [
+                ['route'=>'dashboard',   'feat'=>null,           'label'=>'Home',               'match'=>'dashboard',   'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                ['route'=>'sholat',     'feat'=>'sholat',       'label'=>__('Sholat'),          'match'=>'sholat',      'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
+                ['route'=>'spiritual',  'feat'=>'spiritual',    'label'=>$_spiritualLabel,      'match'=>'spiritual',   'icon'=>'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
+                ['route'=>'gym',        'feat'=>'gym',          'label'=>'Gym',                 'match'=>'gym',         'icon'=>'M13 10V3L4 14h7v7l9-11h-7z'],
+                ['route'=>'run',        'feat'=>'run',          'label'=>__('Lari'),            'match'=>'run',         'icon'=>'M22 12h-4l-3 9L9 3l-3 9H2'],
+                ['route'=>'cycling',    'feat'=>'cycling',      'label'=>__('Bersepeda'),       'match'=>'cycling',     'icon'=>'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'],
+                ['route'=>'swimming',   'feat'=>'swimming',     'label'=>__('Renang'),          'match'=>'swimming',    'icon'=>'M7 16.5c2 1 4 1 6 0s4-1 6 0M7 11.5c2 1 4 1 6 0s4-1 6 0M3 7.5c2 1 4 1 6 0m-9 9V7.5'],
+                ['route'=>'racket',     'feat'=>'racket',       'label'=>'Tenis/Badminton',    'match'=>'racket',      'icon'=>'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'],
+                ['route'=>'custom_sport','feat'=>'custom_sport','label'=>$_sportLabel,         'match'=>'custom_sport','icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
+                ['route'=>'intimasi',   'feat'=>'intimasi',     'label'=>__('Intimasi'),        'match'=>'intimasi',    'icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
+                ['route'=>'quit',       'feat'=>'porn',         'label'=>'Stop Porn',           'match'=>'quit',        'routeParams'=>['type'=>'porn'],   'quitType'=>'porn',   'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                ['route'=>'quit',       'feat'=>'sosmed',       'label'=>__('Kurangi Sosmed'),  'match'=>'quit',        'routeParams'=>['type'=>'sosmed'], 'quitType'=>'sosmed', 'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
+                ['route'=>'motivasi',   'feat'=>'motivasi',     'label'=>__('Motivasi'),        'match'=>'motivasi',    'icon'=>'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z'],
+                ['route'=>'mental',     'feat'=>'mental',       'label'=>__('Mental'),          'match'=>'mental',      'icon'=>'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['route'=>'tasks',      'feat'=>'tasks',        'label'=>'Tasks & Notes',       'match'=>'tasks',       'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
+                ['route'=>'statistik',  'feat'=>'statistik',    'label'=>__('Statistik'),       'match'=>'statistik',   'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+                ['route'=>'insights',   'feat'=>'insights',     'label'=>__('Insights'),        'match'=>'insights',    'icon'=>'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['route'=>'goals',      'feat'=>'goals',        'label'=>__('Goals & Reminder'),'match'=>'goals',       'icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
+            ];
 
-            $careerNav = array_values(array_filter([
-                ['route'=>'karir',           'match'=>'karir',       'label'=>__('Overview'),          'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'show'=>$_f('lamaran')],
-                ['route'=>'lamaran.index',   'match'=>'lamaran.*',   'label'=>__('Lamaran Kerja'),     'icon'=>'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'show'=>$_f('lamaran')],
-                ['route'=>'persiapan.index', 'match'=>'persiapan.*', 'label'=>__('Persiapan Melamar'),'icon'=>'M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z', 'show'=>$_f('persiapan')],
-            ], fn($i) => $i['show']));
+            $careerNav = [
+                ['route'=>'karir',           'feat'=>'lamaran',   'match'=>'karir',       'label'=>__('Overview'),          'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
+                ['route'=>'lamaran.index',   'feat'=>'lamaran',   'match'=>'lamaran.*',   'label'=>__('Lamaran Kerja'),     'icon'=>'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                ['route'=>'persiapan.index', 'feat'=>'persiapan', 'match'=>'persiapan.*', 'label'=>__('Persiapan Melamar'),'icon'=>'M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z'],
+            ];
 
-            $financeNav = array_values(array_filter([
-                ['route'=>'finance.index',    'match'=>'finance.index',   'label'=>__('Overview'),      'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'show'=>$_f('finance')],
-                ['route'=>'finance.transaksi','match'=>'finance.transaksi','label'=>__('Transaksi'),    'icon'=>'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4', 'show'=>$_f('finance')],
-                ['route'=>'finance.anggaran', 'match'=>'finance.anggaran', 'label'=>__('Anggaran'),     'icon'=>'M9 7h6m0 0l-3-3m3 3l-3 3M9 17h6m0 0l-3-3m3 3l-3 3M4 12h16', 'show'=>$_f('finance')],
-                ['route'=>'finance.tabungan', 'match'=>'finance.tabungan', 'label'=>__('Tabungan'),     'icon'=>'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'show'=>$_f('finance')],
-            ], fn($i) => $i['show']));
+            $financeNav = [
+                ['route'=>'finance.index',    'feat'=>'finance', 'match'=>'finance.index',   'label'=>__('Overview'),      'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+                ['route'=>'finance.transaksi','feat'=>'finance', 'match'=>'finance.transaksi','label'=>__('Transaksi'),    'icon'=>'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'],
+                ['route'=>'finance.anggaran', 'feat'=>'finance', 'match'=>'finance.anggaran', 'label'=>__('Anggaran'),     'icon'=>'M9 7h6m0 0l-3-3m3 3l-3 3M9 17h6m0 0l-3-3m3 3l-3 3M4 12h16'],
+                ['route'=>'finance.tabungan', 'feat'=>'finance', 'match'=>'finance.tabungan', 'label'=>__('Tabungan'),     'icon'=>'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'],
+            ];
 
             $settingsNav = [
                 ['route'=>'settings.profil',    'match'=>'settings.profil',    'label'=>__('Profil & Akun'),    'icon'=>'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
@@ -331,8 +334,10 @@
             {{-- Collapsible sections --}}
             <div id="sidebarNav">
             @foreach($sections as $sec)
-            @if(count($sec['items']) > 0)
-            <div class="sidebar-section mb-1" data-section="{{ $sec['id'] }}">
+            @php
+                $secHasVisible = collect($sec['items'])->contains(fn($i) => empty($i['feat']) || $_f($i['feat']));
+            @endphp
+            <div class="sidebar-section mb-1 {{ $secHasVisible ? '' : 'hidden' }}" data-section="{{ $sec['id'] }}">
                 {{-- Section header — no icon, just label + chevron --}}
                 <button type="button" onclick="toggleSection('{{ $sec['id'] }}')"
                     class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-all group">
@@ -345,9 +350,19 @@
                 <div id="section-{{ $sec['id'] }}" class="overflow-hidden transition-all duration-200" style="max-height:0">
                     <div class="space-y-0.5 pt-1 pb-2">
                     @foreach($sec['items'] as $item)
-                    <a href="{{ route($item['route']) }}"
+                    @php
+                        $itemVisible = empty($item['feat']) || $_f($item['feat']);
+                        $href = route($item['route'], $item['routeParams'] ?? []);
+                        if (isset($item['quitType'])) {
+                            $isActive = request()->routeIs('quit') && request()->route('type') === $item['quitType'];
+                        } else {
+                            $isActive = request()->routeIs($item['match']);
+                        }
+                    @endphp
+                    <a href="{{ $href }}"
+                        @if(!empty($item['feat'])) data-feat="{{ $item['feat'] }}" @endif
                         class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all
-                        {{ request()->routeIs($item['match']) ? 'nav-active' : 'text-gray-500 hover:bg-gray-50' }}">
+                        {{ $isActive ? 'nav-active' : 'text-gray-500 hover:bg-gray-50' }} {{ $itemVisible ? '' : 'hidden' }}">
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $item['icon'] }}"/>
                         </svg>
@@ -357,8 +372,7 @@
                     </div>
                 </div>
             </div>
-            @if(!$loop->last)<div class="h-px bg-gray-100 my-1.5"></div>@endif
-            @endif
+            @if(!$loop->last)<div class="sidebar-divider h-px bg-gray-100 my-1.5 {{ $secHasVisible ? '' : 'hidden' }}"></div>@endif
             @endforeach
             </div>
         </nav>
@@ -504,6 +518,9 @@
         ['route'=>'racket',          'match'=>'racket',       'label'=>'Tenis',                      'icon'=>$_ico['racket'],       'show'=>$_f('racket')],
         ['route'=>'custom_sport',    'match'=>'custom_sport', 'label'=>mb_substr($_sportLabel,0,6),  'icon'=>$_ico['custom_sport'], 'show'=>$_f('custom_sport')],
         ['route'=>'intimasi',        'match'=>'intimasi',     'label'=>'Intim',                      'icon'=>$_ico['intimasi'],     'show'=>$_f('intimasi')],
+        ['route'=>'quit',            'match'=>'quit',         'label'=>'Porn',     'params'=>['type'=>'porn'],   'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'show'=>$_f('porn')],
+        ['route'=>'quit',            'match'=>'quit',         'label'=>'Sosmed',   'params'=>['type'=>'sosmed'], 'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', 'show'=>$_f('sosmed')],
+        ['route'=>'motivasi',        'match'=>'motivasi',     'label'=>'Motivasi', 'icon'=>'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z', 'show'=>$_f('motivasi')],
         ['route'=>'mental',          'match'=>'mental',       'label'=>'Mental',                     'icon'=>$_ico['mental'],       'show'=>$_f('mental')],
         ['route'=>'tasks',           'match'=>'tasks',        'label'=>'Tasks',                      'icon'=>$_ico['tasks'],        'show'=>$_f('tasks')],
         ['route'=>'insights',        'match'=>'insights',     'label'=>'Insights',                   'icon'=>$_ico['insights'],     'show'=>$_f('insights')],
@@ -522,7 +539,7 @@
 <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-20">
     <div class="grid {{ $mobileGridClass }} gap-0.5 p-1.5">
         @foreach($mobileNav as $item)
-        <a href="{{ route($item['route']) }}" class="flex flex-col items-center gap-0.5 py-1.5 px-0.5 rounded-xl transition-all {{ request()->routeIs($item['match']) ? 'bg-black text-white' : 'text-gray-500' }}">
+        <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="flex flex-col items-center gap-0.5 py-1.5 px-0.5 rounded-xl transition-all {{ request()->routeIs($item['match']) ? 'bg-black text-white' : 'text-gray-500' }}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/></svg>
             <span class="text-[8px] font-bold leading-none">{{ $item['label'] }}</span>
         </a>
@@ -872,7 +889,38 @@
     } else {
         initSidebar();
     }
+
+    /* Live-update sidebar after feature save (no page refresh) */
+    window.applySidebarFeatures = function(map) {
+        // Toggle each feature nav item
+        document.querySelectorAll('#sidebarNav [data-feat]').forEach(function(a) {
+            var on = !!map[a.dataset.feat];
+            a.classList.toggle('hidden', !on);
+        });
+        // Toggle section + divider visibility based on remaining visible items
+        document.querySelectorAll('#sidebarNav .sidebar-section').forEach(function(sec) {
+            var items   = sec.querySelectorAll('.nav-item');
+            var visible = Array.prototype.some.call(items, function(it) { return !it.classList.contains('hidden'); });
+            sec.classList.toggle('hidden', !visible);
+            var divider = sec.nextElementSibling;
+            if (divider && divider.classList.contains('sidebar-divider')) divider.classList.toggle('hidden', !visible);
+            // Recompute open height
+            var body = sec.querySelector('[id^="section-"]');
+            if (body && body.style.maxHeight && body.style.maxHeight !== '0px') {
+                body.style.maxHeight = 'none';
+            }
+        });
+    };
 })();
+
+/* Lightweight global toast */
+window.showMojobToast = function(msg) {
+    var t = document.createElement('div');
+    t.className = 'fixed top-4 right-4 z-[60] bg-gray-900 text-white rounded-2xl px-5 py-3 shadow-2xl text-sm font-bold animate-fade-in';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 3000);
+};
 
 /* ── Flatpickr: custom month dropdown ── */
 function fpBuildMonthPicker(fp) {

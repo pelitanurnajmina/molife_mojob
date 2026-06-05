@@ -164,4 +164,18 @@ class SettingsController extends Controller
 
         return response()->json(['enabled' => $enabled]);
     }
+
+    public function saveFeatures(Request $request)
+    {
+        $request->validate(['features' => 'array', 'features.*' => 'boolean']);
+        $userId   = auth()->id();
+        $incoming = $request->input('features', []);
+
+        foreach (Features::defaults() as $key => $default) {
+            $val = array_key_exists($key, $incoming) ? (bool) $incoming[$key] : false;
+            Features::set($userId, $key, $val);
+        }
+
+        return response()->json(['features' => Features::map($userId)]);
+    }
 }

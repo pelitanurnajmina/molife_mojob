@@ -15,6 +15,8 @@ use App\Http\Controllers\SwimmingController;
 use App\Http\Controllers\RacketController;
 use App\Http\Controllers\CustomSportController;
 use App\Http\Controllers\IntimacyController;
+use App\Http\Controllers\QuitController;
+use App\Http\Controllers\MotivasiController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\GoalController;
@@ -64,6 +66,13 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     // Spiritual (non-Islam)
     Route::get('/spiritual',        [SpiritualController::class, 'index'])->name('spiritual');
     Route::post('/spiritual/toggle',[SpiritualController::class, 'toggle'])->name('spiritual.toggle');
+
+    // Quit trackers (stop porn / kurangi sosmed)
+    Route::get('/quit/{type}',          [QuitController::class, 'index'])->name('quit');
+    Route::post('/quit/{type}/relapse', [QuitController::class, 'relapse'])->name('quit.relapse');
+
+    // Motivasi (quote + impact)
+    Route::get('/motivasi', [MotivasiController::class, 'index'])->name('motivasi');
 
     // Sports
     Route::get('/gym', [GymController::class, 'index'])->name('gym');
@@ -148,6 +157,7 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::post('/settings/profile',        [SettingsController::class, 'updateProfile'])->name('settings.profile');
     Route::post('/settings/password',       [SettingsController::class, 'updatePassword'])->name('settings.password');
     Route::post('/settings/toggle-feature', [SettingsController::class, 'toggleFeature'])->name('settings.toggle-feature');
+    Route::post('/settings/features',        [SettingsController::class, 'saveFeatures'])->name('settings.features.save');
     Route::post('/settings/onboarding',     [SettingsController::class, 'updateOnboarding'])->name('settings.onboarding');
 
     // Persiapan Melamar (Links, Files, Templates)

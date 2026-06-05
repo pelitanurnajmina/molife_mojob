@@ -123,6 +123,9 @@
                 ['key'=>'racket',      'label'=>'Tenis / Badminton',  'desc'=>'Track sesi racket sports'],
                 ['key'=>'custom_sport','label'=>'Olahraga Custom',    'desc'=>'Olahraga sesuai pilihan kamu'],
                 ['key'=>'intimasi',    'label'=>'Intimasi',           'desc'=>'Tracker keintiman bersama pasangan'],
+                ['key'=>'porn',        'label'=>'Stop Porn',          'desc'=>'Streak bebas pornografi & kontrol diri'],
+                ['key'=>'sosmed',      'label'=>'Kurangi Sosmed',     'desc'=>'Disiplin waktu media sosial'],
+                ['key'=>'motivasi',    'label'=>'Motivasi',           'desc'=>'Quote harian & dampak konsistensimu'],
                 ['key'=>'mental',      'label'=>'Mental',             'desc'=>'Mood tracker, energi, dan refleksi harian'],
                 ['key'=>'tasks',       'label'=>'Tasks & Notes',      'desc'=>'Tugas harian, mingguan & catatan'],
                 ['key'=>'statistik',   'label'=>'Statistik',          'desc'=>'Grafik dan ringkasan 30 hari terakhir'],
@@ -143,15 +146,15 @@
             @foreach($featureGroups as $group)
             <div>
                 <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">{{ $group['label'] }}</p>
-                <div class="divide-y divide-gray-100 rounded-2xl border border-gray-100 overflow-hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     @foreach($group['items'] as $feat)
                     @php $enabled = $features[$feat['key']] ?? false; @endphp
-                    <div class="feat-row flex items-center gap-4 px-4 py-3.5" data-key="{{ $feat['key'] }}" data-enabled="{{ $enabled ? 'true' : 'false' }}">
+                    <div class="feat-row flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100" data-key="{{ $feat['key'] }}" data-enabled="{{ $enabled ? 'true' : 'false' }}">
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-bold text-gray-800">{{ $feat['label'] }}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">{{ $feat['desc'] }}</p>
+                            <p class="text-sm font-bold text-gray-800 truncate">{{ $feat['label'] }}</p>
+                            <p class="text-[11px] text-gray-400 mt-0.5 leading-tight">{{ $feat['desc'] }}</p>
                         </div>
-                        <button type="button" onclick="toggleFeature(this)" data-key="{{ $feat['key'] }}"
+                        <button type="button" onclick="toggleFeatureLocal(this)" data-key="{{ $feat['key'] }}"
                             class="feat-toggle flex-shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none {{ $enabled ? 'bg-gray-900' : 'bg-gray-200' }}">
                             <span class="block w-4 h-4 bg-white rounded-full shadow absolute top-1 transition-all duration-200 {{ $enabled ? 'left-6' : 'left-1' }}"></span>
                         </button>
@@ -160,6 +163,15 @@
                 </div>
             </div>
             @endforeach
+        </div>
+
+        {{-- Save bar --}}
+        <div class="flex items-center justify-between gap-3 mt-6 pt-5 border-t border-gray-100">
+            <p id="featHint" class="text-xs text-gray-400">{{ __('Ubah toggle lalu simpan — sidebar langsung diperbarui.') }}</p>
+            <button type="button" id="saveFeaturesBtn" onclick="saveFeatures()"
+                class="px-6 py-2.5 bg-black text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all flex items-center gap-2">
+                {{ __('Simpan Perubahan') }}
+            </button>
         </div>
     </div>
 
@@ -175,37 +187,47 @@ document.querySelectorAll('input[value="custom_sport"]').forEach(cb => {
     });
 });
 
-// Feature toggles
-const TOGGLE_URL = '{{ route("settings.toggle-feature") }}';
+const SAVE_FEATURES_URL = '{{ route("settings.features.save") }}';
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
-async function toggleFeature(btn) {
-    const key     = btn.dataset.key;
+// Local toggle (no save until Simpan)
+function toggleFeatureLocal(btn) {
     const row     = btn.closest('.feat-row');
-    const current = row.dataset.enabled === 'true';
-    applyToggle(btn, !current);
-    try {
-        const res  = await fetch(TOGGLE_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body: JSON.stringify({ feature: key }),
-        });
-        if (!res.ok) throw new Error();
-        const json = await res.json();
-        applyToggle(btn, json.enabled);
-    } catch {
-        applyToggle(btn, current);
-    }
-}
-
-function applyToggle(btn, enabled) {
-    const row   = btn.closest('.feat-row');
-    const thumb = btn.querySelector('span');
+    const enabled = !(row.dataset.enabled === 'true');
+    const thumb   = btn.querySelector('span');
     row.dataset.enabled = enabled ? 'true' : 'false';
     btn.classList.toggle('bg-gray-900', enabled);
     btn.classList.toggle('bg-gray-200', !enabled);
     thumb.classList.toggle('left-6', enabled);
     thumb.classList.toggle('left-1', !enabled);
+    document.getElementById('featHint').textContent = '{{ __("Ada perubahan belum disimpan…") }}';
+}
+
+async function saveFeatures() {
+    const btn = document.getElementById('saveFeaturesBtn');
+    const map = {};
+    document.querySelectorAll('.feat-row').forEach(r => { map[r.dataset.key] = r.dataset.enabled === 'true'; });
+
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = '{{ __("Menyimpan…") }}';
+    try {
+        const res = await fetch(SAVE_FEATURES_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            body: JSON.stringify({ features: map }),
+        });
+        if (!res.ok) throw new Error();
+        const json = await res.json();
+        if (window.applySidebarFeatures) window.applySidebarFeatures(json.features);
+        document.getElementById('featHint').textContent = '{{ __("Tersimpan & sidebar diperbarui.") }}';
+        if (window.showMojobToast) window.showMojobToast('{{ __("Pengaturan fitur disimpan.") }}');
+    } catch {
+        document.getElementById('featHint').textContent = '{{ __("Gagal menyimpan, coba lagi.") }}';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = original;
+    }
 }
 </script>
 @endpush
