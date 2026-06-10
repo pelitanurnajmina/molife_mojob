@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. File/folder nyata di root -> sajikan langsung (favicon, robots.txt, dll)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 2. Aset statis (request berekstensi: .css .js .png .jpg .woff dll) -> ambil dari public/
+    RewriteRule ^(.+\.\w+)$ public/$1 [L]
+
+    # 3. Semua request lain (route Laravel) -> front controller di root
+    RewriteRule ^ index.php [L]
+</IfModule>
