@@ -38,11 +38,16 @@
             </form>
         </div>
 
+        @php
+            // Fixed categories exclude the generic "Lainnya" — custom-named ones are handled below.
+            $fixedCats  = array_values(array_filter($expenseCats, fn($c) => $c !== 'Lainnya'));
+            $customCats = array_diff(array_keys($budget), $expenseCats); // saved custom names
+        @endphp
         <form method="POST" action="{{ route('finance.anggaran.set') }}">
             @csrf
             <input type="hidden" name="month" value="{{ $monthKey }}">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                @foreach($expenseCats as $cat)
+                @foreach($fixedCats as $cat)
                 <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <span class="text-sm font-bold text-gray-700 flex-1 min-w-0">{{ $cat }}</span>
                     <input type="number" name="budgets[{{ $cat }}]" min="0" placeholder="0"
@@ -51,6 +56,37 @@
                 </div>
                 @endforeach
             </div>
+
+            {{-- Custom "Lainnya" categories (named manually) --}}
+            <div class="border-t border-gray-100 pt-4 mb-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">{{ __('Kategori Lainnya') }}</p>
+                        <p class="text-[11px] text-gray-400">{{ __('Tulis sendiri nama kategorinya, mis. "Donasi", "Hobi", "Liburan".') }}</p>
+                    </div>
+                    <button type="button" onclick="addCustomCat()"
+                        class="text-xs font-bold text-black bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-all flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        {{ __('Tambah') }}
+                    </button>
+                </div>
+                <div id="customCatList" class="space-y-2">
+                    @foreach($customCats as $cat)
+                    <div class="flex items-center gap-2 custom-cat-row">
+                        <input type="text" name="custom_names[]" value="{{ $cat }}" maxlength="50"
+                            placeholder="{{ __('Nama kategori...') }}"
+                            class="flex-1 min-w-0 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:border-black transition-all">
+                        <input type="number" name="custom_amounts[]" min="0" placeholder="0" value="{{ $budget[$cat] }}"
+                            class="w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:border-black transition-all text-right">
+                        <button type="button" onclick="this.closest('.custom-cat-row').remove()"
+                            class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
             <button type="submit" class="w-full py-3 bg-black text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all">
                 {{ __('Simpan Anggaran') }}
             </button>
@@ -86,4 +122,25 @@
     @endif
 
 </div>
+
+@push('scripts')
+<script>
+function addCustomCat() {
+    const list = document.getElementById('customCatList');
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 custom-cat-row';
+    row.innerHTML = `
+        <input type="text" name="custom_names[]" maxlength="50" placeholder="{{ __('Nama kategori...') }}"
+            class="flex-1 min-w-0 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:border-black transition-all">
+        <input type="number" name="custom_amounts[]" min="0" placeholder="0"
+            class="w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:border-black transition-all text-right">
+        <button type="button" onclick="this.closest('.custom-cat-row').remove()"
+            class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>`;
+    list.appendChild(row);
+    row.querySelector('input').focus();
+}
+</script>
+@endpush
 @endsection

@@ -135,7 +135,13 @@
             <h3 class="font-bold">{{ __('Tujuan Tabungan') }}</h3>
             <a href="{{ route('finance.tabungan') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Kelola') }}</a>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        @php
+            $gn = count($savingsGoals);
+            $goalGrid = $gn === 1 ? 'grid-cols-1'
+                      : ($gn === 2 ? 'grid-cols-1 sm:grid-cols-2'
+                      : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3');
+        @endphp
+        <div class="grid {{ $goalGrid }} gap-3">
             @foreach($savingsGoals as $goal)
             @php
                 $pct  = $goal['target'] > 0 ? min(100, round(($goal['current'] / $goal['target']) * 100)) : 0;

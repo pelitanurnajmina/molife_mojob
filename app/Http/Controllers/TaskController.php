@@ -22,7 +22,13 @@ class TaskController extends Controller
         $reflection  = ReflectionService::get($userId, $today);
         $reflectionStreak = ReflectionService::streak($userId);
 
-        return view('pages.tasks', compact('today', 'weekKey', 'dailyTodos', 'weeklyTodos', 'note', 'reflection', 'reflectionStreak'));
+        $dailyHistory  = self::dailyHistory($userId, $today);
+        $weeklyHistory = self::weeklyHistory($userId, $weekKey);
+
+        return view('pages.tasks', compact(
+            'today', 'weekKey', 'dailyTodos', 'weeklyTodos', 'note', 'reflection', 'reflectionStreak',
+            'dailyHistory', 'weeklyHistory'
+        ));
     }
 
     /** Array list (priority-sorted, incomplete first) for a scope+period. */
@@ -34,6 +40,54 @@ class TaskController extends Controller
             ->sortBy(fn($t) => [$t->done ? 1 : 0, $pri[$t->priority] ?? 1])
             ->map(fn($t) => ['id' => $t->id, 'text' => $t->text, 'priority' => $t->priority, 'done' => (bool) $t->done])
             ->values()->toArray();
+    }
+
+    /** Last 7 days (excluding today) of daily-task completion summaries. */
+    public static function dailyHistory(int $userId, string $today): array
+    {
+        $rows = Todo::where('user_id', $userId)->where('scope', 'daily')
+            ->where('period_key', '<', $today)
+            ->where('period_key', '>=', date('Y-m-d', strtotime($today . ' -7 days')))
+            ->get()->groupBy('period_key');
+
+        $out = [];
+        foreach ($rows as $key => $items) {
+            $total = $items->count();
+            $done  = $items->where('done', true)->count();
+            $out[] = [
+                'key'   => $key,
+                'label' => date('l, j F Y', strtotime($key)),
+                'total' => $total,
+                'done'  => $done,
+                'tasks' => $items->map(fn($t) => ['text' => $t->text, 'done' => (bool) $t->done])->values()->toArray(),
+            ];
+        }
+        usort($out, fn($a, $b) => strcmp($b['key'], $a['key']));
+        return $out;
+    }
+
+    /** Past weeks (excluding current) of weekly-task completion summaries. */
+    public static function weeklyHistory(int $userId, string $weekKey): array
+    {
+        $rows = Todo::where('user_id', $userId)->where('scope', 'weekly')
+            ->where('period_key', '<', $weekKey)
+            ->where('period_key', '>=', Dates::weekKey(date('Y-m-d', strtotime($weekKey . ' -56 days'))))
+            ->get()->groupBy('period_key');
+
+        $out = [];
+        foreach ($rows as $key => $items) {
+            $start = strtotime($key);
+            $end   = strtotime($key . ' +6 days');
+            $out[] = [
+                'key'   => $key,
+                'label' => date('j M', $start) . ' – ' . date('j M Y', $end),
+                'total' => $items->count(),
+                'done'  => $items->where('done', true)->count(),
+                'tasks' => $items->map(fn($t) => ['text' => $t->text, 'done' => (bool) $t->done])->values()->toArray(),
+            ];
+        }
+        usort($out, fn($a, $b) => strcmp($b['key'], $a['key']));
+        return $out;
     }
 
     public function addDaily(Request $request)

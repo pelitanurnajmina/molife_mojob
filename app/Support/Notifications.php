@@ -7,6 +7,7 @@ use App\Models\MoodLog;
 use App\Models\Interview;
 use App\Models\FinanceBudget;
 use App\Models\FinanceTransaction;
+use App\Services\PrayerTimeService;
 use App\Services\SholatService;
 
 class Notifications
@@ -42,6 +43,33 @@ class Notifications
                     'message'=>__('Pertahankan konsistensimu.'),
                     'link'=>route('statistik'), 'time'=>__('Hari ini'),
                 ];
+            }
+        }
+
+        // Prayer-time reminder (enabled per-prayer, by location)
+        if ($features['sholat'] ?? false) {
+            $city = Profile::prayerCity($userId);
+            $enabled = Profile::prayerReminders($userId);
+            if ($city && $enabled) {
+                $times = PrayerTimeService::forCity($city, $today);
+                $now   = date('H:i');
+                $doneNames = SholatPrayer::where('user_id', $userId)->whereDate('date', $today)
+                    ->where('done', true)->pluck('name')->toArray();
+
+                // Current prayer window = the latest enabled prayer whose time has arrived
+                $current = null; $currentTime = null;
+                foreach ($times as $name => $t) {
+                    if (in_array($name, $enabled) && $t <= $now) { $current = $name; $currentTime = $t; }
+                }
+                if ($current && !in_array($current, $doneNames)) {
+                    $notifs[] = [
+                        'id'=>'prayer.'.$current, 'type'=>'info',
+                        'icon'=>'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z',
+                        'title'=>__('Waktunya Sholat :name', ['name'=>$current]),
+                        'message'=>__('Jadwal :time. Jangan lupa tunaikan sholatmu.', ['time'=>$currentTime]),
+                        'link'=>route('sholat'), 'time'=>$currentTime,
+                    ];
+                }
             }
         }
 

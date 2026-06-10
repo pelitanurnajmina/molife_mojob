@@ -59,15 +59,8 @@ class InsightService
             }
         }
 
-        // Career
-        $counts = self::applicationCounts($userId);
-        $active = ($counts['applied'] ?? 0) + ($counts['review'] ?? 0) + ($counts['interview'] ?? 0);
-        if ($active > 0) {
-            $insights[] = ['type'=>'info','icon'=>'career','text'=>"{$active} lamaran aktif sedang menunggu respon."];
-        }
-        if (($counts['interview'] ?? 0) > 0) {
-            $insights[] = ['type'=>'success','icon'=>'interview','text'=>$counts['interview'] . " lamaran sudah sampai tahap interview!"];
-        }
+        // (Career/lamaran insights intentionally excluded from Life Insights —
+        //  career stats live in the Karir hub, not in Life.)
 
         if (empty($insights)) {
             $insights[] = ['type'=>'info','icon'=>'intro','text'=>'Mulai tracking aktivitasmu untuk mendapatkan insight personal.'];

@@ -73,12 +73,9 @@
 
     /* ── Reminders — grouped by feature ── */
     $allReminderGroups = [
+        // 5 wajib prayers are handled automatically by location (see block below);
+        // only sunnah prayers remain as manual reminders here.
         'sholat'  => [
-            'Subuh'   => __('Sholat Subuh'),
-            'Dzuhur'  => __('Sholat Dzuhur'),
-            'Ashar'   => __('Sholat Ashar'),
-            'Maghrib' => __('Sholat Maghrib'),
-            'Isya'    => __('Sholat Isya'),
             'Tahajud' => 'Tahajud',
             'Dhuha'   => __('Sholat Dhuha'),
         ],
@@ -166,6 +163,69 @@
         @endif
     </div>
 
+    {{-- ── Auto Prayer Times (by location) ── --}}
+    @if($features['sholat'] ?? true)
+    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+        <div class="flex items-start justify-between mb-4 flex-wrap gap-3">
+            <div>
+                <h3 class="text-base md:text-lg font-bold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {{ __('Jadwal Sholat Otomatis') }}
+                </h3>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Pilih wilayahmu — waktu sholat dihitung otomatis. Aktifkan pengingat per waktu sesuka hati.') }}</p>
+            </div>
+            <form method="POST" action="{{ route('reminders.prayer.city') }}" class="w-full sm:w-56">
+                @csrf
+                <select name="city" onchange="this.form.submit()" aria-label="{{ __('Wilayah') }}">
+                    <option value="" disabled {{ $prayerCity ? '' : 'selected' }}>{{ __('Pilih wilayah...') }}</option>
+                    @foreach($prayerCities as $ckey => $c)
+                    <option value="{{ $ckey }}" {{ $prayerCity === $ckey ? 'selected' : '' }}>{{ $c[0] }} · {{ $c[4] }}</option>
+                    @endforeach
+                </select>
+            </form>
+        </div>
+
+        @if(!$prayerCity)
+        <div class="text-center py-8 bg-gray-50 rounded-2xl">
+            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+            </div>
+            <p class="text-sm font-medium text-gray-500">{{ __('Belum pilih wilayah') }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('Pilih kota terdekat untuk melihat jadwal sholat.') }}</p>
+        </div>
+        @else
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            @php $prayerIcons = ['Subuh'=>'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z','Dzuhur'=>'M12 3v1m0 16v1m9-9h-1M4 12H3m15.36 6.36l-.7-.7M6.34 6.34l-.7-.7m12.72 0l-.7.7M6.34 17.66l-.7.7M16 12a4 4 0 11-8 0 4 4 0 018 0z','Ashar'=>'M12 3v1m0 16v1m9-9h-1M4 12H3m15.36 6.36l-.7-.7M6.34 6.34l-.7-.7m12.72 0l-.7.7M6.34 17.66l-.7.7M16 12a4 4 0 11-8 0 4 4 0 018 0z','Maghrib'=>'M17 18a5 5 0 00-10 0M12 2v7m0 0l3-3m-3 3L9 6m-6 12h18','Isya'=>'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z']; @endphp
+            @foreach(\App\Services\PrayerTimeService::PRAYERS as $prayer)
+            @php $on = in_array($prayer, $prayerEnabled); $ptime = $prayerTimes[$prayer] ?? '--:--'; @endphp
+            <div class="p-4 rounded-2xl flex items-center gap-3 transition-all {{ $on ? 'bg-gray-900 text-white' : 'bg-gray-50' }}">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 {{ $on ? 'bg-white/10 text-white' : 'bg-white text-gray-400' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $prayerIcons[$prayer] }}"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold">{{ $prayer }}</p>
+                    <p class="text-lg font-black leading-tight tabular-nums">{{ $ptime }}</p>
+                </div>
+                <form method="POST" action="{{ route('reminders.prayer.toggle') }}" class="flex-shrink-0 m-0 leading-none">
+                    @csrf
+                    <input type="hidden" name="prayer" value="{{ $prayer }}">
+                    <button type="submit" role="switch" aria-checked="{{ $on ? 'true' : 'false' }}"
+                        title="{{ $on ? __('Matikan pengingat') : __('Aktifkan pengingat') }}"
+                        class="relative w-11 h-6 rounded-full transition-all {{ $on ? 'bg-emerald-500' : 'bg-gray-300' }}">
+                        <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform {{ $on ? 'translate-x-5' : '' }}"></span>
+                    </button>
+                </form>
+            </div>
+            @endforeach
+        </div>
+        <p class="text-[11px] text-gray-400 mt-3 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ __('Perhitungan metode Kemenag RI untuk') }} {{ \App\Services\PrayerTimeService::cityLabel($prayerCity) }}. {{ __('Waktu bisa berbeda ±1–2 menit dari jadwal masjid setempat.') }}
+        </p>
+        @endif
+    </div>
+    @endif
+
     {{-- ── Reminders ── --}}
     @if(count($reminderItems) > 0)
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
@@ -185,29 +245,52 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             @foreach($reminderItems as $key => $label)
             @php $time = $reminders[$key] ?? ''; @endphp
-            <div class="p-4 rounded-2xl flex items-center justify-between gap-3 transition-all {{ $time ? 'bg-gray-900 text-white' : 'bg-gray-50' }}">
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold truncate">{{ $label }}</p>
-                    <p class="text-[10px] {{ $time ? 'text-gray-400' : 'text-gray-400' }}">
-                        {{ $time ? __('Pengingat') . ' ' . $time : __('Belum diatur') }}
-                    </p>
+            @php [$hh, $mm] = $time ? array_pad(explode(':', $time), 2, '') : ['', '']; @endphp
+            <div class="p-4 rounded-2xl transition-all {{ $time ? 'bg-gray-900 text-white' : 'bg-gray-50' }}">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold truncate">{{ $label }}</p>
+                        <p class="text-[10px] text-gray-400">
+                            {{ $time ? __('Pengingat') . ' ' . $time : __('Belum diatur') }}
+                        </p>
+                    </div>
+                    @if($time)
+                    <form method="POST" action="{{ route('reminders.update') }}" class="flex-shrink-0 m-0 leading-none">
+                        @csrf
+                        <input type="hidden" name="key" value="{{ $key }}">
+                        <button type="submit" name="time" value=""
+                            class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                            title="{{ __('Hapus pengingat') }}">
+                            <svg class="w-3.5 h-3.5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </form>
+                    @endif
                 </div>
-                <form method="POST" action="{{ route('reminders.update') }}" class="flex items-center gap-1">
+                <form method="POST" action="{{ route('reminders.update') }}" class="flex items-center gap-1.5">
                     @csrf
                     <input type="hidden" name="key" value="{{ $key }}">
-                    <input type="time" name="time" value="{{ $time }}"
-                        onchange="this.form.submit()"
-                        class="px-2 py-1.5 rounded-lg text-sm font-bold outline-none
-                            {{ $time ? 'bg-white/10 text-white border border-white/20' : 'bg-white border border-gray-200' }}">
-                    @if($time)
-                    <button type="submit" name="time" value=""
-                        class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white"
-                        title="{{ __('Hapus pengingat') }}">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                    @endif
+                    <input type="hidden" name="time" value="{{ $time }}" class="reminder-time-value">
+                    <div class="flex-1">
+                        <select class="reminder-hour" onchange="updateReminderTime(this)" aria-label="{{ __('Jam') }}">
+                            <option value="">{{ __('Jam') }}</option>
+                            @for($h = 0; $h < 24; $h++)
+                            @php $hv = sprintf('%02d', $h); @endphp
+                            <option value="{{ $hv }}" {{ $hh === $hv ? 'selected' : '' }}>{{ $hv }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                    <span class="font-bold {{ $time ? 'text-white' : 'text-gray-400' }}">:</span>
+                    <div class="flex-1">
+                        <select class="reminder-min" onchange="updateReminderTime(this)" aria-label="{{ __('Menit') }}">
+                            <option value="">{{ __('Mnt') }}</option>
+                            @for($m = 0; $m < 60; $m++)
+                            @php $mv = sprintf('%02d', $m); @endphp
+                            <option value="{{ $mv }}" {{ $mm === $mv ? 'selected' : '' }}>{{ $mv }}</option>
+                            @endfor
+                        </select>
+                    </div>
                 </form>
             </div>
             @endforeach
@@ -227,4 +310,17 @@
     @endif
 
 </div>
+
+@push('scripts')
+<script>
+function updateReminderTime(el) {
+    const form = el.closest('form');
+    const h = form.querySelector('.reminder-hour').value;
+    const m = form.querySelector('.reminder-min').value;
+    if (h === '') return;                       // hour required
+    form.querySelector('.reminder-time-value').value = h + ':' + (m === '' ? '00' : m);
+    form.submit();
+}
+</script>
+@endpush
 @endsection

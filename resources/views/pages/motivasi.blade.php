@@ -4,7 +4,7 @@
 @section('breadcrumb', 'Life › Motivasi')
 
 @section('content')
-<div class="space-y-4 md:space-y-6 max-w-3xl">
+<div class="space-y-4 md:space-y-6">
 
     {{-- ── Quote of the day ── --}}
     <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl md:rounded-3xl p-6 md:p-10 text-white relative overflow-hidden">

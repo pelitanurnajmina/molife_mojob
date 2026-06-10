@@ -1,283 +1,251 @@
-﻿@extends('layouts.app')
-@section('title', 'Home')
-@section('page-title', $greeting . ', ' . ($profile['display_name'] ?: auth()->user()->username ?? 'User') . '!')
-@section('breadcrumb', 'Home')
+@extends('layouts.app')
+@section('title', 'Dashboard')
+@section('page-title', $greeting . ', ' . $displayName . '!')
+@section('breadcrumb', 'Dashboard')
 
 @section('content')
 @php
-    $moodLabel     = ['', __('Buruk'), __('Kurang'), __('Biasa'), __('Baik'), __('Luar Biasa')];
-    $moodBg        = ['', 'bg-red-50 text-red-600', 'bg-orange-50 text-orange-600', 'bg-yellow-50 text-yellow-700', 'bg-green-50 text-green-600', 'bg-emerald-50 text-emerald-600'];
-    $moodFacePaths = [
-        1 => 'M9.172 14.828a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-        2 => 'M10 14a2 2 0 014 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-        3 => 'M8 12h8M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-        4 => 'M14 14a2 2 0 01-4 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-        5 => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    $monthLabel = (new DateTime())->format('F Y');
+    $sholatPct  = count($stats30) > 0 ? round(($sholatDaysMonth / count($stats30)) * 100) : 0;
+    $moodLabel  = ['', __('Buruk'), __('Kurang'), __('Biasa'), __('Baik'), __('Luar Biasa')];
+    $rp = fn($n) => 'Rp ' . number_format((int) $n, 0, ',', '.');
+
+    /* Merge insights from all domains, each tagged with its domain */
+    $tag = fn($arr, $domain) => array_map(fn($i) => $i + ['domain' => $domain], $arr);
+    $allInsights = array_merge(
+        $tag($insights, 'Life'),
+        $tag($careerInsights ?? [], 'Karir'),
+        $tag($financeInsights ?? [], 'Finance'),
+    );
+
+    $insightIconMap = [
+        'streak'     => ['path' => 'M13 10V3L4 14h7v7l9-11h-7z', 'cls' => 'text-orange-500 bg-orange-100'],
+        'prayer'     => ['path' => 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z', 'cls' => 'text-green-600 bg-green-100'],
+        'warning'    => ['path' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', 'cls' => 'text-yellow-600 bg-yellow-100'],
+        'gym'        => ['path' => 'M13 10V3L4 14h7v7l9-11h-7z', 'cls' => 'text-blue-600 bg-blue-100'],
+        'run'        => ['path' => 'M22 12h-4l-3 9L9 3l-3 9H2', 'cls' => 'text-emerald-600 bg-emerald-100'],
+        'mood-good'  => ['path' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'cls' => 'text-violet-600 bg-violet-100'],
+        'mood-bad'   => ['path' => 'M9.172 14.828a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'cls' => 'text-red-500 bg-red-100'],
+        'mood-ok'    => ['path' => 'M8 12h8M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'cls' => 'text-yellow-600 bg-yellow-100'],
+        'tasks-done' => ['path' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'cls' => 'text-green-600 bg-green-100'],
+        'tasks'      => ['path' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', 'cls' => 'text-orange-600 bg-orange-100'],
+        'career'     => ['path' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'cls' => 'text-indigo-600 bg-indigo-100'],
+        'interview'  => ['path' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'cls' => 'text-violet-600 bg-violet-100'],
+        'finance'    => ['path' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'cls' => 'text-teal-600 bg-teal-100'],
+        'intro'      => ['path' => 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'cls' => 'text-gray-500 bg-gray-100'],
     ];
-    $priBadge = ['high' => 'bg-red-50 text-red-500', 'medium' => 'bg-orange-50 text-orange-500', 'low' => 'bg-gray-100 text-gray-400'];
-    $doneTasks   = count(array_filter($dailyTodos, fn($t) => $t['done']));
-    $totalTasks  = count($dailyTodos);
-    $visibleTodos = array_slice($dailyTodos, 0, 5);
+    $domainPill = ['Life' => 'bg-gray-100 text-gray-500', 'Karir' => 'bg-indigo-50 text-indigo-500', 'Finance' => 'bg-teal-50 text-teal-600'];
 @endphp
 
 <div class="space-y-4 md:space-y-6">
 
-    {{-- ── Today Snapshot Cards ── --}}
-    @php
-        $_featsD = \App\Support\Features::map();
-        // Count how many snapshot cards will render so the grid fits exactly
-        $_cardCount = 1; // Streak always shown
-        if (($_featsD['sholat'] ?? true) || ($_featsD['spiritual'] ?? false)) $_cardCount++;
-        if ($_featsD['gym'] ?? true) $_cardCount++;
-        if ($_featsD['run'] ?? true) $_cardCount++;
-        $_gridCols = [
-            1 => 'grid-cols-1',
-            2 => 'grid-cols-2',
-            3 => 'grid-cols-2 sm:grid-cols-3',
-            4 => 'grid-cols-2 sm:grid-cols-4',
-            5 => 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
-            6 => 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
-        ][$_cardCount] ?? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4';
-    @endphp
-    <div class="grid {{ $_gridCols }} gap-3">
-        {{-- Spiritual --}}
-        @if($_featsD['sholat'] ?? true)
-        <a href="{{ route('sholat') }}" class="bg-white rounded-2xl p-4 flex flex-col gap-2 hover:shadow-sm transition-all border border-gray-50">
-            <div class="w-9 h-9 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-            </div>
-            <div>
-                <p class="text-2xl font-bold">{{ $todayStats['wajib'] }}<span class="text-base text-gray-400">/5</span></p>
-                <p class="text-[10px] text-gray-400 font-bold">{{ __('Sholat Wajib') }}</p>
-            </div>
-            <div class="flex gap-0.5">
-                @for($i = 0; $i < 5; $i++)
-                <div class="flex-1 h-1.5 rounded-full {{ $i < $todayStats['wajib'] ? 'bg-green-500' : 'bg-gray-100' }}"></div>
-                @endfor
-            </div>
-        </a>
-        @elseif($_featsD['spiritual'] ?? false)
-        @php
-            $spirLabel = match($religion) {
-                'kristen'        => __('Ibadah'),
-                'hindu','buddha' => __('Sembahyang'),
-                default          => __('Spiritual'),
-            };
-            $allSpiritualDone = $spiritualPracticeTotal > 0 && $spiritualDoneToday >= $spiritualPracticeTotal;
-        @endphp
-        <a href="{{ route('spiritual') }}" class="bg-white rounded-2xl p-4 flex flex-col gap-2 hover:shadow-sm transition-all border border-gray-50">
-            <div class="w-9 h-9 {{ $allSpiritualDone ? 'bg-violet-500 text-white' : 'bg-violet-50 text-violet-600' }} rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-            </div>
-            <div>
-                <p class="text-2xl font-bold">{{ $spiritualDoneToday }}<span class="text-base text-gray-400">/{{ $spiritualPracticeTotal }}</span></p>
-                <p class="text-[10px] text-gray-400 font-bold">{{ $spirLabel }} {{ __('Hari Ini') }}</p>
-            </div>
-            <div class="flex gap-0.5">
-                @for($i = 0; $i < $spiritualPracticeTotal; $i++)
-                <div class="flex-1 h-1.5 rounded-full {{ $i < $spiritualDoneToday ? 'bg-violet-500' : 'bg-gray-100' }}"></div>
-                @endfor
-            </div>
-        </a>
-        @endif
-
-        {{-- Gym --}}
-        @if($_featsD['gym'] ?? true)
-        <a href="{{ route('gym') }}" class="bg-white rounded-2xl p-4 flex flex-col gap-2 hover:shadow-sm transition-all border border-gray-50">
-            <div class="w-9 h-9 {{ $isGymToday ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-600' }} rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </div>
-            <div>
-                <p class="text-2xl font-bold">{{ $gymWeekly }}<span class="text-base text-gray-400">/4</span></p>
-                <p class="text-[10px] text-gray-400 font-bold">{{ __('Gym Minggu Ini') }}</p>
-            </div>
-            <div class="flex gap-0.5 mb-0.5">
-                @for($i = 0; $i < 4; $i++)
-                <div class="flex-1 h-1.5 rounded-full {{ $i < $gymWeekly ? 'bg-blue-500' : 'bg-gray-100' }}"></div>
-                @endfor
-            </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full w-fit {{ $isGymToday ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                {{ $isGymToday ? '✓ Done' : ($gymWeekly === 0 ? __('Belum mulai') : __('Rest Day')) }}
-            </span>
-        </a>
-        @endif
-
-        {{-- Run --}}
-        @if($_featsD['run'] ?? true)
-        <a href="{{ route('run') }}" class="bg-white rounded-2xl p-4 flex flex-col gap-2 hover:shadow-sm transition-all border border-gray-50">
-            <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-            </div>
-            <div>
-                <p class="text-2xl font-bold">{{ $runWeeklyCount }}<span class="text-base text-gray-400">×</span></p>
-                <p class="text-[10px] text-gray-400 font-bold">{{ __('Lari Minggu Ini') }}</p>
-            </div>
-            @if($runMonthlyDist > 0)
-            <p class="text-[10px] text-emerald-600 font-bold">{{ number_format($runMonthlyDist, 1) }} km {{ __('bulan ini') }}</p>
-            @else
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full w-fit bg-gray-100 text-gray-400">
-                {{ __('Belum ada lari') }}
-            </span>
-            @endif
-        </a>
-        @endif
-
-        {{-- Streak --}}
-        <a href="{{ route('statistik') }}" class="bg-white rounded-2xl p-4 flex flex-col gap-2 hover:shadow-sm transition-all border border-gray-50">
-            <div class="w-9 h-9 {{ $streak > 0 ? 'bg-orange-500 text-white' : 'bg-orange-50 text-orange-400' }} rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-            </div>
-            <div>
-                <p class="text-2xl font-bold {{ $streak === 0 ? 'text-gray-300' : '' }}">{{ $streak }}</p>
-                <p class="text-[10px] text-gray-400 font-bold">{{ __('Streak') }}</p>
-            </div>
-            <p class="text-[10px] font-bold {{ $streak > 0 ? 'text-orange-500' : 'text-gray-300' }}">
-                {{ $streak > 0 ? __('hari berturut-turut') : __('Mulai hari ini!') }}
-            </p>
-        </a>
-    </div>
-
-    {{-- ── Life Score + Mood Selector ── --}}
+    {{-- ── Smart Insights (all domains) ── --}}
+    @if(count($allInsights) > 0)
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-        <div class="flex flex-col lg:flex-row items-stretch gap-6 md:gap-8">
+        <div class="flex items-center gap-2 mb-4">
+            <h3 class="text-base font-bold">{{ __('Insight Hari Ini') }}</h3>
+            <span class="text-xs text-gray-400">{{ __('dari semua aktivitasmu') }}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            @foreach($allInsights as $ins)
+            @php
+                $insightBg = match($ins['type']) {
+                    'success' => 'bg-green-50 border-green-100',
+                    'warning' => 'bg-yellow-50 border-yellow-100',
+                    default   => 'bg-gray-50 border-gray-100',
+                };
+                $ic = $insightIconMap[$ins['icon']] ?? $insightIconMap['intro'];
+            @endphp
+            <div class="flex items-center gap-3 p-3 rounded-xl border {{ $insightBg }}">
+                <div class="w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center {{ $ic['cls'] }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $ic['path'] }}"/></svg>
+                </div>
+                <p class="flex-1 text-sm text-gray-700 leading-snug">{{ $ins['text'] }}</p>
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 {{ $domainPill[$ins['domain']] ?? 'bg-gray-100 text-gray-400' }}">{{ $ins['domain'] }}</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
-            {{-- Life Score Ring + Score Bars --}}
-            <div class="flex flex-col sm:flex-row items-center gap-6 flex-1">
-                <div class="relative flex-shrink-0">
-                    <svg class="w-32 h-32 -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f3f4f6" stroke-width="3"/>
+    {{-- ── Life Score Today ── --}}
+    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold">{{ __('Life Score Hari Ini') }}</h3>
+                <span class="text-xs text-gray-400">{{ date('j F Y') }}</span>
+            </div>
+            <a href="{{ route('statistik') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Statistik') }} →</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            @php
+                $dims = [
+                    ['label' => __('Spiritual'),     'val' => $lifeScore['spiritual'],    'color' => 'text-green-600',  'bg' => 'bg-green-500',  'light' => 'bg-green-50',  'svgPath' => 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
+                    ['label' => __('Kesehatan'),     'val' => $lifeScore['health'],       'color' => 'text-blue-600',   'bg' => 'bg-blue-500',   'light' => 'bg-blue-50',   'svgPath' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                    ['label' => __('Mental'),        'val' => $lifeScore['mental'],       'color' => 'text-violet-600', 'bg' => 'bg-violet-500', 'light' => 'bg-violet-50', 'svgPath' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'empty' => !$lifeScore['hasMood']],
+                    ['label' => __('Produktivitas'), 'val' => $lifeScore['productivity'], 'color' => 'text-orange-600', 'bg' => 'bg-orange-400', 'light' => 'bg-orange-50', 'svgPath' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'empty' => !$lifeScore['hasTasks']],
+                ];
+            @endphp
+            @foreach($dims as $dim)
+            <div class="text-center p-4 {{ $dim['light'] }} rounded-2xl">
+                <div class="relative w-16 h-16 mx-auto mb-2">
+                    <svg class="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
+                        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="white" stroke-width="3.5"/>
                         <circle cx="18" cy="18" r="15.9155" fill="none"
-                            stroke="{{ $lifeScore['overall'] >= 80 ? '#10b981' : ($lifeScore['overall'] >= 50 ? '#f59e0b' : '#ef4444') }}"
-                            stroke-width="3"
-                            stroke-dasharray="{{ $lifeScore['overall'] }} 100"
+                            stroke="{{ ['bg-green-500'=>'#10b981','bg-blue-500'=>'#3b82f6','bg-violet-500'=>'#8b5cf6','bg-orange-400'=>'#fb923c'][$dim['bg']] }}"
+                            stroke-width="3.5"
+                            stroke-dasharray="{{ ($dim['empty'] ?? false) ? 0 : $dim['val'] }} 100"
                             stroke-linecap="round"/>
                     </svg>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-3xl font-bold leading-none">{{ $lifeScore['overall'] }}</span>
-                        <span class="text-[10px] text-gray-400 font-bold mt-0.5">Life Score</span>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <svg class="w-5 h-5 {{ $dim['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $dim['svgPath'] }}"/></svg>
                     </div>
                 </div>
-
-                <div class="flex-1 w-full space-y-3">
-                    @php
-                        $scoreDims = [
-                            ['label' => __('Spiritual'),     'key' => 'spiritual',    'color' => 'bg-green-500',  'ic' => 'text-green-600',  'icon' => 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
-                            ['label' => __('Kesehatan'),     'key' => 'health',       'color' => 'bg-blue-500',   'ic' => 'text-blue-600',   'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                            ['label' => __('Mental'),        'key' => 'mental',       'color' => 'bg-violet-500', 'ic' => 'text-violet-600', 'icon' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                            ['label' => __('Produktivitas'), 'key' => 'productivity', 'color' => 'bg-orange-400', 'ic' => 'text-orange-500', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
-                        ];
-                    @endphp
-                    @foreach($scoreDims as $dim)
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="flex items-center gap-1.5 text-xs font-bold text-gray-600">
-                                <svg class="w-3.5 h-3.5 flex-shrink-0 {{ $dim['ic'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $dim['icon'] }}"/>
-                                </svg>
-                                {{ $dim['label'] }}
-                            </span>
-                            <span class="text-xs font-bold text-gray-400">{{ $lifeScore[$dim['key']] }}%</span>
-                        </div>
-                        <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                            <div class="{{ $dim['color'] }} h-full rounded-full transition-all" style="width:{{ $lifeScore[$dim['key']] }}%"></div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
+                <p class="text-xl font-bold {{ $dim['color'] }}">{{ ($dim['empty'] ?? false) ? '—' : $dim['val'] }}</p>
+                <p class="text-[10px] font-bold text-gray-500">{{ $dim['label'] }}</p>
             </div>
+            @endforeach
+        </div>
 
-            {{-- Divider --}}
-            <div class="hidden lg:block w-px bg-gray-100 self-stretch"></div>
-            <div class="lg:hidden h-px bg-gray-100 w-full"></div>
-
-            {{-- Mood Selector --}}
-            <div class="lg:w-52 flex-shrink-0">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{{ __('Mood Hari Ini') }}</p>
-                <form method="POST" action="{{ route('mental.mood') }}" id="dashMoodForm">
-                    @csrf
-                    <input type="hidden" name="date" value="{{ $today }}">
-                    <input type="hidden" name="score"  id="dashMoodScore"  value="{{ $todayMood['score'] ?: 3 }}">
-                    <input type="hidden" name="energy" id="dashMoodEnergy" value="{{ $todayMood['energy'] ?: 3 }}">
-                    <div class="flex gap-1.5 mb-3">
-                        @foreach($moodFacePaths as $s => $facePath)
-                        <button type="button" onclick="dashSetMood({{ $s }})" id="dashMoodBtn{{ $s }}"
-                            class="flex-1 py-2.5 rounded-xl border-2 transition-all flex items-center justify-center
-                            {{ $todayMood['score'] == $s ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-300' }}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $facePath }}"/>
-                            </svg>
-                        </button>
-                        @endforeach
-                    </div>
-                    @if($todayMood['score'] > 0)
-                    <p class="text-center text-xs font-bold {{ str_replace('bg-', 'text-', explode(' ', $moodBg[$todayMood['score']])[1]) }} mb-3">
-                        {{ $moodLabel[$todayMood['score']] }}
-                    </p>
-                    @endif
-                    <button type="submit" class="w-full py-2.5 bg-black text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-all">
-                        {{ $todayMood['score'] > 0 ? __('Update Mood') : __('Simpan Mood') }}
-                    </button>
-                </form>
+        <div class="mt-6 p-4 bg-gray-900 text-white rounded-2xl flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">{{ __('Overall Life Score') }}</p>
+                <p class="text-3xl font-bold mt-1">{{ $lifeScore['overall'] }}</p>
+            </div>
+            <div class="relative">
+                <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
+                    <circle cx="18" cy="18" r="15.9155" fill="none"
+                        stroke="{{ $lifeScore['overall'] >= 80 ? '#10b981' : ($lifeScore['overall'] >= 50 ? '#f59e0b' : '#ef4444') }}"
+                        stroke-width="3" stroke-dasharray="{{ $lifeScore['overall'] }} 100" stroke-linecap="round"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-bold text-lg">{{ $lifeScore['overall'] }}%</div>
             </div>
         </div>
     </div>
 
-    {{-- ── Daily Tasks ── --}}
+    {{-- ── Karir & Finance overview ── --}}
+    @if($showCareer || $showFinance)
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        @if($showCareer)
+        <a href="{{ route('karir') }}" class="block bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 hover:shadow-sm transition-all border border-gray-50">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span>
+                    {{ __('Karir') }}
+                </h3>
+                <span class="text-xs text-gray-300">→</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div><p class="text-2xl font-bold text-gray-800">{{ $careerSummary['active'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Lamaran Aktif') }}</p></div>
+                <div><p class="text-2xl font-bold text-violet-600">{{ $careerSummary['interview'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Interview') }}</p></div>
+                <div><p class="text-2xl font-bold text-green-600">{{ $careerSummary['offer'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Offer/Diterima') }}</p></div>
+            </div>
+        </a>
+        @endif
+
+        @if($showFinance)
+        <a href="{{ route('finance.index') }}" class="block bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 hover:shadow-sm transition-all border border-gray-50">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                    {{ __('Finance') }} · {{ $monthLabel }}
+                </h3>
+                <span class="text-xs text-gray-300">→</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div><p class="text-base md:text-lg font-bold text-green-600 truncate">{{ $rp($financeSummary['income'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pemasukan') }}</p></div>
+                <div><p class="text-base md:text-lg font-bold text-red-500 truncate">{{ $rp($financeSummary['expense'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pengeluaran') }}</p></div>
+                <div><p class="text-base md:text-lg font-bold {{ ($financeSummary['balance'] ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600' }} truncate">{{ $rp($financeSummary['balance'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Saldo') }}</p></div>
+            </div>
+            @if(($financeSummary['goalCount'] ?? 0) > 0)
+            <div class="mt-4 pt-3 border-t border-gray-50">
+                <div class="flex justify-between text-[11px] font-bold text-gray-400 mb-1">
+                    <span>{{ __('Tabungan') }}</span><span>{{ $financeSummary['goalPct'] }}%</span>
+                </div>
+                <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden"><div class="bg-teal-500 h-full rounded-full" style="width:{{ $financeSummary['goalPct'] }}%"></div></div>
+            </div>
+            @endif
+        </a>
+        @endif
+    </div>
+    @endif
+
+    {{-- ── 7-Day Trend ── --}}
+    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+        <h3 class="text-base font-bold mb-6">{{ __('Trend 7 Hari Terakhir') }}</h3>
+        <div class="h-64"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    {{-- ── Monthly Summary (Life) ── --}}
+    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+        <h3 class="font-bold mb-1">{{ __('Ringkasan Bulan Ini') }}</h3>
+        <p class="text-xs text-gray-400 mb-4">{{ $monthLabel }}</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div class="p-4 bg-green-50 rounded-2xl">
+                <p class="text-2xl font-bold text-green-700">{{ $sholatDaysMonth }}</p>
+                <p class="text-xs text-green-600 font-bold mt-1">{{ __('hari sholat penuh') }}</p>
+                <p class="text-[10px] text-green-500 mt-0.5">{{ $todayStats['takbir'] }}/5 takbir {{ __('hari ini') }}</p>
+            </div>
+            <div class="p-4 bg-blue-50 rounded-2xl">
+                <p class="text-2xl font-bold text-blue-700">{{ $gymMonthly }}</p>
+                <p class="text-xs text-blue-600 font-bold mt-1">{{ __('sesi gym') }}</p>
+                <p class="text-[10px] text-blue-500 mt-0.5">{{ $caloriesWeek }} cal {{ __('minggu ini') }}</p>
+            </div>
+            <div class="p-4 bg-emerald-50 rounded-2xl">
+                <p class="text-2xl font-bold text-emerald-700">{{ number_format($runMonthlyDist, 1) }}</p>
+                <p class="text-xs text-emerald-600 font-bold mt-1">km {{ __('lari') }}</p>
+                <p class="text-[10px] text-emerald-500 mt-0.5">{{ $runWeeklyCount }}× {{ __('minggu ini') }}</p>
+            </div>
+            <div class="p-4 bg-violet-50 rounded-2xl">
+                <p class="text-2xl font-bold text-violet-700">{{ $moodAvg30 > 0 ? $moodAvg30 : '—' }}</p>
+                <p class="text-xs text-violet-600 font-bold mt-1">{{ __('avg mood') }}</p>
+                <p class="text-[10px] text-violet-500 mt-0.5">{{ __('30 hari terakhir') }}</p>
+            </div>
+            <div class="p-4 bg-orange-50 rounded-2xl">
+                <p class="text-2xl font-bold text-orange-700">{{ $streak }}</p>
+                <p class="text-xs text-orange-600 font-bold mt-1">{{ __('hari streak') }}</p>
+                <p class="text-[10px] text-orange-500 mt-0.5">{{ __('berturut-turut') }}</p>
+            </div>
+            <div class="p-4 bg-pink-50 rounded-2xl">
+                <p class="text-2xl font-bold text-pink-700">{{ $intimacyMonthly }}</p>
+                <p class="text-xs text-pink-600 font-bold mt-1">{{ __('intimasi') }}</p>
+                <p class="text-[10px] text-pink-500 mt-0.5">{{ __('bulan ini') }}</p>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Mood Heatmap (30 days) ── --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 class="font-bold">{{ __('Tasks Hari Ini') }}</h3>
-                @if($totalTasks > 0)
-                <p class="text-xs text-gray-400 mt-0.5">{{ $doneTasks }}/{{ $totalTasks }} {{ __('selesai') }}</p>
-                @endif
+            <h3 class="text-base font-bold">{{ __('Kalender Mood 30 Hari') }}</h3>
+            <div class="flex items-center gap-2 text-[10px]">
+                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-gray-100 rounded"></div><span class="text-gray-500">{{ __('Belum') }}</span></div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-emerald-500 rounded"></div><span class="text-gray-500">{{ __('Baik') }}</span></div>
             </div>
-            <a href="{{ route('tasks') }}" class="text-xs text-gray-400 hover:text-black font-bold transition-all flex items-center gap-1">
-                {{ __('Kelola') }}
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
         </div>
-
-        @if($totalTasks === 0)
-        <div class="text-center py-6">
-            <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-            </div>
-            <p class="text-sm text-gray-400 font-medium">{{ __('Belum ada task hari ini') }}</p>
-            <a href="{{ route('tasks') }}" class="text-xs font-bold text-black hover:underline mt-1 inline-block">{{ __('+ Tambah task') }}</a>
-        </div>
-        @else
-        <div class="space-y-2">
-            @foreach($visibleTodos as $todo)
-            <form method="POST" action="{{ route('tasks.daily.toggle', $todo['id']) }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all group">
-                @csrf
-                <button type="submit" class="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all
-                    {{ $todo['done'] ? 'bg-black border-black text-white' : 'border-gray-300 group-hover:border-gray-400' }}">
-                    @if($todo['done'])
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                    @endif
-                </button>
-                <span class="flex-1 text-sm font-medium {{ $todo['done'] ? 'line-through text-gray-300' : 'text-gray-800' }}">{{ $todo['text'] }}</span>
-                @php $pri = $todo['priority'] ?? 'medium'; @endphp
-                @if(!$todo['done'] && $pri === 'high')
-                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 flex-shrink-0">!</span>
-                @endif
-            </form>
+        <div class="grid grid-cols-10 sm:grid-cols-[repeat(15,1fr)] md:grid-cols-[repeat(30,1fr)] gap-0.5 md:gap-1 h-6 md:h-8">
+            @foreach($moodHistory as $day)
+            @php
+                $cls = match(true) {
+                    $day['score'] >= 4 => 'bg-emerald-500',
+                    $day['score'] === 3 => 'bg-yellow-400',
+                    $day['score'] >= 1 => 'bg-red-400',
+                    default            => 'bg-gray-100',
+                };
+            @endphp
+            <div class="rounded {{ $cls }}" title="{{ $day['date'] }}: {{ $day['score'] > 0 ? ($moodLabel[$day['score']] ?? '—') : '—' }}"></div>
             @endforeach
-
-            @if($totalTasks > 5)
-            <a href="{{ route('tasks') }}" class="block text-center text-xs text-gray-400 hover:text-black font-bold py-2 transition-all">
-                +{{ $totalTasks - 5 }} task lainnya
-            </a>
-            @endif
         </div>
+    </div>
 
-        {{-- Progress bar --}}
-        @if($totalTasks > 0)
-        <div class="mt-4 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-black h-full rounded-full transition-all" style="width:{{ round(($doneTasks / $totalTasks) * 100) }}%"></div>
+    {{-- ── Weekly Activity Chart ── --}}
+    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold">{{ __('Aktivitas Minggu Ini') }}</h3>
+            <span class="text-xs bg-gray-50 rounded-xl px-3 py-1 font-bold text-gray-500">{{ __('7 hari terakhir') }}</span>
         </div>
-        @endif
-        @endif
+        <div style="height:200px"><canvas id="weekActivityChart"></canvas></div>
     </div>
 
 </div>
@@ -285,15 +253,53 @@
 
 @push('scripts')
 <script>
-function dashSetMood(s) {
-    document.getElementById('dashMoodScore').value = s;
-    [1,2,3,4,5].forEach(function(n) {
-        var btn = document.getElementById('dashMoodBtn' + n);
-        btn.className = 'flex-1 py-2.5 rounded-xl border-2 transition-all flex items-center justify-center ' +
-            (n === s
-                ? 'border-gray-900 bg-gray-900 text-white'
-                : 'border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-300');
-    });
-}
+/* Weekly Activity Chart */
+new Chart(document.getElementById('weekActivityChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: ['{{ __('Sen') }}','{{ __('Sel') }}','{{ __('Rab') }}','{{ __('Kam') }}','{{ __('Jum') }}','{{ __('Sab') }}','{{ __('Min') }}'],
+        datasets: [
+            { label: '{{ __('Sholat') }} (0–5)', data: @json($weekSpiritualData), borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.06)', tension: 0.4, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#10B981', fill: true, spanGaps: false },
+            { label: '{{ __('Mood') }} (0–5)',   data: @json($weekMoodData),      borderColor: '#8B5CF6', backgroundColor: 'rgba(139,92,246,0.06)',  tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#8B5CF6', fill: false, spanGaps: false },
+            { label: 'Gym',                        data: @json($weekFitnessData),   borderColor: '#3B82F6', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3B82F6', pointStyle: 'rectRounded', fill: false },
+            { label: '{{ __('Lari') }}',           data: @json($weekRunData),       borderColor: '#34D399', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#34D399', pointStyle: 'triangle', fill: false, borderDash: [4,3] },
+        ],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { display: true, position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 10, weight: '600' }, boxWidth: 8 } },
+            tooltip: { callbacks: { label: ctx => { const v = ctx.raw; if (v === null || v === undefined) return ctx.dataset.label + ': —'; if (ctx.datasetIndex >= 2) return ctx.dataset.label + ': ' + (v ? '✓' : '✗'); return ctx.dataset.label + ': ' + v; } } }
+        },
+        scales: {
+            y: { min: 0, max: 5, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f9fafb' } },
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        },
+    }
+});
+
+/* Life Score Trend Chart */
+const weekScores = @json($weekScores);
+new Chart(document.getElementById('trendChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: weekScores.map(d => d.date),
+        datasets: [
+            { label: '{{ __("Spiritual") }}',     data: weekScores.map(d => d.spiritual),    borderColor: '#10b981', tension: 0.4, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#10b981', fill: false },
+            { label: '{{ __("Kesehatan") }}',     data: weekScores.map(d => d.health),       borderColor: '#3b82f6', tension: 0.4, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#3b82f6', fill: false },
+            { label: '{{ __("Mental") }}',        data: weekScores.map(d => d.mental),       borderColor: '#8b5cf6', tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#8b5cf6', fill: false },
+            { label: '{{ __("Produktivitas") }}', data: weekScores.map(d => d.productivity), borderColor: '#fb923c', tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#fb923c', fill: false },
+        ],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, padding: 15 } } },
+        scales: {
+            y: { min: 0, max: 100, ticks: { stepSize: 25, callback: v => v + '%' }, grid: { color: '#f3f4f6' } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        },
+    },
+});
 </script>
 @endpush

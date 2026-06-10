@@ -134,9 +134,9 @@
                             'upwork'      => ['label' => 'Upwork',                      'color' => 'bg-green-600 text-white'],
                             'fiverr'      => ['label' => 'Fiverr',                      'color' => 'bg-emerald-500 text-white'],
                             'kontrakhub'  => ['label' => 'Kontrakhub',                  'color' => 'bg-violet-600 text-white'],
-                            'email'       => ['label' => __('Email Langsung'),          'color' => 'bg-gray-600 text-white'],
-                            'referral'    => ['label' => __('Kenalan / Referral'),      'color' => 'bg-amber-500 text-white'],
-                            'website'     => ['label' => __('Website Perusahaan'),      'color' => 'bg-slate-500 text-white'],
+                            'email'       => ['label' => __('Email'),                   'color' => 'bg-gray-600 text-white'],
+                            'referral'    => ['label' => __('Referral'),                'color' => 'bg-amber-500 text-white'],
+                            'website'     => ['label' => __('Website'),                 'color' => 'bg-slate-500 text-white'],
                             'other'       => ['label' => __('Lainnya'),                 'color' => 'bg-gray-400 text-white'],
                         ];
                     @endphp
@@ -173,9 +173,9 @@
                             <span class="text-gray-300 text-xs">—</span>
                             @endif
                         </td>
-                        <td class="px-4 py-4 hidden lg:table-cell">
+                        <td class="px-4 py-4 hidden lg:table-cell whitespace-nowrap">
                             @if($ch)
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-full {{ $channelMeta[$ch]['color'] ?? 'bg-gray-400 text-white' }}">
+                            <span class="inline-block whitespace-nowrap text-[10px] font-bold px-2 py-1 rounded-full {{ $channelMeta[$ch]['color'] ?? 'bg-gray-400 text-white' }}">
                                 {{ $channelMeta[$ch]['label'] ?? $ch }}
                             </span>
                             @else

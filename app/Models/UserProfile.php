@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class UserProfile extends Model
 {
     protected $guarded = ['id'];
-    protected $casts = ['setup_done' => 'boolean'];
+    protected $casts = ['setup_done' => 'boolean', 'prayer_reminders' => 'array'];
 
     public function user() { return $this->belongsTo(User::class); }
 }

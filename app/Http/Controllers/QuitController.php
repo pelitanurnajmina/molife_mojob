@@ -26,7 +26,7 @@ class QuitController extends Controller
     public function relapse(Request $request, string $type)
     {
         $this->guard($type);
-        $request->validate(['note' => 'nullable|string|max:200']);
+        $request->validate(['note' => 'nullable|string|max:1000']);
         QuitService::relapse(auth()->id(), $type, $request->note ?? '');
         return redirect()->back()->with('toast', __('Streak di-reset. Mulai lagi, kamu pasti bisa!'));
     }

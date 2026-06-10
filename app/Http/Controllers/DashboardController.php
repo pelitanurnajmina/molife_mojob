@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GymLog;
+use App\Models\RunLog;
+use App\Services\DashboardInsightService;
+use App\Services\InsightService;
 use App\Services\LifeScoreService;
 use App\Services\MoodService;
 use App\Services\SholatService;
-use App\Services\SpiritualService;
 use App\Services\StatsService;
 use App\Support\Dates;
+use App\Support\Features;
 use App\Support\Profile;
 
 class DashboardController extends Controller
@@ -17,51 +21,87 @@ class DashboardController extends Controller
         $userId = auth()->id();
         $today  = date('Y-m-d');
 
-        $todayStats      = SholatService::stats($userId, $today);
-        $gymWeekly       = StatsService::gymWeeklyCount($userId);
-        $gymMonthly      = StatsService::gymMonthlyCount($userId);
-        $isGymToday      = \App\Models\GymLog::where('user_id', $userId)->whereDate('date', $today)->where('done', true)->exists();
-        $intimacyToday   = StatsService::intimacyToday($userId);
-        $intimacyMonthly = StatsService::intimacyMonthlyCount($userId);
-        $caloriesWeek    = StatsService::caloriesThisWeek($userId);
-        $streak          = SholatService::streak($userId);
-        $weekKey         = Dates::weekKey();
-        $dailyTodos      = TaskController::todos($userId, 'daily', $today);
-        $weeklyTodos     = TaskController::todos($userId, 'weekly', $weekKey);
-
-        $lifeScore = LifeScoreService::for($userId, $today);
-        $todayMood = MoodService::get($userId, $today);
-
-        $runWeeklyCount = StatsService::runWeeklyCount($userId);
-        $runMonthlyDist = StatsService::runMonthlyDistance($userId);
-
-        // Profile + spiritual (non-Islam)
-        $profile  = Profile::data();
-        $religion = $profile['religion'] ?? '';
-        $spiritualPracticeTotal = match($religion) {
-            'kristen'        => 4,
-            'hindu','buddha' => 3,
-            'lainnya'        => 2,
-            default          => 0,
-        };
-        $todaySpiritualData = SpiritualService::day($userId, $today);
-        $spiritualDoneToday = count(array_filter($todaySpiritualData));
-        $spiritualStreak    = 0; // not shown on dashboard cards
+        $features = Features::map($userId);
+        $profile  = Profile::data($userId);
 
         $hour     = (int) date('G');
-        $greeting = match(true) {
+        $greeting = match (true) {
             $hour < 11 => __('Selamat pagi'),
             $hour < 15 => __('Selamat siang'),
             $hour < 18 => __('Selamat sore'),
             default    => __('Selamat malam'),
         };
+        $displayName = $profile['display_name'] ?: (auth()->user()->username ?? 'User');
+
+        /* ── Life insights & metrics (from former Insights page) ── */
+        $insights    = InsightService::for($userId);
+        $lifeScore   = LifeScoreService::for($userId, $today);
+        $moodHistory = MoodService::history($userId, 30);
+        $streak      = SholatService::streak($userId);
+        $gymMonthly  = StatsService::gymMonthlyCount($userId);
+        $runMonthly  = StatsService::runMonthlyCount($userId);
+        $runDist     = StatsService::runMonthlyDistance($userId);
+        $moodAvg7    = MoodService::avgScore($userId, 7);
+        $moodAvg30   = MoodService::avgScore($userId, 30);
+        $energyAvg7  = MoodService::avgEnergy($userId, 7);
+
+        // 30-day sholat stats (for count + month-complete tally)
+        $stats30 = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $ds = date('Y-m-d', strtotime("-$i days"));
+            $stats30[] = ['date' => $ds, 'sholat' => ['wajib' => SholatService::stats($userId, $ds)['wajib']]];
+        }
+        $monthPrefix = date('Y-m');
+        $sholatDaysMonth = count(array_filter($stats30,
+            fn($d) => str_starts_with($d['date'], $monthPrefix) && $d['sholat']['wajib'] >= 5));
+
+        // 7-day life score trend
+        $weekScores = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $d  = (new \DateTime())->modify("-$i days");
+            $sc = LifeScoreService::for($userId, $d->format('Y-m-d'));
+            $weekScores[] = [
+                'date' => $d->format('D'), 'score' => $sc['overall'],
+                'spiritual' => $sc['spiritual'], 'health' => $sc['health'],
+                'mental' => $sc['mental'], 'productivity' => $sc['productivity'],
+            ];
+        }
+
+        $intimacyMonthly = StatsService::intimacyMonthlyCount($userId);
+
+        // Weekly activity chart
+        $weekDates = Dates::weekDates();
+        $gymMap = GymLog::where('user_id', $userId)->whereIn('date', $weekDates)->get()->keyBy(fn($g) => $g->date->format('Y-m-d'));
+        $runMap = RunLog::where('user_id', $userId)->whereIn('date', $weekDates)->get()->keyBy(fn($r) => $r->date->format('Y-m-d'));
+        $weekSpiritualData = array_map(fn($d) => SholatService::stats($userId, $d)['total'], $weekDates);
+        $weekFitnessData   = array_map(fn($d) => ($gymMap[$d]->done ?? false) ? 1 : 0, $weekDates);
+        $weekRunData       = array_map(fn($d) => ($runMap[$d]->done ?? false) ? 1 : 0, $weekDates);
+        $weekMoodData      = array_map(fn($d) => ($s = MoodService::get($userId, $d)['score']) > 0 ? $s : null, $weekDates);
+
+        $gymWeekly      = StatsService::gymWeeklyCount($userId);
+        $runWeeklyCount = StatsService::runWeeklyCount($userId);
+        $runMonthlyDist = StatsService::runMonthlyDistance($userId);
+        $caloriesWeek   = StatsService::caloriesThisWeek($userId);
+        $todayStats     = SholatService::stats($userId, $today);
+
+        /* ── Career & Finance summaries + insights ── */
+        $showCareer  = $features['lamaran'] ?? false;
+        $showFinance = $features['finance'] ?? false;
+
+        $careerSummary   = $showCareer  ? DashboardInsightService::careerSummary($userId)   : [];
+        $careerInsights  = $showCareer  ? DashboardInsightService::careerInsights($userId)  : [];
+        $financeSummary  = $showFinance ? DashboardInsightService::financeSummary($userId)  : [];
+        $financeInsights = $showFinance ? DashboardInsightService::financeInsights($userId) : [];
 
         return view('pages.dashboard', compact(
-            'today', 'weekKey', 'todayStats', 'gymWeekly', 'gymMonthly', 'isGymToday',
-            'intimacyToday', 'intimacyMonthly', 'caloriesWeek', 'streak',
-            'dailyTodos', 'weeklyTodos', 'runWeeklyCount', 'runMonthlyDist',
-            'lifeScore', 'todayMood', 'greeting',
-            'profile', 'religion', 'spiritualPracticeTotal', 'spiritualDoneToday', 'spiritualStreak'
+            'greeting', 'displayName', 'profile', 'features', 'today',
+            'insights', 'lifeScore', 'moodHistory', 'stats30', 'streak',
+            'gymMonthly', 'runMonthly', 'runDist', 'moodAvg7', 'moodAvg30',
+            'energyAvg7', 'weekScores', 'sholatDaysMonth', 'intimacyMonthly',
+            'weekDates', 'weekSpiritualData', 'weekFitnessData', 'weekRunData', 'weekMoodData',
+            'gymWeekly', 'runWeeklyCount', 'runMonthlyDist', 'caloriesWeek', 'todayStats',
+            'showCareer', 'showFinance',
+            'careerSummary', 'careerInsights', 'financeSummary', 'financeInsights'
         ));
     }
 }

@@ -54,7 +54,8 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::get('/mental', [MentalController::class, 'index'])->name('mental');
     Route::post('/mental/mood', [MentalController::class, 'storeMood'])->name('mental.mood');
     Route::delete('/mental/reflection', [MentalController::class, 'deleteReflection'])->name('mental.reflection.delete');
-    Route::get('/insights', [InsightsController::class, 'index'])->name('insights');
+    // Insights merged into the main Dashboard (kept as redirect for old links)
+    Route::get('/insights', fn() => redirect()->route('dashboard'))->name('insights');
 
     // Spiritual (Islam)
     Route::get('/sholat', [SholatController::class, 'index'])->name('sholat');
@@ -116,6 +117,8 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::get('/goals', [GoalController::class, 'index'])->name('goals');
     Route::post('/goals/update', [GoalController::class, 'update'])->name('goals.update');
     Route::post('/reminders/update', [ReminderController::class, 'update'])->name('reminders.update');
+    Route::post('/reminders/prayer-city',   [ReminderController::class, 'setPrayerCity'])->name('reminders.prayer.city');
+    Route::post('/reminders/prayer-toggle', [ReminderController::class, 'togglePrayer'])->name('reminders.prayer.toggle');
 
     // Career Hub
     Route::get('/karir', [StatistikKarirController::class, 'index'])->name('karir');

@@ -13,6 +13,46 @@
 @endphp
 
 <div class="space-y-4 md:space-y-6">
+
+    {{-- ── Jadwal Sholat hari ini (otomatis by lokasi) ── --}}
+    @if(!empty($prayerTimes))
+    <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl md:rounded-3xl p-5 md:p-7 text-white relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4 relative">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-white/60">{{ __('Jadwal Sholat') }} · {{ date('j M Y', strtotime($date)) }}</p>
+                <p class="text-sm font-bold mt-0.5 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {{ $prayerCityLabel }}
+                </p>
+            </div>
+            <a href="{{ route('goals') }}" class="text-[10px] font-bold text-white/70 hover:text-white bg-white/10 px-3 py-1.5 rounded-full transition-all">{{ __('Ubah') }}</a>
+        </div>
+        <div class="grid grid-cols-5 gap-2 relative">
+            @foreach($prayerTimes as $name => $t)
+            @php $isNext = isset($nextPrayer) && $nextPrayer === $name; @endphp
+            <div class="rounded-xl py-3 px-1 text-center transition-all {{ $isNext ? 'bg-white text-emerald-700 shadow-lg' : 'bg-white/10' }}">
+                <p class="text-[10px] font-bold {{ $isNext ? 'text-emerald-600' : 'text-white/70' }}">{{ $name }}</p>
+                <p class="text-base md:text-lg font-black tabular-nums leading-tight mt-0.5">{{ $t }}</p>
+                @if($isNext)<p class="text-[8px] font-bold text-emerald-500 uppercase tracking-wide">{{ __('Berikutnya') }}</p>@endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @else
+    <a href="{{ route('goals') }}" class="block bg-emerald-50 border border-emerald-100 rounded-2xl p-4 hover:bg-emerald-100/60 transition-all">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-emerald-900">{{ __('Aktifkan jadwal sholat otomatis') }}</p>
+                <p class="text-xs text-emerald-700/70">{{ __('Pilih wilayahmu untuk melihat waktu Subuh–Isya otomatis.') }}</p>
+            </div>
+            <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+    </a>
+    @endif
+
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex flex-col lg:flex-row flex-wrap gap-6 md:gap-8">
 

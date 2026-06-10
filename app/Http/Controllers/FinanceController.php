@@ -153,12 +153,35 @@ class FinanceController extends Controller
     public function setBudget(Request $request)
     {
         $r = $request->validate([
-            'month'     => 'required|string|max:7',
-            'budgets'   => 'required|array',
-            'budgets.*' => 'nullable|integer|min:0',
+            'month'            => 'required|string|max:7',
+            'budgets'          => 'nullable|array',
+            'budgets.*'        => 'nullable|integer|min:0',
+            'custom_names'     => 'nullable|array',
+            'custom_names.*'   => 'nullable|string|max:50',
+            'custom_amounts'   => 'nullable|array',
+            'custom_amounts.*' => 'nullable|integer|min:0',
         ]);
-        $userId = auth()->id();
-        foreach ($r['budgets'] as $cat => $amount) {
+        $userId  = auth()->id();
+        $budgets = $r['budgets'] ?? [];
+
+        // Merge manually-named "Lainnya" categories into the budget map.
+        $names   = $r['custom_names'] ?? [];
+        $amounts = $r['custom_amounts'] ?? [];
+        foreach ($names as $i => $name) {
+            $name = trim((string) $name);
+            if ($name === '') continue;
+            $budgets[$name] = (int) ($amounts[$i] ?? 0);
+        }
+
+        // Clear previously-saved custom categories that were removed from the form,
+        // so deletions in the UI take effect.
+        $keep = array_keys($budgets);
+        FinanceBudget::where('user_id', $userId)->where('month_key', $r['month'])
+            ->whereNotIn('category', self::EXPENSE_CATS)
+            ->when(!empty($keep), fn($q) => $q->whereNotIn('category', $keep))
+            ->delete();
+
+        foreach ($budgets as $cat => $amount) {
             if ((int) $amount > 0) {
                 FinanceBudget::updateOrCreate(
                     ['user_id' => $userId, 'month_key' => $r['month'], 'category' => $cat],

@@ -82,7 +82,7 @@ class QuitService
         if ($streak > $t->best_streak) $t->best_streak = $streak;
 
         QuitRelapse::create([
-            'user_id' => $userId, 'type' => $type, 'date' => date('Y-m-d'), 'note' => $note ?: null,
+            'user_id' => $userId, 'type' => $type, 'streak' => $streak, 'date' => date('Y-m-d'), 'note' => $note ?: null,
         ]);
 
         $t->start_date = date('Y-m-d'); // reset streak
@@ -93,7 +93,7 @@ class QuitService
     {
         return QuitRelapse::where('user_id', $userId)->where('type', $type)
             ->orderByDesc('date')->limit($limit)->get()
-            ->map(fn($r) => ['date' => $r->date->format('Y-m-d'), 'note' => $r->note])
+            ->map(fn($r) => ['date' => $r->date->format('Y-m-d'), 'streak' => (int) $r->streak, 'note' => $r->note])
             ->toArray();
     }
 }

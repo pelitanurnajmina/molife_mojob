@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Goal;
 use App\Models\Reminder;
+use App\Services\PrayerTimeService;
 use App\Services\StatsService;
 use App\Support\Dates;
 use App\Support\Features;
+use App\Support\Profile;
 use Illuminate\Http\Request;
 
 class GoalController extends Controller
@@ -27,10 +29,17 @@ class GoalController extends Controller
         $runMonthlyDist     = ($features['run']      ?? true) ? StatsService::runMonthlyDistance($userId)   : 0.0;
         $intimacyMonthly    = ($features['intimasi'] ?? true) ? StatsService::intimacyMonthlyCount($userId) : 0;
 
+        // Auto prayer times (offline, by city)
+        $prayerCities   = PrayerTimeService::cities();
+        $prayerCity     = Profile::prayerCity($userId);
+        $prayerTimes    = PrayerTimeService::forCity($prayerCity);
+        $prayerEnabled  = Profile::prayerReminders($userId);
+
         return view('pages.goals', compact(
             'monthKey', 'goals', 'monthDates', 'features',
             'daysSholatComplete', 'gymMonthly', 'runMonthlyCount', 'runMonthlyDist',
-            'intimacyMonthly', 'reminders'
+            'intimacyMonthly', 'reminders',
+            'prayerCities', 'prayerCity', 'prayerTimes', 'prayerEnabled'
         ));
     }
 

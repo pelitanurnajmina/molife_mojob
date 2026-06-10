@@ -58,6 +58,32 @@ class Profile
         return self::isFreemium($u) ? self::FINANCE_DAYS_LIMIT_FREEMIUM : null;
     }
 
+    /* ── Prayer (sholat) location & reminders ── */
+    public static function prayerCity(?int $userId = null): ?string
+    {
+        return self::model($userId)->prayer_city;
+    }
+
+    public static function setPrayerCity(string $city, ?int $userId = null): void
+    {
+        $p = self::model($userId);
+        $p->prayer_city = $city;
+        $p->save();
+    }
+
+    /** Enabled prayer-reminder keys, e.g. ['Subuh','Maghrib']. */
+    public static function prayerReminders(?int $userId = null): array
+    {
+        return self::model($userId)->prayer_reminders ?? [];
+    }
+
+    public static function setPrayerReminders(array $keys, ?int $userId = null): void
+    {
+        $p = self::model($userId);
+        $p->prayer_reminders = array_values(array_unique($keys));
+        $p->save();
+    }
+
     /* ── Referral ── */
     public static function referralCode(?int $userId = null): string
     {

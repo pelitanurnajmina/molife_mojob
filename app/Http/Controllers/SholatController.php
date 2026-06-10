@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PrayerTimeService;
 use App\Services\SholatService;
 use App\Support\Dates;
+use App\Support\Profile;
 use Illuminate\Http\Request;
 
 class SholatController extends Controller
@@ -47,9 +49,24 @@ class SholatController extends Controller
             $rangeTitle  = $result['title'];
         }
 
+        // ── Auto prayer schedule (by saved city) ──
+        $prayerCity  = Profile::prayerCity($userId);
+        $prayerTimes = PrayerTimeService::forCity($prayerCity, $date);
+        $prayerCityLabel = PrayerTimeService::cityLabel($prayerCity);
+
+        // Next upcoming prayer (only meaningful for today)
+        $nextPrayer = null;
+        if ($prayerTimes && $date === $today) {
+            $now = date('H:i');
+            foreach ($prayerTimes as $name => $t) {
+                if ($t > $now) { $nextPrayer = $name; break; }
+            }
+        }
+
         return view('pages.sholat', compact(
             'date', 'today', 'sholatData', 'sholatStats', 'streak', 'takbirStreak',
-            'monthDates', 'monthStats', 'range', 'months', 'stripRows', 'rangeActive', 'rangeTitle'
+            'monthDates', 'monthStats', 'range', 'months', 'stripRows', 'rangeActive', 'rangeTitle',
+            'prayerTimes', 'prayerCityLabel', 'nextPrayer'
         ));
     }
 

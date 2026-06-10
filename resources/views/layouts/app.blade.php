@@ -205,6 +205,7 @@
             background: #fff; border-radius: 16px;
             box-shadow: 0 12px 40px rgba(0,0,0,.13), 0 2px 8px rgba(0,0,0,.07);
             z-index: 99999; padding: 6px;
+            max-height: 280px; overflow-y: auto;
         }
         .cs-option {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -215,6 +216,16 @@
         .cs-option:hover { background: #f9fafb; }
         .cs-option.cs-selected { font-weight: 700; color: #111827; }
         .cs-check { flex-shrink: 0; color: #6366f1; width: 15px; height: 15px; stroke-width: 2.5; }
+        /* Hide the browser's native date/month calendar icon so only our custom SVG shows.
+           Keep it clickable by overlaying it (transparent) on top of the custom icon area. */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="month"]::-webkit-calendar-picker-indicator {
+            position: absolute; right: 0; top: 0;
+            width: 2.4rem; height: 100%;
+            margin: 0; padding: 0;
+            opacity: 0; cursor: pointer;
+        }
+        input[type="date"], input[type="month"] { position: relative; }
     </style>
 </head>
 <body class="bg-[#F8F9FA] min-h-screen pb-20 md:pb-0">
@@ -276,8 +287,10 @@
         <nav class="flex-1">
             @php
             /* ── Build all three section nav arrays ── */
+            /* Standalone top-level item (outside any section) */
+            $homeNav = ['route'=>'dashboard', 'label'=>__('Dashboard'), 'match'=>'dashboard', 'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'];
+
             $lifeNav = [
-                ['route'=>'dashboard',   'feat'=>null,           'label'=>'Home',               'match'=>'dashboard',   'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
                 ['route'=>'sholat',     'feat'=>'sholat',       'label'=>__('Sholat'),          'match'=>'sholat',      'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
                 ['route'=>'spiritual',  'feat'=>'spiritual',    'label'=>$_spiritualLabel,      'match'=>'spiritual',   'icon'=>'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
                 ['route'=>'gym',        'feat'=>'gym',          'label'=>'Gym',                 'match'=>'gym',         'icon'=>'M13 10V3L4 14h7v7l9-11h-7z'],
@@ -293,7 +306,6 @@
                 ['route'=>'mental',     'feat'=>'mental',       'label'=>__('Mental'),          'match'=>'mental',      'icon'=>'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'tasks',      'feat'=>'tasks',        'label'=>'Tasks & Notes',       'match'=>'tasks',       'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
                 ['route'=>'statistik',  'feat'=>'statistik',    'label'=>__('Statistik'),       'match'=>'statistik',   'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
-                ['route'=>'insights',   'feat'=>'insights',     'label'=>__('Insights'),        'match'=>'insights',    'icon'=>'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'goals',      'feat'=>'goals',        'label'=>__('Goals & Reminder'),'match'=>'goals',       'icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
             ];
 
@@ -330,6 +342,14 @@
                 ['id'=>'settings', 'label'=>'Settings & Referral', 'items'=>$settingsNav],
             ];
             @endphp
+
+            {{-- Standalone top-level: Dashboard (outside sections) --}}
+            <a href="{{ route($homeNav['route']) }}"
+                class="w-full flex items-center px-3 py-1.5 mb-1 rounded-lg hover:bg-gray-50 transition-all
+                {{ request()->routeIs($homeNav['match']) ? 'text-black' : 'text-gray-400' }}">
+                <span class="text-[10px] uppercase font-bold tracking-widest">{{ $homeNav['label'] }}</span>
+            </a>
+            <div class="sidebar-divider h-px bg-gray-100 my-1.5"></div>
 
             {{-- Collapsible sections --}}
             <div id="sidebarNav">
@@ -523,7 +543,6 @@
         ['route'=>'motivasi',        'match'=>'motivasi',     'label'=>'Motivasi', 'icon'=>'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z', 'show'=>$_f('motivasi')],
         ['route'=>'mental',          'match'=>'mental',       'label'=>'Mental',                     'icon'=>$_ico['mental'],       'show'=>$_f('mental')],
         ['route'=>'tasks',           'match'=>'tasks',        'label'=>'Tasks',                      'icon'=>$_ico['tasks'],        'show'=>$_f('tasks')],
-        ['route'=>'insights',        'match'=>'insights',     'label'=>'Insights',                   'icon'=>$_ico['insights'],     'show'=>$_f('insights')],
         ['route'=>'statistik',       'match'=>'statistik',    'label'=>'Stats',                      'icon'=>$_ico['statistik'],    'show'=>$_f('statistik')],
         ['route'=>'goals',           'match'=>'goals',        'label'=>'Goals',                      'icon'=>$_ico['goals'],        'show'=>$_f('goals')],
         ['route'=>'karir',            'match'=>'karir',         'label'=>'Karir',     'icon'=>$_ico['karir'],     'show'=>$_f('lamaran')],
@@ -651,11 +670,23 @@
                 dd.style.top   = (rect.bottom + 6) + 'px';
                 document.body.appendChild(dd);
 
-                /* Flip up if overflows viewport */
+                /* Prefer opening downward; only flip up when below is too tight
+                   AND there's clearly more room above. Cap height to available space. */
                 requestAnimationFrame(function () {
-                    var dh = dd.offsetHeight;
-                    if (rect.bottom + 6 + dh > window.innerHeight - 8) {
-                        dd.style.top = (rect.top - dh - 6) + 'px';
+                    var gap        = 6, margin = 8;
+                    var spaceBelow = window.innerHeight - rect.bottom - gap - margin;
+                    var spaceAbove = rect.top - gap - margin;
+                    var dh         = dd.offsetHeight;
+
+                    if (dh <= spaceBelow || spaceBelow >= spaceAbove) {
+                        /* Open downward (default), clamp height to space below */
+                        dd.style.top       = (rect.bottom + gap) + 'px';
+                        dd.style.maxHeight = Math.min(280, Math.max(120, spaceBelow)) + 'px';
+                    } else {
+                        /* Not enough below and more room above → flip up */
+                        var h = Math.min(280, Math.max(120, spaceAbove));
+                        dd.style.maxHeight = h + 'px';
+                        dd.style.top       = (rect.top - Math.min(dd.offsetHeight, h) - gap) + 'px';
                     }
                 });
 
