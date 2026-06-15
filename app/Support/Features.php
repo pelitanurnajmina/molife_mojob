@@ -22,6 +22,7 @@ class Features
             'porn'         => false,
             'sosmed'       => false,
             'motivasi'     => true,
+            'pomodoro'     => true,
             'tasks'        => true,
             'statistik'    => true,
             'goals'        => true,

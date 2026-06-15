@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Mojob — @yield('title', 'Dashboard')</title>
+    <title>Molife — @yield('title', 'Dashboard')</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/icon.png') }}?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/icon.png') }}?v=2">
     <link rel="shortcut icon" href="{{ asset('images/icon.png') }}?v=2">
@@ -226,6 +226,7 @@
             opacity: 0; cursor: pointer;
         }
         input[type="date"], input[type="month"] { position: relative; }
+        @keyframes pomoPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.35; transform:scale(.7); } }
     </style>
 </head>
 <body class="bg-[#F8F9FA] min-h-screen pb-20 md:pb-0">
@@ -303,6 +304,7 @@
                 ['route'=>'quit',       'feat'=>'porn',         'label'=>'Stop Porn',           'match'=>'quit',        'routeParams'=>['type'=>'porn'],   'quitType'=>'porn',   'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
                 ['route'=>'quit',       'feat'=>'sosmed',       'label'=>__('Kurangi Sosmed'),  'match'=>'quit',        'routeParams'=>['type'=>'sosmed'], 'quitType'=>'sosmed', 'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
                 ['route'=>'motivasi',   'feat'=>'motivasi',     'label'=>__('Motivasi'),        'match'=>'motivasi',    'icon'=>'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z'],
+                ['route'=>'pomodoro',   'feat'=>'pomodoro',     'label'=>'Pomodoro',            'match'=>'pomodoro',    'icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'mental',     'feat'=>'mental',       'label'=>__('Mental'),          'match'=>'mental',      'icon'=>'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'tasks',      'feat'=>'tasks',        'label'=>'Tasks & Notes',       'match'=>'tasks',       'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
                 ['route'=>'statistik',  'feat'=>'statistik',    'label'=>__('Statistik'),       'match'=>'statistik',   'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
@@ -344,7 +346,7 @@
             @endphp
 
             {{-- Standalone top-level: Dashboard (outside sections) --}}
-            <a href="{{ route($homeNav['route']) }}"
+            <a href="{{ route($homeNav['route']) }}" data-tour="dashboard-nav"
                 class="w-full flex items-center px-3 py-1.5 mb-1 rounded-lg hover:bg-gray-50 transition-all
                 {{ request()->routeIs($homeNav['match']) ? 'text-black' : 'text-gray-400' }}">
                 <span class="text-[10px] uppercase font-bold tracking-widest">{{ $homeNav['label'] }}</span>
@@ -404,7 +406,7 @@
         <header class="flex justify-between items-center mb-3 md:mb-4">
             <div>
                 <h1 class="text-xl md:text-2xl font-bold">@yield('page-title')</h1>
-                <p class="text-gray-400 text-xs md:text-sm hidden md:block">Mojob › @yield('breadcrumb')</p>
+                <p class="text-gray-400 text-xs md:text-sm hidden md:block">Molife › @yield('breadcrumb')</p>
             </div>
             <div class="flex items-center gap-2 md:gap-4">
                 {{-- Language switcher --}}
@@ -541,6 +543,7 @@
         ['route'=>'quit',            'match'=>'quit',         'label'=>'Porn',     'params'=>['type'=>'porn'],   'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'show'=>$_f('porn')],
         ['route'=>'quit',            'match'=>'quit',         'label'=>'Sosmed',   'params'=>['type'=>'sosmed'], 'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', 'show'=>$_f('sosmed')],
         ['route'=>'motivasi',        'match'=>'motivasi',     'label'=>'Motivasi', 'icon'=>'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z', 'show'=>$_f('motivasi')],
+        ['route'=>'pomodoro',        'match'=>'pomodoro',     'label'=>'Pomodoro', 'icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'show'=>$_f('pomodoro')],
         ['route'=>'mental',          'match'=>'mental',       'label'=>'Mental',                     'icon'=>$_ico['mental'],       'show'=>$_f('mental')],
         ['route'=>'tasks',           'match'=>'tasks',        'label'=>'Tasks',                      'icon'=>$_ico['tasks'],        'show'=>$_f('tasks')],
         ['route'=>'statistik',       'match'=>'statistik',    'label'=>'Stats',                      'icon'=>$_ico['statistik'],    'show'=>$_f('statistik')],
@@ -720,6 +723,85 @@
     }
 })();
 </script>
+
+{{-- ── Global Pomodoro engine (persists across pages via localStorage) ── --}}
+@auth
+<script>
+(function () {
+    const KEY = 'pomoState';
+    const STORE_URL = '{{ route('pomodoro.store') }}';
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const D = { running:false, mode:'focus', endsAt:0, remaining:25*60, focusMin:25, breakMin:5, label:'' };
+
+    function load(){ try { return Object.assign({}, D, JSON.parse(localStorage.getItem(KEY)||'{}')); } catch(e){ return Object.assign({}, D); } }
+    function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+    let state = load();
+
+    function remainingNow(){ return state.running ? Math.max(0, Math.round((state.endsAt - Date.now())/1000)) : state.remaining; }
+    function phaseSeconds(m){ return (m === 'focus' ? state.focusMin : state.breakMin) * 60; }
+
+    const api = {
+        get(){ return Object.assign({}, state, { remaining: remainingNow() }); },
+        start(){
+            if (state.running) return;
+            let rem = state.remaining > 0 ? state.remaining : phaseSeconds(state.mode);
+            state.running = true; state.endsAt = Date.now() + rem*1000; save(); emit();
+        },
+        pause(){ if (!state.running) return; state.remaining = remainingNow(); state.running = false; save(); emit(); },
+        reset(){ state.running = false; state.remaining = phaseSeconds(state.mode); save(); emit(); },
+        setMode(m){ state.running = false; state.mode = m; state.remaining = phaseSeconds(m); save(); emit(); },
+        setFocus(min){ state.focusMin = min; if (state.mode === 'focus' && !state.running) state.remaining = min*60; save(); emit(); },
+        setLabel(t){ state.label = t; save(); },
+        toggle(){ state.running ? api.pause() : api.start(); },
+    };
+    window.MojobPomodoro = api;
+
+    function complete(){
+        const finished = state.mode;
+        const min = state.focusMin;
+        const label = state.label || '';
+        state.running = false;
+        try { new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play(); } catch(e){}
+        if (finished === 'focus') {
+            fetch(STORE_URL, { method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'}, body: JSON.stringify({ focus_minutes: min, label: label || null }) }).catch(()=>{});
+            state.mode = 'break'; state.remaining = state.breakMin*60; state.label = '';
+            if (window.showMojobToast) window.showMojobToast('Sesi fokus selesai! 🎉 Saatnya istirahat.');
+            document.dispatchEvent(new CustomEvent('pomo:saved', { detail: { minutes: min, label: label } }));
+        } else {
+            state.mode = 'focus'; state.remaining = phaseSeconds('focus'); state.label = '';
+            if (window.showMojobToast) window.showMojobToast('Istirahat selesai. Lanjut fokus!');
+        }
+        save(); emit();
+    }
+
+    function emit(){ document.dispatchEvent(new CustomEvent('pomo:change', { detail: api.get() })); updateIndicator(); }
+
+    function fmt(s){ const m=Math.floor(s/60), x=s%60; return String(m).padStart(2,'0')+':'+String(x).padStart(2,'0'); }
+    function updateIndicator(){
+        const st = api.get();
+        document.querySelectorAll('[data-feat="pomodoro"]').forEach(el => {
+            let badge = el.querySelector('.pomo-badge');
+            if (st.running) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'pomo-badge ml-auto inline-flex items-center gap-1 text-[10px] font-bold text-emerald-500 tabular-nums';
+                    el.appendChild(badge);
+                }
+                badge.innerHTML = '<span style="width:6px;height:6px;border-radius:9999px;background:#10b981;display:inline-block;animation:pomoPulse 1.2s infinite"></span>' + fmt(st.remaining);
+            } else if (badge) { badge.remove(); }
+        });
+    }
+
+    setInterval(function () {
+        if (state.running && remainingNow() <= 0) complete();
+        document.dispatchEvent(new CustomEvent('pomo:tick', { detail: api.get() }));
+        updateIndicator();
+    }, 1000);
+
+    updateIndicator();
+})();
+</script>
+@endauth
 
 @stack('scripts')
 <script>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GymLog;
+use App\Models\PomodoroSession;
 use App\Models\RunLog;
 use App\Services\DashboardInsightService;
 use App\Services\InsightService;
@@ -93,6 +94,17 @@ class DashboardController extends Controller
         $financeSummary  = $showFinance ? DashboardInsightService::financeSummary($userId)  : [];
         $financeInsights = $showFinance ? DashboardInsightService::financeInsights($userId) : [];
 
+        /* ── KPI hero metrics + deltas ── */
+        $lifeYesterday = LifeScoreService::for($userId, date('Y-m-d', strtotime('-1 day')))['overall'];
+        $lifeDelta     = $lifeScore['overall'] - $lifeYesterday;
+        $scoreSpark    = array_map(fn($d) => $d['score'], $weekScores);
+
+        $pomoToday = PomodoroSession::where('user_id', $userId)->whereDate('date', $today)->count();
+        $pomoWeek  = PomodoroSession::where('user_id', $userId)->whereIn('date', $weekDates)->count();
+
+        /* ── Product tour: only until the user finishes it ── */
+        $showTour = !Profile::model($userId)->tour_done;
+
         return view('pages.dashboard', compact(
             'greeting', 'displayName', 'profile', 'features', 'today',
             'insights', 'lifeScore', 'moodHistory', 'stats30', 'streak',
@@ -101,7 +113,17 @@ class DashboardController extends Controller
             'weekDates', 'weekSpiritualData', 'weekFitnessData', 'weekRunData', 'weekMoodData',
             'gymWeekly', 'runWeeklyCount', 'runMonthlyDist', 'caloriesWeek', 'todayStats',
             'showCareer', 'showFinance',
-            'careerSummary', 'careerInsights', 'financeSummary', 'financeInsights'
+            'careerSummary', 'careerInsights', 'financeSummary', 'financeInsights',
+            'lifeDelta', 'scoreSpark', 'pomoToday', 'pomoWeek', 'showTour'
         ));
+    }
+
+    /** Mark the product tour as completed for the current user. */
+    public function completeTour()
+    {
+        $p = Profile::model(auth()->id());
+        $p->tour_done = true;
+        $p->save();
+        return response()->json(['ok' => true]);
     }
 }

@@ -126,6 +126,7 @@
                 ['key'=>'porn',        'label'=>'Stop Porn',          'desc'=>'Streak bebas pornografi & kontrol diri'],
                 ['key'=>'sosmed',      'label'=>'Kurangi Sosmed',     'desc'=>'Disiplin waktu media sosial'],
                 ['key'=>'motivasi',    'label'=>'Motivasi',           'desc'=>'Quote harian & dampak konsistensimu'],
+                ['key'=>'pomodoro',    'label'=>'Pomodoro',           'desc'=>'Timer fokus & riwayat sesi produktif'],
                 ['key'=>'mental',      'label'=>'Mental',             'desc'=>'Mood tracker, energi, dan refleksi harian'],
                 ['key'=>'tasks',       'label'=>'Tasks & Notes',      'desc'=>'Tugas harian, mingguan & catatan'],
                 ['key'=>'statistik',   'label'=>'Statistik',          'desc'=>'Grafik dan ringkasan 30 hari terakhir'],

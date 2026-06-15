@@ -1,9 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setup Profil — Mojob</title>
+    <title>Molife — Setup Profil</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/icon.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/icon.png') }}?v=2">
+    <link rel="shortcut icon" href="{{ asset('images/icon.png') }}?v=2">
+    <link rel="apple-touch-icon" href="{{ asset('images/icon.png') }}?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,8 +18,9 @@
         .option-card.selected .opt-icon { color: #fff !important; }
         .option-card.selected .opt-label { color: #fff !important; }
         .option-card.selected .opt-sub { color: #9ca3af !important; }
-        .sport-card { transition: all .18s; cursor: pointer; }
-        .sport-card.selected { border-color: #111827 !important; background: #111827 !important; color: #fff !important; }
+        .sport-card, .feat-card { transition: all .18s; cursor: pointer; }
+        .sport-card.selected, .feat-card.selected { border-color: #111827 !important; background: #111827 !important; color: #fff !important; }
+        .feat-card.selected .fc-sub { color: #9ca3af !important; }
         .step-panel { display: none; }
         .step-panel.active { display: block; }
         @keyframes slideIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
@@ -27,28 +32,28 @@
 <div class="w-full max-w-lg">
 
     {{-- Logo --}}
-    <div class="flex justify-center mb-8">
-        <img src="{{ asset('images/logo.png') }}" class="h-12 w-auto" alt="Mojob">
+    <div class="flex justify-center mb-7">
+        <img src="{{ asset('images/logo.png') }}" class="h-12 w-auto" alt="Molife">
     </div>
 
     {{-- Progress bar --}}
-    <div class="flex items-center gap-2 mb-8 px-2">
+    <div class="flex items-center gap-2 mb-7 px-2">
         <div id="prog1" class="h-1.5 flex-1 rounded-full bg-black transition-all duration-300"></div>
         <div id="prog2" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all duration-300"></div>
         <div id="prog3" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all duration-300"></div>
+        <div id="prog4" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all duration-300"></div>
     </div>
 
     <form method="POST" action="{{ route('onboarding.store') }}" id="onboardingForm">
         @csrf
         <input type="hidden" name="religion"          id="hiddenReligion">
-        <input type="hidden" name="sports"             id="hiddenSports" value="">
         <input type="hidden" name="custom_sport_name" id="hiddenCustomName" value="">
 
         {{-- ── Step 1: Name ── --}}
         <div class="step-panel active bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step1">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 1 dari 3</p>
-            <h2 class="text-2xl font-bold mb-1">Hai, siapa namamu?</h2>
-            <p class="text-sm text-gray-500 mb-6">Ini akan ditampilkan di dalam app.</p>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 1 dari 4</p>
+            <h2 class="text-2xl font-bold mb-1">Selamat datang di Molife 👋</h2>
+            <p class="text-sm text-gray-500 mb-6">Yuk kenalan dulu — siapa namamu?</p>
 
             <input type="text" name="display_name" id="displayName"
                 autocomplete="off"
@@ -64,7 +69,7 @@
 
         {{-- ── Step 2: Religion ── --}}
         <div class="step-panel bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step2">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 2 dari 3</p>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 2 dari 4</p>
             <h2 class="text-2xl font-bold mb-1">Agama / kepercayaan</h2>
             <p class="text-sm text-gray-500 mb-6">Kami akan menyesuaikan fitur spiritual sesuai pilihanmu.</p>
 
@@ -108,7 +113,7 @@
 
         {{-- ── Step 3: Sports ── --}}
         <div class="step-panel bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step3">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 3 dari 3</p>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 3 dari 4</p>
             <h2 class="text-2xl font-bold mb-1">Olahraga apa saja?</h2>
             <p class="text-sm text-gray-500 mb-6">Pilih yang kamu lakukan. Bisa lebih dari satu, atau lewati jika tidak ada.</p>
 
@@ -147,6 +152,47 @@
 
             <div class="flex gap-3 mt-2">
                 <button type="button" onclick="goStep(2)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
+                <button type="button" onclick="goStep(4)" class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">Lanjut</button>
+            </div>
+        </div>
+
+        {{-- ── Step 4: Other features ── --}}
+        <div class="step-panel bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 4 dari 4</p>
+            <h2 class="text-2xl font-bold mb-1">Fitur yang mau kamu pakai</h2>
+            <p class="text-sm text-gray-500 mb-6">Aktifkan yang relevan. Semua bisa diubah lagi di Pengaturan.</p>
+
+            @php
+            $featOptions = [
+                ['value'=>'tasks',    'label'=>'Tasks & Notes', 'sub'=>'To-do harian & catatan',        'on'=>true,  'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
+                ['value'=>'pomodoro', 'label'=>'Pomodoro',      'sub'=>'Timer fokus produktif',          'on'=>true,  'icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['value'=>'mental',   'label'=>'Mental',        'sub'=>'Mood & refleksi harian',         'on'=>true,  'icon'=>'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['value'=>'motivasi', 'label'=>'Motivasi',      'sub'=>'Quote & dampak konsistensi',     'on'=>true,  'icon'=>'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z'],
+                ['value'=>'finance',  'label'=>'Finance',       'sub'=>'Transaksi, anggaran, tabungan',  'on'=>true,  'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['value'=>'lamaran',  'label'=>'Karir & Lamaran','sub'=>'Lacak lamaran kerja',           'on'=>true,  'icon'=>'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                ['value'=>'intimasi', 'label'=>'Intimasi',      'sub'=>'Tracker bersama pasangan',       'on'=>false, 'icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
+                ['value'=>'porn',     'label'=>'Stop Porn',     'sub'=>'Streak bebas pornografi',        'on'=>false, 'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                ['value'=>'sosmed',   'label'=>'Kurangi Sosmed','sub'=>'Disiplin waktu media sosial',    'on'=>false, 'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
+            ];
+            @endphp
+
+            <div class="grid grid-cols-2 gap-2.5 mb-2 max-h-[42vh] overflow-y-auto pr-1">
+                @foreach($featOptions as $f)
+                <div class="feat-card flex flex-col items-start gap-2 p-4 rounded-2xl border-2 {{ $f['on'] ? 'selected border-gray-900 bg-gray-900 text-white' : 'border-gray-100 bg-gray-50' }} hover:border-gray-300"
+                     data-feat="{{ $f['value'] }}" data-on="{{ $f['on'] ? '1' : '0' }}" onclick="toggleFeat(this)">
+                    <svg class="w-5 h-5 {{ $f['on'] ? 'text-white' : 'text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $f['icon'] }}"/>
+                    </svg>
+                    <div>
+                        <p class="font-bold text-xs leading-tight">{{ $f['label'] }}</p>
+                        <p class="text-[10px] mt-0.5 leading-tight fc-sub {{ $f['on'] ? 'text-gray-400' : 'text-gray-400' }}">{{ $f['sub'] }}</p>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <div class="flex gap-3 mt-5">
+                <button type="button" onclick="goStep(3)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
                 <button type="submit" id="btnFinish"
                     class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
                     Mulai Sekarang
@@ -160,11 +206,11 @@
 
 <script>
 let currentStep = 1;
+const MAX_STEP = 4;
 let selectedReligion = '';
 let selectedSports = new Set();
 
 function goStep(n) {
-    // Validate step 1
     if (n > 1) {
         const name = document.getElementById('displayName').value.trim();
         if (!name) {
@@ -174,29 +220,24 @@ function goStep(n) {
         }
         document.getElementById('displayName').style.borderColor = '';
     }
-    // Validate step 2
     if (n > 2 && !selectedReligion) return;
 
     document.getElementById('step' + currentStep).classList.remove('active');
     document.getElementById('step' + n).classList.add('active');
     currentStep = n;
 
-    // Update progress bar
-    ['prog1','prog2','prog3'].forEach((id, i) => {
-        document.getElementById(id).style.background = (i < n) ? '#111827' : '#e5e7eb';
-    });
-
+    for (let i = 1; i <= MAX_STEP; i++) {
+        document.getElementById('prog' + i).style.background = (i <= n) ? '#111827' : '#e5e7eb';
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function selectReligion(value, card) {
-    // Deselect all
     document.querySelectorAll('.option-card').forEach(c => {
         c.classList.remove('selected');
         c.querySelector('.opt-radio').style.background = '';
         c.querySelector('.opt-radio').style.borderColor = '#d1d5db';
     });
-    // Select this
     card.classList.add('selected');
     card.querySelector('.opt-radio').style.background = '#fff';
     card.querySelector('.opt-radio').style.borderColor = '#fff';
@@ -207,40 +248,38 @@ function selectReligion(value, card) {
 }
 
 function toggleSport(value, card) {
-    if (selectedSports.has(value)) {
-        selectedSports.delete(value);
-        card.classList.remove('selected');
-    } else {
-        selectedSports.add(value);
-        card.classList.add('selected');
-    }
-
-    // Show/hide custom sport name input
-    document.getElementById('customSportInput').style.display =
-        selectedSports.has('custom_sport') ? 'block' : 'none';
-
-    // Update hidden input — repeat the field name for array
-    updateSportsHidden();
-}
-
-function updateSportsHidden() {
-    // We'll serialize to a comma-delimited string and let the server split it
-    // Actually we use multiple hidden inputs
-    const container = document.getElementById('hiddenSports');
-    // Remove old sport inputs
+    if (selectedSports.has(value)) { selectedSports.delete(value); card.classList.remove('selected'); }
+    else { selectedSports.add(value); card.classList.add('selected'); }
+    document.getElementById('customSportInput').style.display = selectedSports.has('custom_sport') ? 'block' : 'none';
     document.querySelectorAll('.hidden-sport-input').forEach(el => el.remove());
-
     selectedSports.forEach(sport => {
         const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'sports[]';
-        input.value = sport;
-        input.className = 'hidden-sport-input';
+        input.type = 'hidden'; input.name = 'sports[]'; input.value = sport; input.className = 'hidden-sport-input';
         document.getElementById('onboardingForm').appendChild(input);
     });
 }
 
-// Validate name on enter
+function toggleFeat(card) {
+    const on = card.dataset.on !== '1';
+    card.dataset.on = on ? '1' : '0';
+    card.classList.toggle('selected', on);
+    const svg = card.querySelector('svg');
+    if (svg) svg.classList.toggle('text-white', on), svg.classList.toggle('text-gray-500', !on);
+    syncFeats();
+}
+
+function syncFeats() {
+    document.querySelectorAll('.hidden-feat-input').forEach(el => el.remove());
+    document.querySelectorAll('.feat-card').forEach(card => {
+        if (card.dataset.on === '1') {
+            const input = document.createElement('input');
+            input.type = 'hidden'; input.name = 'features[]'; input.value = card.dataset.feat; input.className = 'hidden-feat-input';
+            document.getElementById('onboardingForm').appendChild(input);
+        }
+    });
+}
+syncFeats(); // seed defaults
+
 document.getElementById('displayName').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); goStep(2); }
 });

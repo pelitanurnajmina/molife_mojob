@@ -23,11 +23,14 @@ class OnboardingController extends Controller
             'religion'          => 'required|string|in:islam,kristen,hindu,buddha,lainnya,none',
             'sports'            => 'nullable|array',
             'custom_sport_name' => 'nullable|string|max:50',
+            'features'          => 'nullable|array',
+            'features.*'        => 'string',
         ]);
 
         $userId   = auth()->id();
         $religion = $request->religion;
         $sports   = $request->sports ?? [];
+        $features = $request->features ?? [];
 
         // Save profile
         $profile = Profile::model($userId);
@@ -53,6 +56,11 @@ class OnboardingController extends Controller
         // Sport features
         foreach (['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'] as $sport) {
             Features::set($userId, $sport, in_array($sport, $sports));
+        }
+
+        // Other opt-in features chosen in step 4
+        foreach (['tasks', 'pomodoro', 'mental', 'motivasi', 'finance', 'lamaran', 'intimasi', 'porn', 'sosmed'] as $feat) {
+            Features::set($userId, $feat, in_array($feat, $features));
         }
 
         return redirect()->route('dashboard')

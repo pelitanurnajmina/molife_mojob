@@ -37,11 +37,96 @@
     $domainPill = ['Life' => 'bg-gray-100 text-gray-500', 'Karir' => 'bg-indigo-50 text-indigo-500', 'Finance' => 'bg-teal-50 text-teal-600'];
 @endphp
 
+<style>
+    .dash-card { transition: transform .2s ease, box-shadow .2s ease; }
+    .dash-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.07); }
+    @keyframes kpiRise { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+    .kpi-anim { animation: kpiRise .45s ease both; }
+</style>
+
 <div class="space-y-4 md:space-y-6">
+
+    {{-- ── KPI hero row ── --}}
+    @php
+        // Mini sparkline from 7-day overall life score
+        $spk = $scoreSpark; $sn = count($spk);
+        $pts = '';
+        foreach ($spk as $i => $v) {
+            $x = $sn > 1 ? ($i / ($sn - 1)) * 78 + 1 : 40;
+            $y = 26 - ($v / 100) * 24;
+            $pts .= round($x, 1) . ',' . round($y, 1) . ' ';
+        }
+        $up = $lifeDelta >= 0;
+
+        $kpis = [
+            [
+                'label' => __('Life Score'), 'value' => $lifeScore['overall'], 'suffix' => '%',
+                'icon'  => 'M13 10V3L4 14h7v7l9-11h-7z',
+                'grad'  => 'from-emerald-500 to-teal-500', 'tint' => 'bg-emerald-50', 'text' => 'text-emerald-600',
+                'delta' => ($up ? '+' : '') . $lifeDelta, 'deltaUp' => $up, 'sub' => __('vs kemarin'),
+                'spark' => true,
+            ],
+            [
+                'label' => __('Streak Sholat'), 'value' => $streak, 'suffix' => ' ' . __('hari'),
+                'icon'  => 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z',
+                'grad'  => 'from-orange-500 to-amber-500', 'tint' => 'bg-orange-50', 'text' => 'text-orange-600',
+                'sub'   => __('berturut-turut'),
+            ],
+            [
+                'label' => __('Fokus Minggu Ini'), 'value' => $pomoWeek, 'suffix' => ' ' . __('sesi'),
+                'icon'  => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                'grad'  => 'from-rose-500 to-pink-500', 'tint' => 'bg-rose-50', 'text' => 'text-rose-600',
+                'sub'   => $pomoToday . ' ' . __('hari ini'),
+            ],
+            $showFinance ? [
+                'label' => __('Saldo Bulan Ini'), 'value' => 'Rp ' . number_format(($financeSummary['balance'] ?? 0), 0, ',', '.'), 'suffix' => '',
+                'icon'  => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                'grad'  => 'from-sky-500 to-indigo-500', 'tint' => 'bg-sky-50', 'text' => 'text-sky-600',
+                'sub'   => ($financeSummary['balance'] ?? 0) >= 0 ? __('positif') : __('defisit'),
+                'small' => true,
+            ] : [
+                'label' => __('Mood 7 Hari'), 'value' => $moodAvg7 > 0 ? $moodAvg7 : '—', 'suffix' => $moodAvg7 > 0 ? '/5' : '',
+                'icon'  => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                'grad'  => 'from-violet-500 to-purple-500', 'tint' => 'bg-violet-50', 'text' => 'text-violet-600',
+                'sub'   => __('rata-rata'),
+            ],
+        ];
+    @endphp
+    <div id="dashKpis" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        @foreach($kpis as $idx => $k)
+        <div class="dash-card kpi-anim relative overflow-hidden bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-50" style="animation-delay: {{ $idx * 70 }}ms">
+            <div class="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-gradient-to-br {{ $k['grad'] }} opacity-10"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br {{ $k['grad'] }} text-white flex items-center justify-center shadow-sm">
+                        <svg class="w-4.5 h-4.5" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $k['icon'] }}"/></svg>
+                    </div>
+                    @if(!empty($k['delta']))
+                    <span class="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $k['deltaUp'] ? 'text-emerald-600 bg-emerald-50' : 'text-red-500 bg-red-50' }}">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="{{ $k['deltaUp'] ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}"/></svg>
+                        {{ $k['delta'] }}
+                    </span>
+                    @endif
+                </div>
+                <p class="{{ !empty($k['small']) ? 'text-lg md:text-xl' : 'text-2xl md:text-3xl' }} font-black text-gray-900 leading-none">
+                    {{ $k['value'] }}<span class="text-sm font-bold text-gray-400">{{ $k['suffix'] }}</span>
+                </p>
+                <p class="text-[11px] font-bold text-gray-500 mt-1.5">{{ $k['label'] }}</p>
+                @if(!empty($k['spark']) && $sn > 1)
+                <svg class="w-full h-7 mt-2" viewBox="0 0 80 28" preserveAspectRatio="none">
+                    <polyline points="{{ trim($pts) }}" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                @else
+                <p class="text-[10px] text-gray-400 mt-1.5">{{ $k['sub'] }}</p>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    </div>
 
     {{-- ── Smart Insights (all domains) ── --}}
     @if(count($allInsights) > 0)
-    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+    <div id="dashInsights" class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center gap-2 mb-4">
             <h3 class="text-base font-bold">{{ __('Insight Hari Ini') }}</h3>
             <span class="text-xs text-gray-400">{{ __('dari semua aktivitasmu') }}</span>
@@ -69,13 +154,16 @@
     @endif
 
     {{-- ── Life Score Today ── --}}
-    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+    <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-2">
                 <h3 class="text-base font-bold">{{ __('Life Score Hari Ini') }}</h3>
                 <span class="text-xs text-gray-400">{{ date('j F Y') }}</span>
             </div>
-            <a href="{{ route('statistik') }}" class="text-xs font-bold text-gray-400 hover:text-black transition-all">{{ __('Statistik') }} →</a>
+            <a href="{{ route('statistik') }}" class="inline-flex items-center gap-1 text-xs font-bold text-gray-400 hover:text-black transition-all">
+                {{ __('Statistik') }}
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </a>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             @php
@@ -107,10 +195,11 @@
             @endforeach
         </div>
 
-        <div class="mt-6 p-4 bg-gray-900 text-white rounded-2xl flex items-center justify-between">
-            <div>
+        <div class="mt-6 p-4 md:p-5 bg-gradient-to-br from-gray-900 via-gray-900 to-emerald-900 text-white rounded-2xl flex items-center justify-between relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-emerald-500/10"></div>
+            <div class="relative">
                 <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">{{ __('Overall Life Score') }}</p>
-                <p class="text-3xl font-bold mt-1">{{ $lifeScore['overall'] }}</p>
+                <p class="text-4xl font-black mt-1">{{ $lifeScore['overall'] }}<span class="text-lg text-gray-500">%</span></p>
             </div>
             <div class="relative">
                 <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
@@ -134,7 +223,7 @@
                     <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span>
                     {{ __('Karir') }}
                 </h3>
-                <span class="text-xs text-gray-300">→</span>
+                <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
             <div class="grid grid-cols-3 gap-3 text-center">
                 <div><p class="text-2xl font-bold text-gray-800">{{ $careerSummary['active'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Lamaran Aktif') }}</p></div>
@@ -151,7 +240,7 @@
                     <span class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
                     {{ __('Finance') }} · {{ $monthLabel }}
                 </h3>
-                <span class="text-xs text-gray-300">→</span>
+                <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
             <div class="grid grid-cols-3 gap-3 text-center">
                 <div><p class="text-base md:text-lg font-bold text-green-600 truncate">{{ $rp($financeSummary['income'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pemasukan') }}</p></div>
@@ -172,13 +261,13 @@
     @endif
 
     {{-- ── 7-Day Trend ── --}}
-    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+    <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <h3 class="text-base font-bold mb-6">{{ __('Trend 7 Hari Terakhir') }}</h3>
         <div class="h-64"><canvas id="trendChart"></canvas></div>
     </div>
 
     {{-- ── Monthly Summary (Life) ── --}}
-    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+    <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <h3 class="font-bold mb-1">{{ __('Ringkasan Bulan Ini') }}</h3>
         <p class="text-xs text-gray-400 mb-4">{{ $monthLabel }}</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -216,7 +305,7 @@
     </div>
 
     {{-- ── Mood Heatmap (30 days) ── --}}
-    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+    <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-bold">{{ __('Kalender Mood 30 Hari') }}</h3>
             <div class="flex items-center gap-2 text-[10px]">
@@ -240,7 +329,7 @@
     </div>
 
     {{-- ── Weekly Activity Chart ── --}}
-    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+    <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center justify-between mb-6">
             <h3 class="font-bold">{{ __('Aktivitas Minggu Ini') }}</h3>
             <span class="text-xs bg-gray-50 rounded-xl px-3 py-1 font-bold text-gray-500">{{ __('7 hari terakhir') }}</span>
@@ -249,57 +338,183 @@
     </div>
 
 </div>
+
+{{-- ── Product tour (first-time users) ── --}}
+@if($showTour)
+<div id="tourRoot" class="fixed inset-0 z-[300]" style="display:none">
+    <div id="tourSpot" class="absolute rounded-2xl" style="box-shadow:0 0 0 9999px rgba(17,24,39,.72); transition:all .3s ease; pointer-events:none"></div>
+    <div id="tourCard" class="absolute w-[320px] max-w-[88vw] bg-white rounded-2xl shadow-2xl p-5" style="transition:top .25s ease,left .25s ease">
+        <p id="tourStepNo" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1"></p>
+        <h3 id="tourTitle" class="font-bold text-lg mb-1"></h3>
+        <p id="tourText" class="text-sm text-gray-500 leading-relaxed mb-4"></p>
+        <div class="flex items-center justify-between">
+            <button id="tourSkip" type="button" class="text-xs font-bold text-gray-400 hover:text-gray-700 transition-all">{{ __('Lewati') }}</button>
+            <div class="flex gap-2">
+                <button id="tourPrev" type="button" class="px-3 py-2 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 transition-all">{{ __('Kembali') }}</button>
+                <button id="tourNext" type="button" class="px-4 py-2 rounded-xl text-xs font-bold bg-black text-white hover:bg-gray-800 transition-all">{{ __('Lanjut') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    const DONE_URL = '{{ route('tour.done') }}';
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const isDesktop = window.innerWidth >= 768;
+
+    // r = requires the target to be visible (sidebar items / sections); open = section to expand first
+    let steps = [
+        { sel: null,            title: '{{ __('Selamat datang di Molife! 👋') }}', text: '{{ __('Tur singkat biar kamu tahu fungsi tiap menu. Bisa dilewati kapan saja.') }}' },
+        { sel: '#dashKpis',     title: '{{ __('Ringkasan cepat') }}',            text: '{{ __('Skor hidup, streak sholat, fokus, dan keuangan dalam sekejap.') }}' },
+        { sel: '#dashInsights', title: '{{ __('Insight harian') }}',             text: '{{ __('Saran & pola dari semua aktivitasmu muncul di sini setiap hari.') }}' },
+        { sel: '[data-tour="dashboard-nav"]', r: true, title: '{{ __('Dashboard') }}', text: '{{ __('Halaman ini — pusat ringkasan semua aktivitasmu.') }}' },
+        { sel: '[data-feat="sholat"]',   r: true, open: 'life', title: '{{ __('Sholat') }}',      text: '{{ __('Catat sholat 5 waktu, rawatib & takbir, plus jadwal otomatis sesuai lokasi.') }}' },
+        { sel: '[data-feat="pomodoro"]', r: true, open: 'life', title: 'Pomodoro',                text: '{{ __('Timer fokus yang tetap berjalan walau kamu pindah menu.') }}' },
+        { sel: '[data-feat="tasks"]',    r: true, open: 'life', title: 'Tasks & Notes',           text: '{{ __('To-do harian & mingguan, catatan, refleksi, dan riwayatnya.') }}' },
+        { sel: '[data-feat="goals"]',    r: true, open: 'life', title: '{{ __('Goals & Reminder') }}', text: '{{ __('Target bulanan & pengingat, termasuk atur lokasi jadwal sholat.') }}' },
+        { sel: '[data-section="karir"]',   r: true, open: 'karir',   title: 'Karir',   text: '{{ __('Lacak lamaran kerja, tahap interview, dan persiapan melamar.') }}' },
+        { sel: '[data-section="finance"]', r: true, open: 'finance', title: 'Finance', text: '{{ __('Catat transaksi, atur anggaran, dan kejar target tabungan.') }}' },
+        { sel: '[data-section="settings"]',r: true, open: 'settings',title: '{{ __('Pengaturan') }}', text: '{{ __('Aktif/nonaktifkan fitur & atur profil sesuai kebutuhanmu.') }}' },
+        { sel: null,            title: '{{ __('Siap memulai! 🎉') }}',           text: '{{ __('Mulai dari mencatat sholat atau task hari ini. Selamat mencoba!') }}' },
+    ];
+
+    // Drop steps whose target is hidden/disabled; on mobile drop sidebar steps (sidebar is off-canvas)
+    steps = steps.filter(s => {
+        if (!s.r) return true;
+        if (!isDesktop) return false;
+        const el = document.querySelector(s.sel);
+        return el && !el.classList.contains('hidden');
+    });
+
+    let i = 0;
+    const root = document.getElementById('tourRoot');
+    const spot = document.getElementById('tourSpot');
+    const card = document.getElementById('tourCard');
+    const M = 12, GAP = 14, PAD = 8;
+
+    function placeCard(r) {
+        const cw = card.offsetWidth || 320, ch = card.offsetHeight || 200;
+        const clampTop  = t => Math.min(Math.max(M, t), window.innerHeight - ch - M);
+        const clampLeft = l => Math.min(Math.max(M, l), window.innerWidth - cw - M);
+        let pos;
+        if (r.right + GAP + cw <= window.innerWidth - M)      pos = { left: r.right + GAP,      top: clampTop(r.top) };           // right
+        else if (r.bottom + GAP + ch <= window.innerHeight-M) pos = { left: clampLeft(r.left),  top: r.bottom + GAP };            // below
+        else if (r.top - GAP - ch >= M)                       pos = { left: clampLeft(r.left),  top: r.top - GAP - ch };         // above
+        else if (r.left - GAP - cw >= M)                      pos = { left: r.left - GAP - cw,  top: clampTop(r.top) };          // left
+        else                                                  pos = { left: (window.innerWidth-cw)/2, top: (window.innerHeight-ch)/2 };
+        card.style.transform = 'none';
+        card.style.left = pos.left + 'px';
+        card.style.top  = pos.top + 'px';
+    }
+
+    function position(el) {
+        const r = el.getBoundingClientRect();
+        spot.style.top = (r.top - PAD) + 'px'; spot.style.left = (r.left - PAD) + 'px';
+        spot.style.width = (r.width + PAD * 2) + 'px'; spot.style.height = (r.height + PAD * 2) + 'px';
+        placeCard(r);
+    }
+
+    function centerCard() {
+        spot.style.width = '0'; spot.style.height = '0';
+        spot.style.top = '50%'; spot.style.left = '50%';
+        card.style.top = '50%'; card.style.left = '50%'; card.style.transform = 'translate(-50%,-50%)';
+    }
+
+    function render() {
+        const s = steps[i];
+        document.getElementById('tourStepNo').textContent = '{{ __('Langkah') }} ' + (i + 1) + ' / ' + steps.length;
+        document.getElementById('tourTitle').textContent = s.title;
+        document.getElementById('tourText').textContent = s.text;
+        document.getElementById('tourPrev').style.visibility = i === 0 ? 'hidden' : 'visible';
+        document.getElementById('tourNext').textContent = i === steps.length - 1 ? '{{ __('Selesai') }}' : '{{ __('Lanjut') }}';
+
+        if (s.open && typeof window.toggleSection === 'function') window.toggleSection(s.open);
+
+        const el = s.sel ? document.querySelector(s.sel) : null;
+        if (el) {
+            el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            setTimeout(() => {
+                if (el.getClientRects().length > 0) position(el); else centerCard();
+            }, s.open ? 360 : 260);
+        } else {
+            centerCard();
+        }
+    }
+    function finish() {
+        root.style.display = 'none';
+        fetch(DONE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' } }).catch(() => {});
+    }
+    document.getElementById('tourNext').onclick = () => { if (i === steps.length - 1) finish(); else { i++; render(); } };
+    document.getElementById('tourPrev').onclick = () => { if (i > 0) { i--; render(); } };
+    document.getElementById('tourSkip').onclick = finish;
+    window.addEventListener('resize', () => { if (root.style.display !== 'none') render(); });
+
+    setTimeout(() => { root.style.display = 'block'; render(); }, 500);
+})();
+</script>
+@endif
 @endsection
 
 @push('scripts')
 <script>
-/* Weekly Activity Chart */
-new Chart(document.getElementById('weekActivityChart').getContext('2d'), {
-    type: 'line',
-    data: {
-        labels: ['{{ __('Sen') }}','{{ __('Sel') }}','{{ __('Rab') }}','{{ __('Kam') }}','{{ __('Jum') }}','{{ __('Sab') }}','{{ __('Min') }}'],
-        datasets: [
-            { label: '{{ __('Sholat') }} (0–5)', data: @json($weekSpiritualData), borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.06)', tension: 0.4, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#10B981', fill: true, spanGaps: false },
-            { label: '{{ __('Mood') }} (0–5)',   data: @json($weekMoodData),      borderColor: '#8B5CF6', backgroundColor: 'rgba(139,92,246,0.06)',  tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#8B5CF6', fill: false, spanGaps: false },
-            { label: 'Gym',                        data: @json($weekFitnessData),   borderColor: '#3B82F6', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3B82F6', pointStyle: 'rectRounded', fill: false },
-            { label: '{{ __('Lari') }}',           data: @json($weekRunData),       borderColor: '#34D399', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#34D399', pointStyle: 'triangle', fill: false, borderDash: [4,3] },
-        ],
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-            legend: { display: true, position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 10, weight: '600' }, boxWidth: 8 } },
-            tooltip: { callbacks: { label: ctx => { const v = ctx.raw; if (v === null || v === undefined) return ctx.dataset.label + ': —'; if (ctx.datasetIndex >= 2) return ctx.dataset.label + ': ' + (v ? '✓' : '✗'); return ctx.dataset.label + ': ' + v; } } }
-        },
-        scales: {
-            y: { min: 0, max: 5, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f9fafb' } },
-            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-        },
-    }
-});
+if (window.Chart) {
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.plugins.tooltip.backgroundColor = '#111827';
+    Chart.defaults.plugins.tooltip.cornerRadius = 10;
+    Chart.defaults.plugins.tooltip.padding = 10;
+    Chart.defaults.plugins.tooltip.displayColors = false;
+}
 
-/* Life Score Trend Chart */
+/* ── Life Score Trend → clean bar chart, highest day highlighted ── */
 const weekScores = @json($weekScores);
-new Chart(document.getElementById('trendChart').getContext('2d'), {
-    type: 'line',
-    data: {
-        labels: weekScores.map(d => d.date),
-        datasets: [
-            { label: '{{ __("Spiritual") }}',     data: weekScores.map(d => d.spiritual),    borderColor: '#10b981', tension: 0.4, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#10b981', fill: false },
-            { label: '{{ __("Kesehatan") }}',     data: weekScores.map(d => d.health),       borderColor: '#3b82f6', tension: 0.4, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#3b82f6', fill: false },
-            { label: '{{ __("Mental") }}',        data: weekScores.map(d => d.mental),       borderColor: '#8b5cf6', tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#8b5cf6', fill: false },
-            { label: '{{ __("Produktivitas") }}', data: weekScores.map(d => d.productivity), borderColor: '#fb923c', tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#fb923c', fill: false },
-        ],
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, padding: 15 } } },
-        scales: {
-            y: { min: 0, max: 100, ticks: { stepSize: 25, callback: v => v + '%' }, grid: { color: '#f3f4f6' } },
-            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+(function () {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    const vals = weekScores.map(d => d.score);
+    const max = Math.max(...vals);
+    const colors = vals.map(v => (v === max && max > 0) ? '#6366f1' : '#e0e7ff');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: weekScores.map(d => d.date),
+            datasets: [{ data: vals, backgroundColor: colors, hoverBackgroundColor: '#4f46e5', borderRadius: 8, borderSkipped: false, maxBarThickness: 38 }],
         },
-    },
-});
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '{{ __('Life Score') }}: ' + c.raw + '%' } } },
+            scales: {
+                y: { min: 0, max: 100, ticks: { stepSize: 25, callback: v => v + '%', font: { size: 9 }, color: '#9ca3af' }, grid: { color: '#f3f4f6', drawBorder: false } },
+                x: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#6b7280' } },
+            },
+        },
+    });
+})();
+
+/* ── Weekly Activity → colorful stacked bars ── */
+(function () {
+    const ctx = document.getElementById('weekActivityChart').getContext('2d');
+    const z = a => a.map(v => v == null ? 0 : v);
+    const base = { stack: 's', borderRadius: 5, borderSkipped: false, maxBarThickness: 30, borderWidth: 2, borderColor: '#fff' };
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['{{ __('Sen') }}','{{ __('Sel') }}','{{ __('Rab') }}','{{ __('Kam') }}','{{ __('Jum') }}','{{ __('Sab') }}','{{ __('Min') }}'],
+            datasets: [
+                { ...base, label: '{{ __('Sholat') }}', data: @json($weekSpiritualData), backgroundColor: '#10b981' },
+                { ...base, label: '{{ __('Mood') }}',   data: z(@json($weekMoodData)),    backgroundColor: '#8b5cf6' },
+                { ...base, label: 'Gym',                 data: @json($weekFitnessData),    backgroundColor: '#3b82f6' },
+                { ...base, label: '{{ __('Lari') }}',    data: @json($weekRunData),        backgroundColor: '#f59e0b' },
+            ],
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', padding: 12, font: { size: 10, weight: '600' }, boxWidth: 8 } } },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#6b7280' } },
+                y: { stacked: true, beginAtZero: true, ticks: { stepSize: 2, font: { size: 9 }, color: '#9ca3af' }, grid: { color: '#f9fafb', drawBorder: false } },
+            },
+        },
+    });
+})();
 </script>
 @endpush
