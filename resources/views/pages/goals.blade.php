@@ -82,6 +82,7 @@
         'gym'   => ['Gym'      => __('Sesi Gym')],
         'run'   => ['Run'      => __('Sesi Lari')],
         'tasks' => ['Refleksi' => __('Refleksi Harian')],
+        'journal' => ['Journal' => __('Menulis Journal')],
     ];
 
     $reminderItems = [];   // key => label

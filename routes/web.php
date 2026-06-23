@@ -18,6 +18,7 @@ use App\Http\Controllers\IntimacyController;
 use App\Http\Controllers\QuitController;
 use App\Http\Controllers\MotivasiController;
 use App\Http\Controllers\PomodoroController;
+use App\Http\Controllers\JournalController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\GoalController;
@@ -28,6 +29,8 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StatistikKarirController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\BisnisController;
+use App\Http\Controllers\BisnisDocController;
 
 /* ── Language switcher ── */
 Route::get('/lang/{locale}', function ($locale) {
@@ -78,12 +81,22 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::get('/quit/{type}',          [QuitController::class, 'index'])->name('quit');
     Route::post('/quit/{type}/relapse', [QuitController::class, 'relapse'])->name('quit.relapse');
 
-    // Motivasi (quote + impact)
-    Route::get('/motivasi', [MotivasiController::class, 'index'])->name('motivasi');
+    // Motivasi (quote, afirmasi, vision board, alasan besar)
+    Route::get('/motivasi',            [MotivasiController::class, 'index'])->name('motivasi');
+    Route::post('/motivasi/favorite',  [MotivasiController::class, 'toggleFavorite'])->name('motivasi.favorite');
+    Route::delete('/motivasi/favorite/{id}', [MotivasiController::class, 'deleteFavorite'])->name('motivasi.favorite.delete');
+    Route::post('/motivasi/why',       [MotivasiController::class, 'saveWhy'])->name('motivasi.why');
+    Route::post('/motivasi/vision',    [MotivasiController::class, 'addVision'])->name('motivasi.vision.add');
+    Route::delete('/motivasi/vision/{id}', [MotivasiController::class, 'deleteVision'])->name('motivasi.vision.delete');
 
     // Pomodoro focus timer
     Route::get('/pomodoro',  [PomodoroController::class, 'index'])->name('pomodoro');
     Route::post('/pomodoro', [PomodoroController::class, 'store'])->name('pomodoro.store');
+
+    // Journal (Law of Attraction, guided)
+    Route::get('/journal',  [JournalController::class, 'index'])->name('journal');
+    Route::post('/journal', [JournalController::class, 'store'])->name('journal.store');
+    Route::delete('/journal/{id}', [JournalController::class, 'destroy'])->name('journal.destroy');
 
     // Sports
     Route::get('/gym', [GymController::class, 'index'])->name('gym');
@@ -144,6 +157,26 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
         Route::post('/{id}',         [LamaranController::class, 'update'])->name('update');
         Route::delete('/{id}',       [LamaranController::class, 'destroy'])->name('destroy');
         Route::get('/ekspor',        [LamaranController::class, 'export'])->name('export');
+    });
+
+    // Bisnis (proposal/klien + dokumen + analitik)
+    Route::prefix('bisnis')->name('bisnis.')->group(function () {
+        Route::get('/',              [BisnisController::class, 'index'])->name('index');
+        Route::get('/proposal',      [BisnisController::class, 'deals'])->name('deals');
+        Route::post('/proposal',     [BisnisController::class, 'store'])->name('store');
+        Route::post('/proposal/{id}',[BisnisController::class, 'update'])->name('update');
+        Route::delete('/proposal/{id}', [BisnisController::class, 'destroy'])->name('destroy');
+        // Products
+        Route::post('/produk',        [BisnisController::class, 'storeProduct'])->name('product.store');
+        Route::delete('/produk/{id}', [BisnisController::class, 'destroyProduct'])->name('product.destroy');
+        // Documents
+        Route::get('/dokumen',          [BisnisDocController::class, 'index'])->name('docs');
+        Route::post('/dokumen/link',    [BisnisDocController::class, 'storeLink'])->name('docs.link');
+        Route::post('/dokumen/file',    [BisnisDocController::class, 'storeFile'])->name('docs.file');
+        Route::get('/dokumen/{id}/unduh', [BisnisDocController::class, 'downloadFile'])->name('docs.download');
+        Route::post('/dokumen/template',      [BisnisDocController::class, 'storeTemplate'])->name('docs.template.store');
+        Route::post('/dokumen/template/{id}', [BisnisDocController::class, 'updateTemplate'])->name('docs.template.update');
+        Route::delete('/dokumen/{id}',  [BisnisDocController::class, 'destroy'])->name('docs.destroy');
     });
 
     // Finance

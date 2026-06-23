@@ -129,6 +129,7 @@
                 ['key'=>'pomodoro',    'label'=>'Pomodoro',           'desc'=>'Timer fokus & riwayat sesi produktif'],
                 ['key'=>'mental',      'label'=>'Mental',             'desc'=>'Mood tracker, energi, dan refleksi harian'],
                 ['key'=>'tasks',       'label'=>'Tasks & Notes',      'desc'=>'Tugas harian, mingguan & catatan'],
+                ['key'=>'journal',     'label'=>'Journal',            'desc'=>'Journaling terpandu ala Law of Attraction'],
                 ['key'=>'statistik',   'label'=>'Statistik',          'desc'=>'Grafik dan ringkasan 30 hari terakhir'],
                 ['key'=>'insights',    'label'=>'Insights',           'desc'=>'Life Score dan pola dari semua aktivitas'],
                 ['key'=>'goals',       'label'=>'Goals & Reminder',   'desc'=>'Target pribadi dan pengingat harian'],
@@ -136,6 +137,9 @@
             ['label'=>'Karir', 'items'=>[
                 ['key'=>'lamaran',     'label'=>'Lamaran Kerja',      'desc'=>'Kelola lamaran dan status interview'],
                 ['key'=>'persiapan',   'label'=>'Persiapan Melamar',  'desc'=>'Link, file, template CV & persiapan wawancara'],
+            ]],
+            ['label'=>'Bisnis', 'items'=>[
+                ['key'=>'bisnis',      'label'=>'Bisnis',             'desc'=>'Proposal, klien, dokumen & analitik bisnis'],
             ]],
             ['label'=>'Finance', 'items'=>[
                 ['key'=>'finance',     'label'=>'Finance',            'desc'=>'Transaksi, anggaran & tujuan tabungan'],

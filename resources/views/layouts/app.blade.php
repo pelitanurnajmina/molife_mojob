@@ -307,6 +307,7 @@
                 ['route'=>'pomodoro',   'feat'=>'pomodoro',     'label'=>'Pomodoro',            'match'=>'pomodoro',    'icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'mental',     'feat'=>'mental',       'label'=>__('Mental'),          'match'=>'mental',      'icon'=>'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'tasks',      'feat'=>'tasks',        'label'=>'Tasks & Notes',       'match'=>'tasks',       'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
+                ['route'=>'journal',    'feat'=>'journal',      'label'=>'Journal',             'match'=>'journal',     'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
                 ['route'=>'statistik',  'feat'=>'statistik',    'label'=>__('Statistik'),       'match'=>'statistik',   'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
                 ['route'=>'goals',      'feat'=>'goals',        'label'=>__('Goals & Reminder'),'match'=>'goals',       'icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
             ];
@@ -315,6 +316,12 @@
                 ['route'=>'karir',           'feat'=>'lamaran',   'match'=>'karir',       'label'=>__('Overview'),          'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
                 ['route'=>'lamaran.index',   'feat'=>'lamaran',   'match'=>'lamaran.*',   'label'=>__('Lamaran Kerja'),     'icon'=>'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
                 ['route'=>'persiapan.index', 'feat'=>'persiapan', 'match'=>'persiapan.*', 'label'=>__('Persiapan Melamar'),'icon'=>'M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z'],
+            ];
+
+            $businessNav = [
+                ['route'=>'bisnis.index', 'feat'=>'bisnis', 'match'=>'bisnis.index', 'label'=>__('Overview'),        'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
+                ['route'=>'bisnis.deals', 'feat'=>'bisnis', 'match'=>'bisnis.deals', 'label'=>__('Proposal & Klien'), 'icon'=>'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                ['route'=>'bisnis.docs',  'feat'=>'bisnis', 'match'=>'bisnis.docs',  'label'=>__('Dokumen & File'),  'icon'=>'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z'],
             ];
 
             $financeNav = [
@@ -334,12 +341,14 @@
             /* Determine which section is active */
             $activeSection = 'life';
             if (request()->routeIs('karir') || request()->routeIs('lamaran.*') || request()->routeIs('persiapan.*')) $activeSection = 'karir';
+            if (request()->routeIs('bisnis.*'))   $activeSection = 'bisnis';
             if (request()->routeIs('finance.*'))  $activeSection = 'finance';
             if (request()->routeIs('settings.*') || request()->routeIs('settings')) $activeSection = 'settings';
 
             $sections = [
                 ['id'=>'life',     'label'=>'Life',     'items'=>$lifeNav],
                 ['id'=>'karir',    'label'=>'Karir',    'items'=>$careerNav],
+                ['id'=>'bisnis',   'label'=>'Bisnis',   'items'=>$businessNav],
                 ['id'=>'finance',  'label'=>'Finance',  'items'=>$financeNav],
                 ['id'=>'settings', 'label'=>'Settings & Referral', 'items'=>$settingsNav],
             ];
@@ -546,11 +555,15 @@
         ['route'=>'pomodoro',        'match'=>'pomodoro',     'label'=>'Pomodoro', 'icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'show'=>$_f('pomodoro')],
         ['route'=>'mental',          'match'=>'mental',       'label'=>'Mental',                     'icon'=>$_ico['mental'],       'show'=>$_f('mental')],
         ['route'=>'tasks',           'match'=>'tasks',        'label'=>'Tasks',                      'icon'=>$_ico['tasks'],        'show'=>$_f('tasks')],
+        ['route'=>'journal',         'match'=>'journal',      'label'=>'Journal',  'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', 'show'=>$_f('journal')],
         ['route'=>'statistik',       'match'=>'statistik',    'label'=>'Stats',                      'icon'=>$_ico['statistik'],    'show'=>$_f('statistik')],
         ['route'=>'goals',           'match'=>'goals',        'label'=>'Goals',                      'icon'=>$_ico['goals'],        'show'=>$_f('goals')],
         ['route'=>'karir',            'match'=>'karir',         'label'=>'Karir',     'icon'=>$_ico['karir'],     'show'=>$_f('lamaran')],
         ['route'=>'lamaran.index',   'match'=>'lamaran.*',    'label'=>'Lamaran',   'icon'=>$_ico['lamaran'],   'show'=>$_f('lamaran')],
         ['route'=>'persiapan.index', 'match'=>'persiapan.*', 'label'=>'Persiapan', 'icon'=>$_ico['persiapan'], 'show'=>$_f('persiapan')],
+        ['route'=>'bisnis.index',    'match'=>'bisnis.index','label'=>'Bisnis',    'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'show'=>$_f('bisnis')],
+        ['route'=>'bisnis.deals',    'match'=>'bisnis.deals','label'=>'Proposal',  'icon'=>'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'show'=>$_f('bisnis')],
+        ['route'=>'bisnis.docs',     'match'=>'bisnis.docs', 'label'=>'Dok Bisnis','icon'=>'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', 'show'=>$_f('bisnis')],
         ['route'=>'finance.index',   'match'=>'finance.*',    'label'=>'Finance',   'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'show'=>$_f('finance')],
         ['route'=>'settings',        'match'=>'settings',     'label'=>'Setting',   'icon'=>$_ico['settings'],  'show'=>true],
     ];
@@ -808,7 +821,7 @@
 /* ── Collapsible Sidebar ── */
 (function() {
     var ACTIVE   = '{{ $activeSection ?? "life" }}';
-    var SECTIONS = ['life', 'karir', 'finance', 'settings'];
+    var SECTIONS = ['life', 'karir', 'bisnis', 'finance', 'settings'];
 
     /* ── Notifications dropdown ── */
     window.toggleNotifPanel = function() {

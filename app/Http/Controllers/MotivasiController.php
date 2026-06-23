@@ -2,96 +2,137 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SholatService;
-use App\Services\StatsService;
-use App\Services\MoodService;
-use App\Services\QuitService;
-use App\Support\Features;
+use App\Models\QuoteFavorite;
+use App\Models\VisionItem;
+use App\Support\Profile;
+use Illuminate\Http\Request;
 
 class MotivasiController extends Controller
 {
+    /** [text, src (tokoh), cat] — cat: spiritual | productivity | health | mindset */
     public const QUOTES = [
-        ['text' => 'Sesungguhnya sholat itu mencegah dari perbuatan keji dan mungkar.', 'src' => 'QS. Al-Ankabut: 45'],
-        ['text' => 'Konsistensi kecil setiap hari mengalahkan usaha besar yang sesekali.', 'src' => 'Mojob'],
-        ['text' => 'Tubuh yang sehat adalah tamu yang menyenangkan bagi jiwa.', 'src' => 'Francis Bacon'],
-        ['text' => 'Disiplin adalah jembatan antara tujuan dan pencapaian.', 'src' => 'Jim Rohn'],
-        ['text' => 'Kamu tidak harus hebat untuk memulai, tapi kamu harus memulai untuk menjadi hebat.', 'src' => 'Zig Ziglar'],
-        ['text' => 'Sebaik-baik amal adalah yang konsisten walau sedikit.', 'src' => 'HR. Bukhari & Muslim'],
-        ['text' => 'Setiap hari bersih adalah kemenangan. Rayakan langkah kecilmu.', 'src' => 'Mojob'],
-        ['text' => 'Jangan bandingkan dirimu hari ini dengan orang lain, tapi dengan dirimu kemarin.', 'src' => 'Mojob'],
-        ['text' => 'Energi mengalir ke mana fokus tertuju. Fokuslah pada hal yang membangun.', 'src' => 'Tony Robbins'],
-        ['text' => 'Masa depanmu ditentukan oleh apa yang kamu lakukan hari ini, bukan besok.', 'src' => 'Robert Kiyosaki'],
-        ['text' => 'Olahraga bukan hukuman untuk tubuhmu, tapi perayaan atas apa yang bisa ia lakukan.', 'src' => 'Mojob'],
-        ['text' => 'Barangsiapa bersungguh-sungguh, pasti akan mendapatkan hasilnya.', 'src' => 'Man Jadda Wajada'],
+        ['text' => 'Sesungguhnya sholat itu mencegah dari perbuatan keji dan mungkar.', 'src' => 'QS. Al-Ankabut: 45', 'cat' => 'spiritual'],
+        ['text' => 'Sebaik-baik amal adalah yang konsisten walau sedikit.', 'src' => 'HR. Bukhari & Muslim', 'cat' => 'spiritual'],
+        ['text' => 'Barangsiapa bersungguh-sungguh, pasti akan mendapatkan hasilnya.', 'src' => 'Pepatah Arab', 'cat' => 'spiritual'],
+        ['text' => 'Bersyukur mengubah apa yang kita miliki menjadi cukup.', 'src' => 'Aesop', 'cat' => 'spiritual'],
+        ['text' => 'Kamu tidak harus hebat untuk memulai, tapi kamu harus memulai untuk menjadi hebat.', 'src' => 'Zig Ziglar', 'cat' => 'mindset'],
+        ['text' => 'Jangan bandingkan dirimu hari ini dengan orang lain, tapi dengan dirimu kemarin.', 'src' => 'Jordan Peterson', 'cat' => 'mindset'],
+        ['text' => 'Energi mengalir ke mana fokus tertuju. Fokuslah pada hal yang membangun.', 'src' => 'Tony Robbins', 'cat' => 'mindset'],
+        ['text' => 'Hidup itu 10% apa yang terjadi padamu dan 90% bagaimana kamu meresponnya.', 'src' => 'Charles Swindoll', 'cat' => 'mindset'],
+        ['text' => 'Apa yang kamu pikirkan, kamu menjadi. Apa yang kamu rasakan, kamu tarik.', 'src' => 'Buddha', 'cat' => 'mindset'],
+        ['text' => 'Disiplin adalah jembatan antara tujuan dan pencapaian.', 'src' => 'Jim Rohn', 'cat' => 'productivity'],
+        ['text' => 'Masa depanmu ditentukan oleh apa yang kamu lakukan hari ini, bukan besok.', 'src' => 'Robert Kiyosaki', 'cat' => 'productivity'],
+        ['text' => 'Konsistensi kecil setiap hari mengalahkan usaha besar yang sesekali.', 'src' => 'James Clear', 'cat' => 'productivity'],
+        ['text' => 'Cara untuk memulai adalah berhenti berbicara dan mulai melakukan.', 'src' => 'Walt Disney', 'cat' => 'productivity'],
+        ['text' => 'Kamu tidak naik ke level tujuanmu, kamu turun ke level sistemmu.', 'src' => 'James Clear', 'cat' => 'productivity'],
+        ['text' => 'Tubuh yang sehat adalah tamu yang menyenangkan bagi jiwa.', 'src' => 'Francis Bacon', 'cat' => 'health'],
+        ['text' => 'Olahraga bukan hukuman untuk tubuhmu, tapi perayaan atas apa yang ia bisa lakukan.', 'src' => 'Anonim', 'cat' => 'health'],
+        ['text' => 'Jaga tubuhmu. Ia satu-satunya tempat yang harus kamu tinggali.', 'src' => 'Jim Rohn', 'cat' => 'health'],
+        ['text' => 'Kesehatan adalah kekayaan yang sesungguhnya, bukan emas dan perak.', 'src' => 'Mahatma Gandhi', 'cat' => 'health'],
+    ];
+
+    public const CATEGORIES = [
+        'all'          => 'Semua',
+        'spiritual'    => 'Spiritual',
+        'productivity' => 'Produktivitas',
+        'health'       => 'Kesehatan',
+        'mindset'      => 'Mindset',
+    ];
+
+    public const AFFIRMATIONS = [
+        'Aku layak atas semua hal baik dalam hidupku.',
+        'Aku menarik energi positif, peluang, dan rezeki.',
+        'Aku cukup, persis sebagaimana diriku saat ini.',
+        'Setiap hari aku tumbuh jadi versi terbaik dari diriku.',
+        'Aku memilih tenang, syukur, dan fokus hari ini.',
+        'Aku mampu menghadapi apa pun yang datang hari ini.',
+        'Pikiran tenang dan hatiku damai.',
+        'Aku pantas bahagia, sehat, dan dicintai.',
+        'Usaha kecilku hari ini menanam hasil besar di masa depan.',
+        'Aku percaya pada prosesku sendiri.',
+    ];
+
+    public const CHALLENGES = [
+        'Minum satu gelas air putih sekarang juga. 💧',
+        'Tarik napas dalam 5 kali, hembuskan perlahan. 🌬️',
+        'Kirim pesan terima kasih ke satu orang hari ini.',
+        'Rapikan satu sudut meja atau kamarmu.',
+        'Jalan kaki 5 menit tanpa menyentuh HP.',
+        'Tulis satu hal yang kamu syukuri hari ini.',
+        'Matikan notifikasi selama 1 jam dan fokus.',
+        'Lakukan peregangan tubuh selama 2 menit.',
+        'Ucapkan afirmasi hari ini di depan cermin.',
+        'Tidur 30 menit lebih awal malam ini.',
     ];
 
     public function index()
     {
-        $userId   = auth()->id();
-        $features = Features::map($userId);
+        $userId = auth()->id();
+        $z      = (int) date('z');
 
-        // Deterministic daily quote
-        $quote = self::QUOTES[(int) date('z') % count(self::QUOTES)];
+        $quote        = self::QUOTES[$z % count(self::QUOTES)];
+        $affirmation  = self::AFFIRMATIONS[$z % count(self::AFFIRMATIONS)];
+        $challenge    = self::CHALLENGES[$z % count(self::CHALLENGES)];
+        $quotes       = self::QUOTES;
+        $affirmations = self::AFFIRMATIONS;
+        $categories   = self::CATEGORIES;
 
-        // Impact cards from real data, framed positively
-        $impacts = [];
+        $favorites  = QuoteFavorite::where('user_id', $userId)->latest()->get(['id', 'text', 'src']);
+        $favTexts   = $favorites->pluck('text')->all();
+        $vision     = VisionItem::where('user_id', $userId)->latest()->get(['id', 'emoji', 'text']);
+        $bigWhy     = Profile::model($userId)->big_why ?? '';
 
-        if ($features['sholat'] ?? false) {
-            $streak = SholatService::streak($userId);
-            $impacts[] = [
-                'value' => $streak, 'unit' => 'hari',
-                'label' => 'Konsisten sholat 5 waktu',
-                'color' => 'green',
-                'icon'  => 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
-                'msg'   => $streak >= 7 ? 'Kebiasaan spiritual yang kuat!' : 'Setiap hari membangun fondasi.',
-            ];
-        }
-        if ($features['gym'] ?? false) {
-            $g = StatsService::gymMonthlyCount($userId);
-            $impacts[] = [
-                'value' => $g, 'unit' => 'sesi',
-                'label' => 'Latihan gym bulan ini', 'color' => 'blue',
-                'icon'  => 'M13 10V3L4 14h7v7l9-11h-7z',
-                'msg'   => $g >= 8 ? 'Tubuhmu berterima kasih!' : 'Mulai bergerak, mulai berubah.',
-            ];
-        }
-        if ($features['run'] ?? false) {
-            $km = StatsService::runMonthlyDistance($userId);
-            $impacts[] = [
-                'value' => number_format($km, 1), 'unit' => 'km',
-                'label' => 'Total lari bulan ini', 'color' => 'emerald',
-                'icon'  => 'M22 12h-4l-3 9L9 3l-3 9H2',
-                'msg'   => $km >= 10 ? 'Jarak yang luar biasa!' : 'Selangkah demi selangkah.',
-            ];
-        }
-        if ($features['mental'] ?? false) {
-            $avg = MoodService::avgScore($userId, 30);
-            $impacts[] = [
-                'value' => $avg > 0 ? $avg : '—', 'unit' => '/5',
-                'label' => 'Rata-rata mood 30 hari', 'color' => 'violet',
-                'icon'  => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-                'msg'   => $avg >= 4 ? 'Mental yang sehat!' : 'Terus jaga dirimu.',
-            ];
-        }
-        if ($features['porn'] ?? false) {
-            $s = QuitService::streak($userId, 'porn');
-            $impacts[] = [
-                'value' => $s, 'unit' => 'hari',
-                'label' => 'Bebas pornografi', 'color' => 'rose',
-                'icon'  => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-                'msg'   => $s >= 7 ? 'Kontrol diri yang hebat!' : 'Setiap hari adalah kemenangan.',
-            ];
-        }
-        if ($features['sosmed'] ?? false) {
-            $s = QuitService::streak($userId, 'sosmed');
-            $impacts[] = [
-                'value' => $s, 'unit' => 'hari',
-                'label' => 'Disiplin sosial media', 'color' => 'sky',
-                'icon'  => 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
-                'msg'   => $s >= 7 ? 'Fokusmu kembali!' : 'Waktu adalah aset paling berharga.',
-            ];
-        }
+        return view('pages.motivasi', compact(
+            'quote', 'quotes', 'categories', 'affirmation', 'affirmations', 'challenge',
+            'favorites', 'favTexts', 'vision', 'bigWhy'
+        ));
+    }
 
-        return view('pages.motivasi', compact('quote', 'impacts'));
+    /** Toggle a quote favorite (add if new, remove if already saved). */
+    public function toggleFavorite(Request $request)
+    {
+        $r = $request->validate(['text' => 'required|string|max:500', 'src' => 'nullable|string|max:120']);
+        $userId = auth()->id();
+
+        $existing = QuoteFavorite::where('user_id', $userId)->where('text', $r['text'])->first();
+        if ($existing) {
+            $existing->delete();
+            return response()->json(['favorited' => false]);
+        }
+        $fav = QuoteFavorite::create(['user_id' => $userId, 'text' => $r['text'], 'src' => $r['src'] ?? null]);
+        return response()->json(['favorited' => true, 'id' => $fav->id]);
+    }
+
+    public function deleteFavorite(string $id)
+    {
+        QuoteFavorite::where('user_id', auth()->id())->where('id', $id)->delete();
+        return redirect()->route('motivasi')->with('toast', __('Quote dihapus dari favorit.'));
+    }
+
+    /** Save the user's "Big Why". */
+    public function saveWhy(Request $request)
+    {
+        $request->validate(['big_why' => 'nullable|string|max:1000']);
+        $p = Profile::model(auth()->id());
+        $p->big_why = trim($request->big_why ?? '');
+        $p->save();
+        return redirect()->route('motivasi')->with('toast', __('Alasan besarmu tersimpan.'));
+    }
+
+    /* ── Vision board ── */
+    public function addVision(Request $request)
+    {
+        $r = $request->validate(['text' => 'required|string|max:80', 'emoji' => 'nullable|string|max:16']);
+        if (VisionItem::where('user_id', auth()->id())->count() >= 12) {
+            return redirect()->route('motivasi')->with('toast', __('Maksimal 12 impian di vision board.'));
+        }
+        VisionItem::create(['user_id' => auth()->id(), 'text' => trim($r['text']), 'emoji' => $r['emoji'] ?: '✨']);
+        return redirect()->route('motivasi')->with('toast', __('Impian ditambahkan ke vision board!'));
+    }
+
+    public function deleteVision(string $id)
+    {
+        VisionItem::where('user_id', auth()->id())->where('id', $id)->delete();
+        return redirect()->route('motivasi');
     }
 }
