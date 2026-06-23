@@ -40,6 +40,11 @@ Route::get('/lang/{locale}', function ($locale) {
     return redirect()->back();
 })->name('lang.switch');
 
+/* ── Public landing page ── */
+Route::get('/', function () {
+    return auth()->check() ? redirect()->route('dashboard') : view('landing');
+})->name('landing');
+
 Route::get('/login',     [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login',    [AuthController::class, 'login'])->name('login.post');
 Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
@@ -57,7 +62,7 @@ Route::middleware('auth.simple')->group(function () {
 });
 
 Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/tour/done', [DashboardController::class, 'completeTour'])->name('tour.done');
     Route::get('/today', fn() => redirect()->route('dashboard'))->name('today');
     Route::get('/mental', [MentalController::class, 'index'])->name('mental');

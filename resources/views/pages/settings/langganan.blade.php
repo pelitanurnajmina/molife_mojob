@@ -16,8 +16,8 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-base font-bold">{{ __('Plan Kamu') }}</h3>
-                <p class="text-xs text-gray-400">{{ __('Status langganan saat ini') }}</p>
+                <h3 class="text-base font-bold">{{ __('Status Akses') }}</h3>
+                <p class="text-xs text-gray-400">{{ __('Akses molife kamu saat ini') }}</p>
             </div>
         </div>
 
@@ -28,138 +28,64 @@
                 </svg>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="font-bold">Freemium</p>
-                <p class="text-xs text-gray-400">{{ __('Akses ke semua fitur dasar') }}</p>
+                <p class="font-bold">{{ __('Masa Uji Coba') }}</p>
+                <p class="text-xs text-gray-400">{{ __('Pilih durasi di bawah untuk akses penuh semua modul') }}</p>
             </div>
             <span class="text-xs font-bold px-2.5 py-1 bg-white/10 rounded-full flex-shrink-0">{{ __('Aktif') }}</span>
         </div>
     </div>
 
-    {{-- ── Plan Comparison ── --}}
+    {{-- ── Pricing (bayar sekali, pilih durasi) ── --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-        <h3 class="font-bold mb-2">{{ __('Pilih Plan Kamu') }}</h3>
-        <p class="text-xs text-gray-400 mb-6">{{ __('Dapatkan fitur tambahan untuk pengalaman yang lebih lengkap.') }}</p>
+        <h3 class="font-bold mb-1">{{ __('Bayar sekali. Pilih durasimu.') }}</h3>
+        <p class="text-xs text-gray-400 mb-6">{{ __('Satu kali bayar untuk akses penuh semua modul. Makin panjang durasi, makin hemat. Tanpa perpanjangan otomatis.') }}</p>
 
         @php
         $plans = [
-            [
-                'key'     => 'freemium',
-                'name'    => 'Freemium',
-                'tagline' => __('Coba semua fitur dasar'),
-                'price'   => 0,
-                'badge'   => null,
-                'current' => true,
-                'available' => true,
-                'features' => [
-                    'Tracking Life (Sholat, Olahraga, Mood, dll)',
-                    'Maksimal 10 lamaran kerja',
-                    'Riwayat keuangan 7 hari terakhir',
-                    'Statistik 30 hari terakhir',
-                ],
-                'border'  => 'border-gray-200',
-                'btn'     => 'gray',
-            ],
-            [
-                'key'     => 'plus',
-                'name'    => 'Plus',
-                'tagline' => __('Lepas semua batasan'),
-                'price'   => 17000,
-                'badge'   => __('Populer'),
-                'current' => false,
-                'available' => false,
-                'features' => [
-                    'Semua fitur Freemium',
-                    'Lamaran kerja tanpa batas',
-                    'Riwayat keuangan tanpa batas',
-                    'Statistik 1 tahun penuh',
-                ],
-                'border'  => 'border-orange-400',
-                'btn'     => 'orange',
-            ],
-            [
-                'key'     => 'pro',
-                'name'    => 'Pro',
-                'tagline' => __('Untuk pengguna profesional'),
-                'price'   => 49000,
-                'badge'   => null,
-                'current' => false,
-                'available' => false,
-                'features' => [
-                    'Semua fitur Plus',
-                    'Export laporan ke PDF',
-                    'Priority support 24/7',
-                ],
-                'border'  => 'border-gray-900',
-                'btn'     => 'black',
-            ],
+            ['key'=>'1',  'label'=>'1 Bulan', 'price'=>11000, 'per'=>'± Rp 11.000/bln', 'badge'=>null,           'popular'=>false],
+            ['key'=>'3',  'label'=>'3 Bulan', 'price'=>29000, 'per'=>'± Rp 9.700/bln',  'badge'=>'Paling Populer','popular'=>true],
+            ['key'=>'6',  'label'=>'6 Bulan', 'price'=>49000, 'per'=>'± Rp 8.200/bln',  'badge'=>'Hemat 26%',     'popular'=>false],
+            ['key'=>'12', 'label'=>'1 Tahun', 'price'=>89000, 'per'=>'± Rp 7.400/bln',  'badge'=>'Hemat 33%',     'popular'=>false],
         ];
         @endphp
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
             @foreach($plans as $plan)
-            <div class="relative p-5 rounded-2xl border-2 {{ $plan['border'] }} {{ $plan['current'] ? 'bg-gray-50' : 'bg-white' }} flex flex-col">
-
+            <div class="relative p-4 md:p-5 rounded-2xl border-2 flex flex-col {{ $plan['popular'] ? 'border-gray-900 bg-gray-50/60' : 'border-gray-100 bg-white' }}">
                 @if($plan['badge'])
-                <span class="absolute -top-2.5 left-5 text-[10px] font-bold bg-orange-500 text-white px-2.5 py-1 rounded-full">{{ $plan['badge'] }}</span>
+                <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold {{ $plan['popular'] ? 'bg-gray-900' : 'bg-orange-500' }} text-white px-2.5 py-1 rounded-full">{{ $plan['badge'] }}</span>
                 @endif
-
-                {{-- Header --}}
-                <div class="mb-4">
-                    <div class="flex items-center justify-between mb-1">
-                        <p class="font-bold text-base">{{ $plan['name'] }}</p>
-                        @if($plan['current'])
-                        <span class="text-[10px] font-bold bg-gray-900 text-white px-2 py-0.5 rounded-full">{{ __('Aktif') }}</span>
-                        @endif
-                    </div>
-                    <p class="text-xs text-gray-400">{{ $plan['tagline'] }}</p>
-                </div>
-
-                {{-- Price --}}
-                <div class="mb-5">
-                    @if($plan['price'] === 0)
-                    <p class="text-3xl font-bold">{{ __('Gratis') }}</p>
-                    <p class="text-[10px] text-gray-400">{{ __('Selamanya') }}</p>
-                    @else
-                    <p class="text-3xl font-bold">{{ $rp($plan['price']) }}<span class="text-sm font-medium text-gray-400"> /bulan</span></p>
-                    <p class="text-[10px] text-gray-400">{{ __('Atau') }} {{ $rp($plan['price'] * 10) }}/{{ __('tahun') }} <span class="text-orange-500 font-bold">({{ __('hemat 17%') }})</span></p>
-                    @endif
-                </div>
-
-                {{-- Features --}}
-                <ul class="space-y-2.5 text-xs mb-5 flex-1">
-                    @foreach($plan['features'] as $f)
-                    <li class="flex items-start gap-2">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5
-                            {{ $plan['key'] === 'freemium' ? 'text-green-500' : ($plan['key'] === 'plus' ? 'text-orange-500' : 'text-gray-900') }}"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span class="text-gray-700">{{ $f }}</span>
-                    </li>
-                    @endforeach
-                </ul>
-
-                {{-- CTA --}}
-                @if($plan['current'])
-                <div class="py-2.5 text-center text-xs font-bold text-gray-400 bg-gray-100 rounded-xl">{{ __('Plan saat ini') }}</div>
-                @elseif(!$plan['available'])
-                <button type="button" disabled
-                    class="py-2.5 text-center text-xs font-bold rounded-xl cursor-not-allowed
-                    {{ $plan['btn'] === 'orange' ? 'bg-orange-50 text-orange-400' : 'bg-gray-50 text-gray-400' }}">
-                    {{ __('Segera Hadir') }}
-                </button>
-                @else
+                <p class="text-sm font-bold text-gray-700 mt-1">{{ $plan['label'] }}</p>
+                <p class="text-2xl md:text-[26px] font-black text-gray-900 leading-none mt-2">{{ $rp($plan['price']) }}</p>
+                <p class="text-[10px] text-gray-400 mt-1">{{ $plan['per'] }}</p>
                 <button type="button"
-                    class="py-2.5 text-center text-xs font-bold rounded-xl transition-all
-                    {{ $plan['btn'] === 'orange'
-                        ? 'bg-orange-500 text-white hover:bg-orange-600'
-                        : 'bg-gray-900 text-white hover:bg-gray-800' }}">
-                    {{ __('Upgrade ke') }} {{ $plan['name'] }}
+                    class="mt-4 py-2.5 text-center text-xs font-bold rounded-xl transition-all {{ $plan['popular'] ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                    {{ __('Pilih') }}
                 </button>
-                @endif
             </div>
             @endforeach
         </div>
+
+        {{-- Shared features --}}
+        <div class="mt-6 p-4 md:p-5 rounded-2xl bg-gray-50">
+            <p class="text-xs font-bold text-gray-500 mb-3">{{ __('Semua paket termasuk:') }}</p>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                @foreach([
+                    'Semua tracker: sholat, olahraga, pomodoro, mood, tugas',
+                    'Career Hub & pelacak lamaran lengkap',
+                    'Bisnis: proposal, klien, dokumen & analitik',
+                    'Keuangan: pemasukan, pengeluaran, anggaran, tabungan',
+                    'Statistik 30 hari, insight & Life Score harian',
+                    'Export data ke CSV',
+                ] as $f)
+                <li class="flex items-start gap-2">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    <span class="text-gray-700">{{ $f }}</span>
+                </li>
+                @endforeach
+            </ul>
+        </div>
+        <p class="text-center text-[11px] text-gray-400 mt-4">{{ __('Akses penuh ke semua modul · Tanpa perpanjangan otomatis · Pembayaran bersifat final') }}</p>
     </div>
 
     {{-- ── FAQ ── --}}
@@ -167,10 +93,10 @@
         <h3 class="font-bold mb-5">{{ __('Pertanyaan Umum') }}</h3>
         @php
         $faqs = [
-            ['q' => __('Apakah saya bisa membatalkan kapan saja?'),         'a' => __('Tentu. Kamu bisa downgrade ke Freemium kapan saja tanpa biaya tambahan.')],
-            ['q' => __('Apakah data saya hilang kalau saya downgrade?'),    'a' => __('Tidak. Semua data tetap aman. Hanya akses ke fitur premium yang akan terbatas sesuai plan kamu.')],
-            ['q' => __('Metode pembayaran apa saja yang didukung?'),        'a' => __('Transfer bank, e-wallet (GoPay, OVO, DANA, ShopeePay), kartu kredit, dan QRIS.')],
-            ['q' => __('Apakah ada garansi uang kembali?'),                  'a' => __('Ya, 7 hari sejak pembayaran. Hubungi support jika tidak puas dan kami akan refund penuh.')],
+            ['q' => __('Apakah ini langganan otomatis?'),               'a' => __('Tidak. Kamu bayar sekali untuk durasi yang dipilih. Tidak ada perpanjangan otomatis. Setelah masa aktif habis, kamu sendiri yang memutuskan untuk memperpanjang.')],
+            ['q' => __('Apa bedanya tiap durasi?'),                     'a' => __('Isinya sama persis, akses penuh ke semua modul. Bedanya hanya lama akses dan harga per bulan, makin panjang durasi makin hemat.')],
+            ['q' => __('Apakah data saya hilang kalau masa aktif habis?'), 'a' => __('Tidak. Semua datamu tetap aman. Kamu tinggal memperpanjang untuk membuka kembali akses penuh.')],
+            ['q' => __('Metode pembayaran apa saja yang didukung?'),    'a' => __('Transfer bank, e-wallet (GoPay, OVO, DANA, ShopeePay), kartu kredit, dan QRIS.')],
         ];
         @endphp
         <div class="space-y-2">

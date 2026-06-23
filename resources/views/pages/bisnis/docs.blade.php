@@ -150,7 +150,7 @@
     {{-- ── TAB: Template Pesan ── --}}
     <div id="tab-template" class="tab-panel space-y-4" style="display:none">
         <div class="flex items-center justify-between flex-wrap gap-3">
-            <p class="text-sm text-gray-500 max-w-md">{{ __('Simpan template email penawaran, pesan WhatsApp, atau follow-up yang sering kamu pakai.') }}</p>
+            <p class="text-sm text-gray-500">{{ __('Simpan template email penawaran, pesan WhatsApp, atau follow-up yang sering kamu pakai.') }}</p>
             <button type="button" onclick="openModal('modal-add-tpl')"
                 class="flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -158,32 +158,61 @@
             </button>
         </div>
 
+        @php
+            $catMeta = [
+                'email'     => ['bg'=>'bg-blue-50','text'=>'text-blue-700'],
+                'penawaran' => ['bg'=>'bg-indigo-50','text'=>'text-indigo-700'],
+                'whatsapp'  => ['bg'=>'bg-green-50','text'=>'text-green-700'],
+                'followup'  => ['bg'=>'bg-amber-50','text'=>'text-amber-700'],
+                'lainnya'   => ['bg'=>'bg-gray-100','text'=>'text-gray-600'],
+            ];
+        @endphp
         @if(count($templates) > 0)
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="space-y-3">
             @foreach($templates as $tpl)
-            @php $catLabel = $tplCategories[$tpl['category']] ?? ($tpl['category'] ?: 'Lainnya'); @endphp
-            <div class="bg-white rounded-2xl border border-gray-50 p-4">
-                <div class="flex items-start justify-between gap-2 mb-2">
+            @php $cm = $catMeta[$tpl['category']] ?? $catMeta['lainnya']; $catLabel = $tplCategories[$tpl['category']] ?? ($tpl['category'] ?: 'Lainnya'); @endphp
+            <div class="bg-white rounded-2xl border border-gray-50 overflow-hidden">
+                {{-- Header (clickable) --}}
+                <div class="flex items-start justify-between gap-3 px-5 py-4 cursor-pointer" onclick="toggleTpl('{{ $tpl['id'] }}')">
                     <div class="min-w-0">
-                        <p class="font-bold text-gray-800 truncate">{{ $tpl['title'] }}</p>
-                        <span class="inline-block text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full mt-0.5">{{ $catLabel }}</span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="text-sm font-bold">{{ $tpl['title'] }}</p>
+                            <span class="text-[10px] font-bold {{ $cm['text'] }} {{ $cm['bg'] }} px-2 py-0.5 rounded-full">{{ $catLabel }}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ __('Diperbarui') }} {{ date('j M Y', strtotime($tpl['updated_at'])) }}</p>
                     </div>
                     <div class="flex items-center gap-1 flex-shrink-0">
-                        <button type="button" onclick="copyToClipboard(this.dataset.content, this)" data-content="{{ $tpl['content'] }}" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-all" title="{{ __('Salin') }}">
+                        <button type="button" onclick="event.stopPropagation(); copyToClipboard(this.dataset.content, this)" data-content="{{ $tpl['content'] }}"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-all" title="{{ __('Salin Teks') }}">
                             <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </button>
-                        <button type="button" onclick='openEditTpl(@json($tpl))' class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-all" title="{{ __('Edit') }}">
+                        <button type="button" onclick='event.stopPropagation(); openEditTpl(@json($tpl))'
+                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-all" title="{{ __('Edit') }}">
                             <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </button>
                         <form action="{{ route('bisnis.docs.destroy', $tpl['id']) }}" method="POST" class="contents">
                             @csrf @method('DELETE')
-                            <button type="button" onclick="askDelete(this, '{{ __('Hapus template ini?') }}')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-all" title="{{ __('Hapus') }}">
-                                <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <button type="button" onclick="event.stopPropagation(); askDelete(this, '{{ __('Hapus template ini?') }}')"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-all" title="{{ __('Hapus') }}">
+                                <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                         </form>
+                        <svg id="tpl-chevron-{{ $tpl['id'] }}" class="w-4 h-4 text-gray-400 transition-transform ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 leading-relaxed whitespace-pre-line line-clamp-5">{{ $tpl['content'] }}</p>
+                {{-- Body (collapsible) --}}
+                <div id="tpl-body-{{ $tpl['id'] }}" class="hidden border-t border-gray-50">
+                    <div class="px-5 py-4">
+                        <pre class="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded-xl p-4">{{ $tpl['content'] }}</pre>
+                    </div>
+                    <div class="px-5 pb-4">
+                        <button type="button" onclick="copyToClipboard(this.dataset.content, this)" data-content="{{ $tpl['content'] }}"
+                            class="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            {{ __('Salin Teks') }}
+                        </button>
+                    </div>
+                </div>
             </div>
             @endforeach
         </div>
@@ -278,10 +307,14 @@
         </div>
         <form method="POST" action="{{ route('bisnis.docs.template.store') }}" class="p-6 space-y-3">
             @csrf
-            <div class="flex gap-2">
-                <input type="text" name="title" maxlength="255" required placeholder="{{ __('Judul template') }}"
-                    class="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
-                <select name="category" class="w-40 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Judul Template') }} *</label>
+                <input type="text" name="title" maxlength="255" required placeholder="{{ __('cth: Email Penawaran Jasa') }}"
+                    class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Kategori') }}</label>
+                <select name="category" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
                     @foreach($tplCategories as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
                 </select>
             </div>
@@ -300,9 +333,13 @@
         </div>
         <form method="POST" action="" id="editTplForm" class="p-6 space-y-3">
             @csrf
-            <div class="flex gap-2">
-                <input type="text" name="title" maxlength="255" required class="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
-                <select name="category" class="w-40 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Judul Template') }} *</label>
+                <input type="text" name="title" maxlength="255" required class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Kategori') }}</label>
+                <select name="category" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
                     @foreach($tplCategories as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
                 </select>
             </div>
@@ -326,6 +363,12 @@ document.addEventListener('DOMContentLoaded', () => switchTab(localStorage.getIt
 
 function openModal(id){ document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; }
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
+function toggleTpl(id){
+    const body = document.getElementById('tpl-body-' + id);
+    const chev = document.getElementById('tpl-chevron-' + id);
+    const open = body.classList.toggle('hidden');
+    if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+}
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.querySelectorAll('[id^="modal-"]').forEach(m => m.classList.add('hidden')); document.body.style.overflow=''; } });
 
 function copyToClipboard(text, btn) {

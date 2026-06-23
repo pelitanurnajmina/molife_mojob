@@ -65,31 +65,35 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100">
-                        <th class="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-400">{{ __('Klien') }}</th>
-                        <th class="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden md:table-cell">{{ __('Produk') }}</th>
-                        <th class="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden lg:table-cell">{{ __('Bidang') }}</th>
-                        <th class="text-right px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-400">{{ __('Nilai') }}</th>
-                        <th class="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-400">{{ __('Status') }}</th>
-                        <th class="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden xl:table-cell">{{ __('Tanggal') }}</th>
-                        <th class="px-4 py-3"></th>
+                        <th class="w-full text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400">{{ __('Klien') }}</th>
+                        <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden md:table-cell whitespace-nowrap">{{ __('Produk') }}</th>
+                        <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden lg:table-cell whitespace-nowrap">{{ __('Bidang') }}</th>
+                        <th class="text-right px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 whitespace-nowrap">{{ __('Nilai') }}</th>
+                        <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 whitespace-nowrap">{{ __('Status') }}</th>
+                        <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden xl:table-cell whitespace-nowrap">{{ __('Tanggal') }}</th>
+                        <th class="px-5 py-3.5"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($deals as $d)
-                    @php $m = $statuses[$d['status']] ?? ['label'=>$d['status'],'tw'=>'gray']; @endphp
-                    <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-all">
-                        <td class="px-4 py-3.5">
+                    @php
+                        $m = $statuses[$d['status']] ?? ['label'=>$d['status'],'tw'=>'gray'];
+                        $contact = trim((string) $d['contact']);
+                        $hasContact = $contact !== '' && !in_array($contact, ['-', '—']);
+                    @endphp
+                    <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-all align-middle">
+                        <td class="px-5 py-4">
                             <p class="font-bold text-gray-800">{{ $d['client_name'] }}</p>
-                            @if($d['contact'])<p class="text-xs text-gray-400">{{ $d['contact'] }}</p>@endif
+                            @if($hasContact)<p class="text-xs text-gray-400 mt-0.5">{{ $contact }}</p>@endif
                         </td>
-                        <td class="px-4 py-3.5 hidden md:table-cell text-gray-600">{{ $d['product'] ?: '—' }}</td>
-                        <td class="px-4 py-3.5 hidden lg:table-cell text-gray-500">{{ $d['industry'] ?: '—' }}</td>
-                        <td class="px-4 py-3.5 text-right font-bold text-gray-700 whitespace-nowrap">{{ $d['value'] > 0 ? $rp($d['value']) : '—' }}</td>
-                        <td class="px-4 py-3.5">
+                        <td class="px-5 py-4 hidden md:table-cell text-gray-600 whitespace-nowrap">{{ $d['product'] ?: '—' }}</td>
+                        <td class="px-5 py-4 hidden lg:table-cell text-gray-500 whitespace-nowrap">{{ $d['industry'] ?: '—' }}</td>
+                        <td class="px-5 py-4 text-right font-bold text-gray-700 whitespace-nowrap">{{ $d['value'] > 0 ? $rp($d['value']) : '—' }}</td>
+                        <td class="px-5 py-4">
                             <span class="inline-block whitespace-nowrap text-[10px] font-bold px-2.5 py-1 rounded-full bg-{{ $m['tw'] }}-100 text-{{ $m['tw'] }}-700">{{ $m['label'] }}</span>
                         </td>
-                        <td class="px-4 py-3.5 hidden xl:table-cell text-gray-500 whitespace-nowrap">{{ $d['proposal_date'] ? date('j M Y', strtotime($d['proposal_date'])) : '—' }}</td>
-                        <td class="px-4 py-3.5">
+                        <td class="px-5 py-4 hidden xl:table-cell text-gray-500 whitespace-nowrap">{{ $d['proposal_date'] ? date('j M Y', strtotime($d['proposal_date'])) : '—' }}</td>
+                        <td class="px-5 py-4">
                             <div class="flex items-center justify-end gap-1">
                                 <button type="button" onclick='openEdit(@json($d))'
                                     class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all">
