@@ -21,20 +21,22 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'username' => 'required|string',
+            'login'    => 'required|string',
             'password' => 'required|string',
         ]);
 
-        // Always "remember" so users stay logged in across sessions (long-lived cookie),
-        // even if they leave the checkbox unticked.
-        if (auth()->attempt($credentials, true)) {
+        // Login by email; fall back to username for legacy accounts.
+        $field = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        // Always "remember" so users stay logged in across sessions (long-lived cookie).
+        if (auth()->attempt([$field => $credentials['login'], 'password' => $credentials['password']], true)) {
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }
 
         return back()
-            ->withErrors(['username' => 'Username atau password salah.'])
-            ->withInput($request->only('username'));
+            ->withErrors(['login' => __('Email/username atau password salah.')])
+            ->withInput($request->only('login'));
     }
 
     /* ── Register ── */
@@ -49,14 +51,13 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'username'              => 'required|string|min:3|max:30|alpha_dash|unique:users,username',
-            'password'              => ['required', 'confirmed', Password::min(6)],
-            'terms'                 => 'accepted',
+            'email'    => 'required|email|max:255|unique:users,email',
+            'password' => ['required', 'confirmed', Password::min(6)],
+            'terms'    => 'accepted',
         ], [
-            'username.required'  => __('Username wajib diisi.'),
-            'username.min'       => __('Username minimal 3 karakter.'),
-            'username.alpha_dash'=> __('Username hanya boleh huruf, angka, dash, dan underscore.'),
-            'username.unique'    => __('Username sudah digunakan.'),
+            'email.required'     => __('Email wajib diisi.'),
+            'email.email'        => __('Format email tidak valid.'),
+            'email.unique'       => __('Email sudah terdaftar.'),
             'password.required'  => __('Password wajib diisi.'),
             'password.confirmed' => __('Konfirmasi password tidak cocok.'),
             'password.min'       => __('Password minimal 6 karakter.'),
@@ -64,14 +65,14 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'username' => $validated['username'],
+            'email'    => $validated['email'],
             'password' => $validated['password'], // auto-hashed via $casts
         ]);
 
         auth()->login($user);
         $request->session()->regenerate();
 
-        // New user → akan otomatis di-redirect ke /onboarding oleh middleware
+        // New user → middleware mengarahkan ke /onboarding lalu paywall langganan.
         return redirect()->route('dashboard');
     }
 

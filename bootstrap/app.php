@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.simple'    => \App\Http\Middleware\SimpleAuth::class,
             'require.onboarding' => \App\Http\Middleware\RequireOnboarding::class,
+            'require.subscription' => \App\Http\Middleware\RequireSubscription::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,

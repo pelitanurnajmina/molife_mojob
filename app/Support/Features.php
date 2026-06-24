@@ -25,6 +25,7 @@ class Features
             'pomodoro'     => true,
             'journal'      => true,
             'tasks'        => true,
+            'links'        => true,
             'statistik'    => true,
             'goals'        => true,
             'lamaran'      => true,

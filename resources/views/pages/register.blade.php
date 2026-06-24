@@ -35,7 +35,7 @@
             <h2 class="text-3xl font-extrabold tracking-tight">{{ __('Buat Akun Baru') }}</h2>
             <p class="text-sm text-gray-500 mt-2">{{ __('Mulai track kehidupan & karirmu hari ini.') }}</p>
 
-            @if($errors->any() && !$errors->hasAny(['username','password','terms']))
+            @if($errors->any() && !$errors->hasAny(['email','password','terms']))
             <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mt-6 text-sm font-medium">
                 {{ $errors->first() }}
             </div>
@@ -45,16 +45,12 @@
                 @csrf
 
                 <div>
-                    <label class="text-sm font-bold text-gray-700 block mb-1.5">Username</label>
-                    <input type="text" name="username" value="{{ old('username') }}"
-                        placeholder="{{ __('cth: budi_setiawan') }}"
-                        class="w-full px-4 py-3 bg-gray-50 border {{ $errors->has('username') ? 'border-red-300' : 'border-gray-200' }} rounded-xl outline-none focus:border-black focus:bg-white transition-all"
-                        autocomplete="username" autofocus required>
-                    @error('username')
-                    <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p>
-                    @else
-                    <p class="text-[11px] text-gray-400 mt-1.5">{{ __('Min 3 karakter. Huruf, angka, dash, underscore.') }}</p>
-                    @enderror
+                    <label class="text-sm font-bold text-gray-700 block mb-1.5">Email</label>
+                    <input type="email" name="email" value="{{ old('email') }}"
+                        placeholder="{{ __('you@example.com') }}"
+                        class="w-full px-4 py-3 bg-gray-50 border {{ $errors->has('email') ? 'border-red-300' : 'border-gray-200' }} rounded-xl outline-none focus:border-black focus:bg-white transition-all"
+                        autocomplete="email" autofocus required>
+                    @error('email')<p class="text-xs text-red-500 mt-1.5">{{ $message }}</p>@enderror
                 </div>
 
                 <div>

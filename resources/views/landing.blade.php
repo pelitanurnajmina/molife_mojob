@@ -800,6 +800,17 @@
         </div>
 
         <div class="mod" data-reveal>
+          <span class="mod-tag tag-life">Life</span>
+          <h3>Link Penting</h3>
+          <p>Simpan semua link penting beserta fungsinya dalam satu tempat, dari dokumen kerja sampai akun langganan, biar tak perlu cari-cari lagi.</p>
+          <div class="mod-viz"><div class="tpl">
+            <div class="tpr"><span class="tn">Tagihan Listrik</span><span class="tt b">Link</span></div>
+            <div class="tpr"><span class="tn">Langganan Netflix</span><span class="tt v">Link</span></div>
+            <div class="tpr"><span class="tn">Folder Foto Keluarga</span><span class="tt n">Link</span></div>
+          </div></div>
+        </div>
+
+        <div class="mod" data-reveal>
           <span class="mod-tag tag-core">Insight</span>
           <h3>Pomodoro &amp; Fokus</h3>
           <p>Timer fokus dengan riwayat sesi. Tahu persis berapa menit kamu benar-benar produktif minggu ini.</p>
@@ -1134,6 +1145,39 @@
   </div>
 </footer>
 
+{{-- ── QRIS payment modal (landing) ── --}}
+<div id="lpPayModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(16,17,22,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:18px" onclick="if(event.target===this)closePay()">
+  <div style="background:#fff;border-radius:26px;max-width:384px;width:100%;overflow:hidden;box-shadow:0 50px 90px -34px rgba(0,0,0,.5)">
+    {{-- header --}}
+    <div style="position:relative;padding:24px 26px 20px;color:#fff;background:linear-gradient(135deg,#101116,#23242B)">
+      <div style="position:absolute;right:-34px;top:-34px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,240,.4),transparent 70%)"></div>
+      <button type="button" onclick="closePay()" aria-label="Tutup" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border:none;border-radius:9px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:16px;line-height:1">&times;</button>
+      <div style="position:relative;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5)">Pembayaran QRIS</div>
+      <p style="position:relative;font-size:14px;color:rgba(255,255,255,.7);margin-top:12px">molife · <b id="lpPayPlan" style="color:#fff"></b></p>
+      <div id="lpPayAmount" style="position:relative;font-size:30px;font-weight:800;letter-spacing:-.03em;margin-top:2px"></div>
+    </div>
+    {{-- body --}}
+    <div style="padding:22px 26px">
+      <div style="text-align:center">
+        <div style="position:relative;display:inline-block;padding:14px;border:1px solid #F0F1F3;border-radius:18px;box-shadow:0 12px 30px -24px rgba(0,0,0,.35)">
+          <span style="position:absolute;top:8px;left:8px;width:15px;height:15px;border-top:2px solid #101116;border-left:2px solid #101116;border-top-left-radius:5px"></span>
+          <span style="position:absolute;top:8px;right:8px;width:15px;height:15px;border-top:2px solid #101116;border-right:2px solid #101116;border-top-right-radius:5px"></span>
+          <span style="position:absolute;bottom:8px;left:8px;width:15px;height:15px;border-bottom:2px solid #101116;border-left:2px solid #101116;border-bottom-left-radius:5px"></span>
+          <span style="position:absolute;bottom:8px;right:8px;width:15px;height:15px;border-bottom:2px solid #101116;border-right:2px solid #101116;border-bottom-right-radius:5px"></span>
+          <img id="lpPayQr" src="" alt="QRIS" width="190" height="190" style="display:block;border-radius:10px">
+        </div>
+        <p style="font-size:12px;color:#9A9CA4;margin-top:12px">Bayar dari aplikasi apa pun yang mendukung QRIS.</p>
+      </div>
+
+      {{-- auto-confirm note --}}
+      <div style="display:flex;gap:9px;align-items:flex-start;background:#F6F6F8;border-radius:14px;padding:13px 14px;margin-top:18px">
+        <svg style="width:16px;height:16px;flex:none;color:#16A34A;margin-top:1px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p style="font-size:12.5px;color:#62656E;line-height:1.5;margin:0">Setelah pembayaran berhasil, kamu <b style="color:#101116">otomatis diarahkan</b> ke halaman masuk/daftar, lalu langsung ke dashboard dengan akses penuh.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <svg width="0" height="0" style="position:absolute"><defs><symbol id="ring-mark" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="58 18" transform="rotate(-58 16 16)"/></symbol></defs></svg>
 
   <div class="scroll-score" id="scrollScore" aria-hidden="true">
@@ -1292,8 +1336,10 @@
     '12': {label:'1 Tahun', price:89000,  per:'/ 1 tahun',  badge:'Hemat 33%',       desc:'Setara ± Rp 7.400/bulan. Harga per bulan paling murah.'}
   };
   const durSeg = document.getElementById('durSeg');
+  window.__planKey = '3';
   function setPlan(k){
     const p = PLANS[k]; if(!p) return;
+    window.__planKey = k;
     const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
     set('planTitle','molife · '+p.label);
     set('planPrice','Rp '+p.price.toLocaleString('id-ID'));
@@ -1303,6 +1349,19 @@
     set('planCta','Ambil Akses '+p.label);
     [...durSeg.children].forEach(b=>b.classList.toggle('active', b.dataset.plan===k));
   }
+  window.openPay = function(){
+    const p = PLANS[window.__planKey]; if(!p) return;
+    document.getElementById('lpPayPlan').textContent = p.label;
+    document.getElementById('lpPayAmount').textContent = 'Rp ' + p.price.toLocaleString('id-ID');
+    const ref = 'MOLIFE-' + window.__planKey + 'BLN-' + Date.now();
+    document.getElementById('lpPayQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=0&data=' + encodeURIComponent(ref);
+    document.getElementById('lpPayModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+  window.closePay = function(){
+    document.getElementById('lpPayModal').style.display = 'none';
+    document.body.style.overflow = '';
+  };
   if(durSeg){
     durSeg.addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setPlan(b.dataset.plan);});
     setPlan('3');

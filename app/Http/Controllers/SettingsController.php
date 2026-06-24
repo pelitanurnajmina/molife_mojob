@@ -33,7 +33,11 @@ class SettingsController extends Controller
 
     public function langganan()
     {
-        return view('pages.settings.langganan');
+        $userId  = auth()->id();
+        $active  = \App\Services\SubscriptionService::active($userId);
+        $history = \App\Services\SubscriptionService::history($userId);
+        $plans   = \App\Services\SubscriptionService::PLANS;
+        return view('pages.settings.langganan', compact('active', 'history', 'plans'));
     }
 
     public function referral()

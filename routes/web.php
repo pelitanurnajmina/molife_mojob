@@ -19,6 +19,7 @@ use App\Http\Controllers\QuitController;
 use App\Http\Controllers\MotivasiController;
 use App\Http\Controllers\PomodoroController;
 use App\Http\Controllers\JournalController;
+use App\Http\Controllers\LinkController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\GoalController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\LamaranController;
 use App\Http\Controllers\PersiapanController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\StatistikKarirController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\FinanceController;
@@ -61,7 +63,14 @@ Route::middleware('auth.simple')->group(function () {
     Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
 });
 
+// Subscription paywall + activation (auth + onboarded, but NOT behind the paywall itself)
 Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
+    Route::get('/subscribe',            [SubscriptionController::class, 'page'])->name('subscribe');
+    Route::get('/subscription/status',  [SubscriptionController::class, 'status'])->name('subscription.status');
+    Route::post('/subscription/confirm',[SubscriptionController::class, 'confirm'])->name('subscription.confirm');
+});
+
+Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/tour/done', [DashboardController::class, 'completeTour'])->name('tour.done');
     Route::get('/today', fn() => redirect()->route('dashboard'))->name('today');
@@ -133,6 +142,12 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
 
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/history', [TaskController::class, 'history'])->name('tasks.history');
+
+    // Link Penting
+    Route::get('/links',        [LinkController::class, 'index'])->name('links');
+    Route::post('/links',       [LinkController::class, 'store'])->name('links.store');
+    Route::post('/links/{id}',  [LinkController::class, 'update'])->name('links.update');
+    Route::delete('/links/{id}',[LinkController::class, 'destroy'])->name('links.destroy');
     Route::post('/tasks/daily', [TaskController::class, 'addDaily'])->name('tasks.daily.add');
     Route::post('/tasks/weekly', [TaskController::class, 'addWeekly'])->name('tasks.weekly.add');
     Route::post('/tasks/daily/{id}/toggle', [TaskController::class, 'toggleDaily'])->name('tasks.daily.toggle');

@@ -38,7 +38,7 @@
 
             @if($errors->any())
             <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mt-6 text-sm font-medium">
-                {{ $errors->first('username') }}
+                {{ $errors->first('login') }}
             </div>
             @endif
 
@@ -46,11 +46,11 @@
                 @csrf
 
                 <div>
-                    <label class="text-sm font-bold text-gray-700 block mb-1.5">Username</label>
-                    <input type="text" name="username" value="{{ old('username') }}"
-                        placeholder="{{ __('Masukkan username') }}"
-                        class="w-full px-4 py-3 bg-gray-50 border {{ $errors->has('username') ? 'border-red-300' : 'border-gray-200' }} rounded-xl outline-none focus:border-black focus:bg-white transition-all"
-                        autofocus required>
+                    <label class="text-sm font-bold text-gray-700 block mb-1.5">Email</label>
+                    <input type="text" name="login" value="{{ old('login') }}"
+                        placeholder="{{ __('you@example.com') }}"
+                        class="w-full px-4 py-3 bg-gray-50 border {{ $errors->has('login') ? 'border-red-300' : 'border-gray-200' }} rounded-xl outline-none focus:border-black focus:bg-white transition-all"
+                        autocomplete="username" autofocus required>
                 </div>
 
                 <div>

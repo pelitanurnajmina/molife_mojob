@@ -130,6 +130,7 @@
                 ['key'=>'mental',      'label'=>'Mental',             'desc'=>'Mood tracker, energi, dan refleksi harian'],
                 ['key'=>'tasks',       'label'=>'Tasks & Notes',      'desc'=>'Tugas harian, mingguan & catatan'],
                 ['key'=>'journal',     'label'=>'Journal',            'desc'=>'Journaling terpandu ala Law of Attraction'],
+                ['key'=>'links',       'label'=>'Link Penting',       'desc'=>'Simpan link-link penting beserta fungsinya'],
                 ['key'=>'statistik',   'label'=>'Statistik',          'desc'=>'Grafik dan ringkasan 30 hari terakhir'],
                 ['key'=>'insights',    'label'=>'Insights',           'desc'=>'Life Score dan pola dari semua aktivitas'],
                 ['key'=>'goals',       'label'=>'Goals & Reminder',   'desc'=>'Target pribadi dan pengingat harian'],
