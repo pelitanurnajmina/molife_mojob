@@ -252,7 +252,7 @@
         @keyframes pomoPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.35; transform:scale(.7); } }
     </style>
 </head>
-<body class="bg-[#F8F9FA] min-h-screen pb-20 md:pb-0">
+<body class="bg-[#F8F9FA] min-h-screen">
 
 {{-- Toast (passed via session flash) --}}
 @if(session('toast'))
@@ -520,10 +520,10 @@
                     <svg class="w-4 h-4 text-gray-600 hidden md:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span>{{ date('j/n') }}</span>
                 </div>
-                {{-- Settings icon (mobile) --}}
-                <a href="{{ route('settings') }}" class="md:hidden bg-white p-2 rounded-full border border-gray-100 hover:bg-gray-50">
-                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </a>
+                {{-- Menu button (mobile) — opens the full menu drawer --}}
+                <button type="button" onclick="openMobileMenu()" aria-label="{{ __('Menu') }}" class="md:hidden bg-white p-2 rounded-full border border-gray-100 hover:bg-gray-50">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
                 <form method="POST" action="{{ route('logout') }}" class="md:hidden">
                     @csrf
                     <button type="submit" class="bg-white p-2 rounded-full border border-gray-100 hover:bg-gray-50">
@@ -605,12 +605,6 @@
         }
         return $m;
     };
-    /* Bottom bar: Home + up to 3 quick items + Menu. Quick items = first enabled features. */
-    $mobilePrimary = array_slice(
-        array_values(array_filter($mobileNav, fn($i) => !in_array($i['route'], ['dashboard', 'settings'], true))),
-        0, 3
-    );
-    $mobBarCols = 2 + count($mobilePrimary);
     /* Drawer sections (reuse the sidebar nav arrays defined above) */
     $mobSections = [
         ['Life',            $lifeNav],
@@ -620,26 +614,6 @@
         [__('Pengaturan'),  $settingsNav],
     ];
 @endphp
-
-{{-- ── Mobile bottom bar (slim) ── --}}
-<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-100 z-30">
-    <div class="grid grid-cols-{{ $mobBarCols }} gap-0.5 px-1.5 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
-        <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'bg-black text-white' : 'text-gray-500' }}">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $_ico['dashboard'] }}"/></svg>
-            <span class="text-[9px] font-bold leading-none">Home</span>
-        </a>
-        @foreach($mobilePrimary as $item)
-        <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all {{ $mobActive($item) ? 'bg-black text-white' : 'text-gray-500' }}">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/></svg>
-            <span class="text-[9px] font-bold leading-none truncate max-w-full">{{ $item['label'] }}</span>
-        </a>
-        @endforeach
-        <button type="button" onclick="openMobileMenu()" class="flex flex-col items-center gap-1 py-1.5 rounded-xl text-gray-500 transition-all">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            <span class="text-[9px] font-bold leading-none">{{ __('Menu') }}</span>
-        </button>
-    </div>
-</nav>
 
 {{-- ── Mobile full menu drawer ── --}}
 <div id="mobileMenu" class="md:hidden fixed inset-0 z-40 hidden">
