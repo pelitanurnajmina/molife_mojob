@@ -596,16 +596,87 @@
     $mobileCount     = count($mobileNav);
     $mobileGridClass = 'grid-cols-' . min($mobileCount, 10);
 @endphp
-<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-20">
-    <div class="grid {{ $mobileGridClass }} gap-0.5 p-1.5">
-        @foreach($mobileNav as $item)
-        <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="flex flex-col items-center gap-0.5 py-1.5 px-0.5 rounded-xl transition-all {{ request()->routeIs($item['match']) ? 'bg-black text-white' : 'text-gray-500' }}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/></svg>
-            <span class="text-[8px] font-bold leading-none">{{ $item['label'] }}</span>
+@php
+    /* Active-state helper (handles quit type variants) */
+    $mobActive = function($item) {
+        $m = request()->routeIs($item['match']);
+        if ($m && isset($item['quitType'])) {
+            $m = (request('type') ?? request()->route('type')) === $item['quitType'];
+        }
+        return $m;
+    };
+    /* Bottom bar: Home + up to 3 quick items + Menu. Quick items = first enabled features. */
+    $mobilePrimary = array_slice(
+        array_values(array_filter($mobileNav, fn($i) => !in_array($i['route'], ['dashboard', 'settings'], true))),
+        0, 3
+    );
+    $mobBarCols = 2 + count($mobilePrimary);
+    /* Drawer sections (reuse the sidebar nav arrays defined above) */
+    $mobSections = [
+        ['Life',            $lifeNav],
+        [__('Karier'),      $careerNav],
+        ['Bisnis',          $businessNav],
+        ['Finance',         $financeNav],
+        [__('Pengaturan'),  $settingsNav],
+    ];
+@endphp
+
+{{-- ── Mobile bottom bar (slim) ── --}}
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-100 z-30">
+    <div class="grid grid-cols-{{ $mobBarCols }} gap-0.5 px-1.5 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+        <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'bg-black text-white' : 'text-gray-500' }}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $_ico['dashboard'] }}"/></svg>
+            <span class="text-[9px] font-bold leading-none">Home</span>
+        </a>
+        @foreach($mobilePrimary as $item)
+        <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all {{ $mobActive($item) ? 'bg-black text-white' : 'text-gray-500' }}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/></svg>
+            <span class="text-[9px] font-bold leading-none truncate max-w-full">{{ $item['label'] }}</span>
         </a>
         @endforeach
+        <button type="button" onclick="openMobileMenu()" class="flex flex-col items-center gap-1 py-1.5 rounded-xl text-gray-500 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span class="text-[9px] font-bold leading-none">{{ __('Menu') }}</span>
+        </button>
     </div>
 </nav>
+
+{{-- ── Mobile full menu drawer ── --}}
+<div id="mobileMenu" class="md:hidden fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeMobileMenu()"></div>
+    <div id="mobileMenuPanel" class="absolute top-0 left-0 h-full w-[84%] max-w-[330px] bg-white shadow-2xl flex flex-col -translate-x-full transition-transform duration-300 ease-out">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <img src="{{ asset('images/logo.png') }}" class="h-7">
+            <button onclick="closeMobileMenu()" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+            {{-- Home --}}
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $homeNav['icon'] }}"/></svg>
+                <span class="text-sm font-bold">Home</span>
+            </a>
+
+            @foreach($mobSections as [$secTitle, $secItems])
+                @php $visible = array_filter($secItems, fn($it) => !isset($it['feat']) || $_f($it['feat'])); @endphp
+                @if(count($visible))
+                <div>
+                    <p class="px-3 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{{ $secTitle }}</p>
+                    <div class="space-y-0.5">
+                        @foreach($visible as $item)
+                        <a href="{{ route($item['route'], $item['routeParams'] ?? []) }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ $mobActive($item) ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-50' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/></svg>
+                            <span class="text-sm font-bold">{{ $item['label'] }}</span>
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+            @endforeach
+        </nav>
+    </div>
+</div>
 
 @stack('modals')
 
@@ -1072,6 +1143,23 @@ window.showMojobToast = function(msg) {
     document.body.appendChild(t);
     setTimeout(function(){ t.remove(); }, 3000);
 };
+
+/* ── Mobile menu drawer ── */
+function openMobileMenu() {
+    var m = document.getElementById('mobileMenu');
+    if (!m) return;
+    m.classList.remove('hidden');
+    requestAnimationFrame(function(){ document.getElementById('mobileMenuPanel').classList.remove('-translate-x-full'); });
+    document.body.style.overflow = 'hidden';
+}
+function closeMobileMenu() {
+    var p = document.getElementById('mobileMenuPanel');
+    if (!p) return;
+    p.classList.add('-translate-x-full');
+    document.body.style.overflow = '';
+    setTimeout(function(){ document.getElementById('mobileMenu').classList.add('hidden'); }, 300);
+}
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMobileMenu(); });
 
 /* ── Flatpickr: custom month dropdown ── */
 function fpBuildMonthPicker(fp) {
