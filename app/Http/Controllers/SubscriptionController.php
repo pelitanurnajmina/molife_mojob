@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subscription;
+use App\Services\MidtransService;
 use App\Services\SubscriptionService;
 use App\Support\Profile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SubscriptionController extends Controller
 {
@@ -19,19 +21,30 @@ class SubscriptionController extends Controller
         return view('pages.subscribe', compact('plans'));
     }
 
-    /** Polled by the subscribe page to detect activation (e.g. after gateway webhook). */
+    /** Polled by the subscribe/langganan page to detect activation or renewal (e.g. after gateway webhook). */
     public function status()
     {
-        return response()->json(['active' => SubscriptionService::isSubscribed(auth()->id())]);
+        $active = SubscriptionService::active(auth()->id());
+        return response()->json([
+            'active'  => $active !== null,
+            'ends_at' => $active?->ends_at->toDateString(),
+        ]);
     }
 
     /**
-     * Confirm a payment and activate (or extend) the subscription.
-     * NOTE: manual confirmation flow (QRIS). Hook a payment gateway webhook here later.
+     * Create a Midtrans QRIS charge for the chosen plan and return the QR URL.
+     * A pending subscription row is recorded; it is activated by the webhook on payment.
      */
-    public function confirm(Request $request)
+    public function charge(Request $request)
     {
         $request->validate(['plan' => 'required|in:' . implode(',', array_keys(SubscriptionService::PLANS))]);
+
+        if (! MidtransService::configured()) {
+            return response()->json([
+                'error' => __('Pembayaran belum dikonfigurasi. Hubungi admin.'),
+            ], 503);
+        }
+
         $userId = auth()->id();
         $plan   = SubscriptionService::plan($request->plan);
 
@@ -40,24 +53,85 @@ class SubscriptionController extends Controller
         $start  = $active ? $active->ends_at->copy()->addDay() : now();
         $end    = $start->copy()->addMonths($plan['months']);
 
-        Subscription::create([
+        $orderId = 'MLF-' . $userId . '-' . $request->plan . '-' . now()->format('YmdHis');
+
+        $sub = Subscription::create([
             'user_id'   => $userId,
             'plan'      => $request->plan,
             'months'    => $plan['months'],
             'price'     => $plan['price'],
-            'status'    => 'active',
-            'ref'       => 'MLF-' . strtoupper(substr(md5($userId . microtime()), 0, 8)),
+            'status'    => 'pending',
+            'ref'       => $orderId,
             'starts_at' => $start->toDateString(),
             'ends_at'   => $end->toDateString(),
-            'paid_at'   => now(),
+            'paid_at'   => null,
         ]);
 
-        // Unlock full access while subscribed.
-        $p = Profile::model($userId);
-        $p->plan = 'pro';
-        $p->save();
+        try {
+            $charge = MidtransService::chargeQris($orderId, (int) $plan['price']);
+        } catch (\Throwable $e) {
+            $sub->update(['status' => 'failed']);
+            Log::error('Midtrans charge failed', ['order_id' => $orderId, 'error' => $e->getMessage()]);
+            return response()->json([
+                'error' => __('Gagal membuat pembayaran. Coba lagi sebentar.'),
+            ], 502);
+        }
 
-        return redirect()->route('dashboard')
-            ->with('toast', __('Pembayaran dikonfirmasi! Langganan aktif sampai :date. Selamat menikmati akses penuh!', ['date' => $end->translatedFormat('j F Y')]));
+        if (empty($charge['qr_url'])) {
+            $sub->update(['status' => 'failed']);
+            return response()->json([
+                'error' => __('QR pembayaran tidak tersedia. Coba lagi.'),
+            ], 502);
+        }
+
+        return response()->json([
+            'order_id' => $orderId,
+            'qr_url'   => $charge['qr_url'],
+            'amount'   => (int) $plan['price'],
+            'ends_at'  => $end->translatedFormat('j F Y'),
+        ]);
+    }
+
+    /**
+     * Midtrans HTTP notification (webhook). Public route, no auth/CSRF.
+     * Activates the matching pending subscription once payment settles.
+     */
+    public function webhook(Request $request)
+    {
+        $orderId     = (string) $request->input('order_id', '');
+        $statusCode  = (string) $request->input('status_code', '');
+        $grossAmount = (string) $request->input('gross_amount', '');
+        $signature   = (string) $request->input('signature_key', '');
+        $txStatus    = (string) $request->input('transaction_status', '');
+        $fraud       = (string) $request->input('fraud_status', 'accept');
+
+        if (! MidtransService::verifySignature($orderId, $statusCode, $grossAmount, $signature)) {
+            Log::warning('Midtrans webhook: invalid signature', ['order_id' => $orderId]);
+            return response()->json(['message' => 'invalid signature'], 403);
+        }
+
+        $sub = Subscription::where('ref', $orderId)->first();
+        if (! $sub) {
+            return response()->json(['message' => 'order not found'], 404);
+        }
+
+        // Already activated → acknowledge idempotently.
+        if ($sub->status === 'active') {
+            return response()->json(['message' => 'ok']);
+        }
+
+        $paid = in_array($txStatus, ['capture', 'settlement'], true) && $fraud === 'accept';
+
+        if ($paid) {
+            $sub->update(['status' => 'active', 'paid_at' => now()]);
+
+            $p = Profile::model($sub->user_id);
+            $p->plan = 'pro';
+            $p->save();
+        } elseif (in_array($txStatus, ['cancel', 'deny', 'expire'], true)) {
+            $sub->update(['status' => 'cancelled']);
+        }
+
+        return response()->json(['message' => 'ok']);
     }
 }

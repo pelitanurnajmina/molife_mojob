@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+        // Midtrans posts to the webhook without a CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'subscription/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

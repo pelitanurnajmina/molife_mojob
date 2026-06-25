@@ -42,7 +42,14 @@ class Profile
     {
         return self::model($userId)->plan ?? 'freemium';
     }
-    public static function isFreemium(?int $u = null): bool { return self::plan($u) === 'freemium'; }
+    /**
+     * Akses penuh ditentukan oleh langganan aktif (paywall tunggal), bukan tier plan lama.
+     * Pengguna tanpa langganan aktif diperlakukan sebagai freemium (terbatas).
+     */
+    public static function isFreemium(?int $u = null): bool
+    {
+        return !\App\Services\SubscriptionService::isSubscribed($u ?? auth()->id());
+    }
     public static function isPlus(?int $u = null): bool     { return self::plan($u) === 'plus'; }
     public static function isPro(?int $u = null): bool      { return self::plan($u) === 'pro'; }
 

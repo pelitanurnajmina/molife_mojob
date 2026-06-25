@@ -67,8 +67,11 @@ Route::middleware('auth.simple')->group(function () {
 Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::get('/subscribe',            [SubscriptionController::class, 'page'])->name('subscribe');
     Route::get('/subscription/status',  [SubscriptionController::class, 'status'])->name('subscription.status');
-    Route::post('/subscription/confirm',[SubscriptionController::class, 'confirm'])->name('subscription.confirm');
+    Route::post('/subscription/charge', [SubscriptionController::class, 'charge'])->name('subscription.charge');
 });
+
+// Midtrans payment notification (public webhook — verified by signature, no CSRF)
+Route::post('/subscription/webhook', [SubscriptionController::class, 'webhook'])->name('subscription.webhook');
 
 Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

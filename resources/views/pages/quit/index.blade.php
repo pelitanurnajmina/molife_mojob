@@ -8,13 +8,13 @@
 <div class="space-y-4 md:space-y-6">
 
     {{-- ── How it works (explainer) ── --}}
-    <div class="bg-{{ $c }}-50 border border-{{ $c }}-100 rounded-2xl p-4 flex items-start gap-3">
+    <div class="bg-{{ $c }}-50 border border-{{ $c }}-100 rounded-2xl p-4 flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg bg-{{ $c }}-100 text-{{ $c }}-600 flex items-center justify-center flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div class="text-xs text-{{ $c }}-800/80 leading-relaxed">
             <span class="font-bold text-{{ $c }}-900">{{ __('Cara kerja:') }}</span>
-            {{ __('Hitungan hari bertambah otomatis selama kamu bertahan — kamu tidak perlu input apa pun setiap hari. Cukup tekan tombol di bawah hanya saat kamu') }}
+            {{ __('Hitungan hari bertambah otomatis selama kamu bertahan, kamu tidak perlu input apa pun setiap hari. Cukup tekan tombol di bawah hanya saat kamu') }}
             <span class="font-bold">{{ strtolower($meta['relapse']) }}</span>{{ __(', dan hitungan mulai dari nol lagi.') }}
         </div>
     </div>
@@ -47,8 +47,8 @@
             @endif
 
             {{-- Relapse action with clear helper --}}
-            <div class="mt-7 pt-6 border-t border-gray-50 max-w-sm mx-auto">
-                <p class="text-xs text-gray-400 mb-2">{{ __('Tergelincir hari ini? Jujur pada diri sendiri — catat ceritanya & mulai lagi.') }}</p>
+            <div class="mt-7 pt-6 border-t border-gray-50">
+                <p class="text-xs text-gray-400 mb-2">{{ __('Tergelincir hari ini? Jujur pada diri sendiri, catat ceritanya & mulai lagi.') }}</p>
                 <button type="button" onclick="openModal('modal-relapse')"
                     class="px-5 py-2.5 rounded-xl border border-{{ $c }}-200 text-sm font-bold text-{{ $c }}-600 hover:bg-{{ $c }}-50 transition-all">
                     {{ $meta['relapse'] }}
@@ -96,7 +96,7 @@
     {{-- ── Journal / History ── --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 border border-gray-50">
         <h3 class="font-bold mb-1">{{ __('Jurnal Refleksi') }}</h3>
-        <p class="text-xs text-gray-400 mb-4">{{ __('Catatan setiap kali kamu tergelincir — pelajari pemicunya agar makin kuat.') }}</p>
+        <p class="text-xs text-gray-400 mb-4">{{ __('Catatan setiap kali kamu tergelincir, pelajari pemicunya agar makin kuat.') }}</p>
 
         @if(count($history) === 0)
         <div class="text-center py-8">
@@ -104,7 +104,7 @@
                 <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             </div>
             <p class="text-sm font-medium text-gray-500">{{ __('Belum ada catatan') }}</p>
-            <p class="text-xs text-gray-400 mt-0.5">{{ __('Semoga tetap kosong — pertahankan!') }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('Semoga tetap kosong, pertahankan!') }}</p>
         </div>
         @else
         <div class="space-y-3">
@@ -158,7 +158,7 @@
                 <p class="text-[10px] text-gray-400 mt-1">{{ __('Opsional, tapi sangat membantu refleksimu.') }}</p>
             </div>
             <div class="bg-{{ $c }}-50 rounded-xl p-3 text-xs text-{{ $c }}-700 leading-relaxed">
-                {{ __('Streak kamu saat ini') }} <span class="font-bold">{{ $stats['streak'] }} {{ __('hari') }}</span> {{ __('akan di-reset ke 0 dan dicatat di jurnal. Bangkit lagi — kamu pasti bisa!') }}
+                {{ __('Streak kamu saat ini') }} <span class="font-bold">{{ $stats['streak'] }} {{ __('hari') }}</span> {{ __('akan di-reset ke 0 dan dicatat di jurnal. Bangkit lagi, kamu pasti bisa!') }}
             </div>
             <div class="flex gap-3 pt-1">
                 <button type="button" onclick="closeModal('modal-relapse')" class="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-bold hover:bg-gray-50 transition-all">{{ __('Batal') }}</button>

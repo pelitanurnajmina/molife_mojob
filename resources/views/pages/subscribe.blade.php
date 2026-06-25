@@ -75,9 +75,13 @@
                 <span class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-gray-900 rounded-tr"></span>
                 <span class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-gray-900 rounded-bl"></span>
                 <span class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-gray-900 rounded-br"></span>
-                <img id="qr" src="" alt="QRIS" width="200" height="200" class="block rounded-lg">
+                <img id="qr" src="" alt="QRIS" width="200" height="200" class="block rounded-lg transition-opacity duration-300 opacity-0">
+                <div id="qrLoading" class="absolute inset-0 flex items-center justify-center">
+                    <svg class="w-7 h-7 animate-spin text-gray-300" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/></svg>
+                </div>
             </div>
             <p class="text-xs text-gray-400 mt-3 max-w-[230px]">{{ __('Scan untuk membayar dari aplikasi apa pun yang mendukung QRIS.') }}</p>
+            <p id="qrError" class="hidden text-xs font-bold text-red-500 mt-3 max-w-[230px]"></p>
 
             <div class="inline-flex items-center gap-2 mt-6 text-sm font-bold text-gray-500">
                 <svg class="w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/></svg>
@@ -92,18 +96,46 @@
 </div>
 
 <script>
-const QR_BASE = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=0&data=';
 const STATUS_URL = '{{ route('subscription.status') }}';
-function selectPlan(key, price) {
+const CHARGE_URL = '{{ route('subscription.charge') }}';
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
+let _reqSeq = 0;
+
+async function selectPlan(key, price) {
     document.getElementById('amount').textContent = 'Rp ' + price.toLocaleString('id-ID');
-    document.getElementById('qr').src = QR_BASE + encodeURIComponent('MOLIFE-' + key + 'BLN-' + Date.now());
     document.querySelectorAll('.plan-card').forEach(c => { c.classList.remove('border-gray-900'); c.classList.add('border-gray-100'); });
     const card = document.getElementById('card-' + key);
-    card.classList.add('border-gray-900'); card.classList.remove('border-gray-100');
+    if (card) { card.classList.add('border-gray-900'); card.classList.remove('border-gray-100'); }
+
+    const qr = document.getElementById('qr');
+    qr.classList.add('opacity-0');
+    document.getElementById('qrLoading').classList.remove('hidden');
+    document.getElementById('qrError').classList.add('hidden');
+
+    const seq = ++_reqSeq;
+    try {
+        const r = await fetch(CHARGE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+            body: JSON.stringify({ plan: key }),
+        });
+        const d = await r.json();
+        if (seq !== _reqSeq) return; // a newer plan was picked
+        if (!r.ok || !d.qr_url) { showError(d.error || '{{ __('Gagal membuat pembayaran. Coba lagi.') }}'); return; }
+        qr.onload = () => { qr.classList.remove('opacity-0'); document.getElementById('qrLoading').classList.add('hidden'); };
+        qr.src = d.qr_url;
+    } catch (e) {
+        if (seq === _reqSeq) showError('{{ __('Gagal terhubung. Coba lagi.') }}');
+    }
+}
+function showError(msg) {
+    document.getElementById('qrLoading').classList.add('hidden');
+    const el = document.getElementById('qrError');
+    el.textContent = msg; el.classList.remove('hidden');
 }
 selectPlan('3', {{ $plans['3']['price'] ?? 29000 }});
 
-/* Auto-detect activation (e.g. after payment gateway webhook) and continue to dashboard */
+/* Auto-detect activation (Midtrans webhook flips status) and continue to dashboard */
 setInterval(async () => {
     try {
         const r = await fetch(STATUS_URL, { headers: { 'Accept': 'application/json' } });

@@ -13,8 +13,8 @@
         title="{{ $hiddenCount > 0
             ? __(':n transaksi disembunyikan', ['n' => $hiddenCount])
             : __('Riwayat dibatasi :n hari terakhir', ['n' => $daysLimit]) }}"
-        message="{{ __('Paket Freemium hanya menampilkan riwayat :n hari. Upgrade ke Plus untuk tanpa batas.', ['n' => $daysLimit]) }}"
-        cta="{{ __('Upgrade ke Plus') }}"
+        message="{{ __('Tanpa langganan aktif, riwayat hanya :n hari terakhir. Aktifkan langganan untuk tanpa batas.', ['n' => $daysLimit]) }}"
+        cta="{{ __('Aktifkan Langganan') }}"
         variant="{{ $hiddenCount > 0 ? 'warning' : 'soft' }}" />
     @endif
 

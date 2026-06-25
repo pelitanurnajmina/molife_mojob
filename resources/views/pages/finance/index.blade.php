@@ -14,8 +14,8 @@
     @if($isFreemium && $daysLimit)
     <x-upgrade-banner
         title="{{ __('Riwayat dibatasi :n hari terakhir', ['n' => $daysLimit]) }}"
-        message="{{ __('Upgrade ke Plus untuk lihat semua riwayat keuangan tanpa batas + tren 6 bulan.') }}"
-        cta="{{ __('Upgrade ke Plus') }}" />
+        message="{{ __('Aktifkan langganan untuk lihat semua riwayat keuangan tanpa batas + tren 6 bulan.') }}"
+        cta="{{ __('Aktifkan Langganan') }}" />
     @endif
 
     @php $periodLabel = $isFreemium ? __(':n hari terakhir', ['n' => $daysLimit]) : $monthName; @endphp
@@ -46,16 +46,16 @@
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 relative overflow-hidden">
         <div class="flex items-center justify-between mb-6">
             <h3 class="font-bold">{{ __('Tren 6 Bulan Terakhir') }}</h3>
-            <span class="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-1 rounded-full">PLUS</span>
+            <span class="text-[10px] font-bold bg-violet-100 text-violet-600 px-2 py-1 rounded-full">PRO</span>
         </div>
         <div class="relative" style="height:200px">
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center bg-gradient-to-b from-white/70 to-white backdrop-blur-sm rounded-xl">
                 <svg class="w-8 h-8 text-orange-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
-                <p class="text-sm font-bold text-gray-700">{{ __('Tersedia di paket Plus') }}</p>
-                <a href="{{ route('settings.langganan') }}" class="mt-2 inline-block px-3 py-1.5 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-all">
-                    {{ __('Upgrade — Rp 17.000/bln') }}
+                <p class="text-sm font-bold text-gray-700">{{ __('Tersedia dengan langganan aktif') }}</p>
+                <a href="{{ route('settings.langganan') }}" class="mt-2 inline-block px-3 py-1.5 bg-violet-600 text-white text-xs font-bold rounded-xl hover:bg-violet-700 transition-all">
+                    {{ __('Aktifkan Langganan') }}
                 </a>
             </div>
         </div>
