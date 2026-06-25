@@ -126,22 +126,37 @@
             box-shadow: 0 16px 48px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.06) !important;
             border: none !important;
             font-family: 'Plus Jakarta Sans', sans-serif !important;
-            overflow: hidden;
-            padding: 4px;
+            overflow: visible;             /* never clip the last (Minggu) column */
+            padding: 8px 12px 12px;
+            width: auto !important;
+            margin-top: 8px;               /* breathing room from the field */
         }
         .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after,
         .flatpickr-calendar.arrowBottom:before, .flatpickr-calendar.arrowBottom:after { display: none; }
-        .flatpickr-months { padding: 8px 4px 4px; border-bottom: 1px solid #f3f4f6; }
+        .flatpickr-months { padding: 4px 0 8px; border-bottom: 1px solid #f3f4f6; position: relative; }
         .flatpickr-month { height: 38px; }
-        .flatpickr-current-month { font-size: 14px; font-weight: 700; color: #111827; }
+        .flatpickr-current-month { font-size: 14px; font-weight: 700; color: #111827; padding-top: 0; height: 38px; display: flex; align-items: center; justify-content: center; }
         .flatpickr-current-month .cur-month { font-weight: 700; }
-        .flatpickr-current-month input.cur-year { font-weight: 700; }
-        .flatpickr-prev-month, .flatpickr-next-month { padding: 8px 10px; color: #6b7280 !important; }
+        .flatpickr-current-month input.cur-year { font-weight: 700; line-height: normal; }
+        /* Vertically center the prev/next arrows with the month title */
+        .flatpickr-prev-month, .flatpickr-next-month {
+            top: 4px !important; height: 38px !important;
+            display: flex !important; align-items: center; justify-content: center;
+            padding: 0 8px !important; color: #6b7280 !important;
+        }
+        .flatpickr-prev-month svg, .flatpickr-next-month svg { width: 14px; height: 14px; }
         .flatpickr-prev-month:hover, .flatpickr-next-month:hover { color: #000 !important; }
         .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: currentColor; }
-        .flatpickr-weekdays { background: transparent; padding: 4px 0; }
-        .flatpickr-weekday { font-weight: 700; font-size: 11px; color: #9ca3af; background: transparent; }
-        .dayContainer { padding: 4px 0; gap: 2px; }
+        /* Fixed 7×40px grid so weekdays + days line up perfectly and nothing is cut off */
+        .flatpickr-rContainer, .flatpickr-days, .dayContainer,
+        .flatpickr-weekdaycontainer, .flatpickr-weekdays {
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
+        }
+        .flatpickr-weekdays { background: transparent; padding: 6px 0 2px; }
+        .flatpickr-weekday { font-weight: 700; font-size: 11px; color: #9ca3af; background: transparent; flex: 1; }
+        .dayContainer { padding: 2px 0; justify-content: flex-start; }
         .flatpickr-day {
             border-radius: 10px !important;
             font-weight: 600;
@@ -150,7 +165,10 @@
             border: none !important;
             height: 36px;
             line-height: 36px;
-            max-width: 36px;
+            width: 40px;
+            max-width: 40px;
+            flex-basis: 40px;
+            margin: 1px 0;
         }
         .flatpickr-day:hover, .flatpickr-day:focus { background: #f3f4f6 !important; }
         .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.selected:focus {
@@ -226,6 +244,11 @@
             opacity: 0; cursor: pointer;
         }
         input[type="date"], input[type="month"] { position: relative; }
+        /* Date field (flatpickr altInput) — clear clickable affordance on hover */
+        .mo-datefield { cursor: pointer; transition: border-color .15s, background-color .15s, box-shadow .15s; }
+        .mo-datefield:hover { border-color: #9ca3af !important; background-color: #fff !important; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+        .mo-datefield-icon { transition: color .15s; }
+        .mo-datefield:hover ~ .mo-datefield-icon { color: #374151; }
         @keyframes pomoPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.35; transform:scale(.7); } }
     </style>
 </head>
@@ -1119,6 +1142,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         flatpickr(input, {
             dateFormat   : 'Y-m-d',
+            altInput     : true,          // show a clean text field, hide the native date input
+            altFormat    : 'Y-m-d',       // keep the same readable format
             maxDate      : maxDate,
             minDate      : minDate,
             defaultDate  : currentVal,
@@ -1126,6 +1151,16 @@ document.addEventListener('DOMContentLoaded', function () {
             disableMobile: true,
             onReady: function(selectedDates, dateStr, instance) {
                 fpBuildMonthPicker(instance);
+                // Size the visible field to the date so the icon sits snug beside the text,
+                // unless the field is meant to stretch full width.
+                if (instance.altInput) {
+                    if (!/\bw-full\b/.test(instance.altInput.className)) instance.altInput.size = 11;
+                    // Consistent hover affordance (set in CSS via .mo-datefield).
+                    instance.altInput.classList.add('mo-datefield');
+                    // Make the sibling calendar icon react to hover too.
+                    var icon = instance.altInput.parentNode && instance.altInput.parentNode.querySelector('svg');
+                    if (icon) icon.classList.add('mo-datefield-icon');
+                }
             },
             onChange: function(selectedDates, dateStr) {
                 if (originalOnchange) originalOnchange.call(input);
