@@ -436,14 +436,21 @@
 
     {{-- Main Content --}}
     <main class="md:ml-64 flex-1 p-4 md:p-8 w-full">
-        <header class="flex justify-between items-center mb-3 md:mb-4">
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold">@yield('page-title')</h1>
-                <p class="text-gray-400 text-xs md:text-sm hidden md:block">Molife › @yield('breadcrumb')</p>
+        <header class="flex justify-between items-center gap-3 mb-3 md:mb-4">
+            <div class="flex items-center gap-2.5 min-w-0">
+                {{-- Hamburger (mobile) — far left --}}
+                <button type="button" onclick="openMobileMenu()" aria-label="{{ __('Menu') }}"
+                    class="md:hidden flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white rounded-xl border border-gray-100 hover:bg-gray-50 transition-all">
+                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="min-w-0">
+                    <h1 class="text-lg md:text-2xl font-bold truncate">@yield('page-title')</h1>
+                    <p class="text-gray-400 text-xs md:text-sm hidden md:block">Molife › @yield('breadcrumb')</p>
+                </div>
             </div>
-            <div class="flex items-center gap-2 md:gap-4">
-                {{-- Language switcher --}}
-                <div class="flex items-center bg-white rounded-full border border-gray-100 p-0.5">
+            <div class="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                {{-- Language switcher (desktop only; mobile lives in the drawer) --}}
+                <div class="hidden md:flex items-center bg-white rounded-full border border-gray-100 p-0.5">
                     <a href="{{ route('lang.switch', 'id') }}"
                        class="px-2.5 py-1 rounded-full text-xs font-bold transition-all {{ app()->getLocale() === 'id' ? 'bg-black text-white' : 'text-gray-400 hover:text-gray-700' }}">ID</a>
                     <a href="{{ route('lang.switch', 'en') }}"
@@ -516,20 +523,11 @@
                     </div>
                 </div>
 
-                <div class="bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-gray-100 flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                    <svg class="w-4 h-4 text-gray-600 hidden md:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                {{-- Date (desktop only) --}}
+                <div class="hidden md:flex bg-white px-4 py-2 rounded-full border border-gray-100 items-center gap-2 text-sm">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span>{{ date('j/n') }}</span>
                 </div>
-                {{-- Menu button (mobile) — opens the full menu drawer --}}
-                <button type="button" onclick="openMobileMenu()" aria-label="{{ __('Menu') }}" class="md:hidden bg-white p-2 rounded-full border border-gray-100 hover:bg-gray-50">
-                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
-                <form method="POST" action="{{ route('logout') }}" class="md:hidden">
-                    @csrf
-                    <button type="submit" class="bg-white p-2 rounded-full border border-gray-100 hover:bg-gray-50">
-                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                    </button>
-                </form>
             </div>
         </header>
 
@@ -649,6 +647,24 @@
                 @endif
             @endforeach
         </nav>
+
+        {{-- Drawer footer: language + logout --}}
+        <div class="border-t border-gray-100 px-4 py-3 space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">{{ __('Bahasa') }}</span>
+                <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                    <a href="{{ route('lang.switch', 'id') }}" class="px-3 py-1 rounded-full text-xs font-bold transition-all {{ app()->getLocale() === 'id' ? 'bg-black text-white' : 'text-gray-500' }}">ID</a>
+                    <a href="{{ route('lang.switch', 'en') }}" class="px-3 py-1 rounded-full text-xs font-bold transition-all {{ app()->getLocale() === 'en' ? 'bg-black text-white' : 'text-gray-500' }}">EN</a>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    {{ __('Keluar') }}
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 
