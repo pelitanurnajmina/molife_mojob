@@ -63,10 +63,16 @@ class BisnisController extends Controller
         $counts   = BusinessService::counts($userId);
         $total    = BusinessDeal::where('user_id', $userId)->count();
         $statuses = BusinessService::statuses();
-        $productRows = BusinessProduct::where('user_id', $userId)->orderBy('name')->get(['id', 'name']);
+        $productRows = BusinessProduct::where('user_id', $userId)
+            ->with(['collaborators' => fn($q) => $q->latest('id')])
+            ->orderBy('name')->get();
         $products    = $productRows->pluck('name')->toArray();
 
-        return view('pages.bisnis.deals', compact('deals', 'counts', 'total', 'filterStatus', 'filterProduct', 'statuses', 'products', 'productRows'));
+        // Jumlah proposal per produk untuk kartu folder.
+        $dealsPerProduct = BusinessDeal::where('user_id', $userId)
+            ->selectRaw('product, count(*) as c')->groupBy('product')->pluck('c', 'product');
+
+        return view('pages.bisnis.deals', compact('deals', 'counts', 'total', 'filterStatus', 'filterProduct', 'statuses', 'products', 'productRows', 'dealsPerProduct'));
     }
 
     public function store(Request $request)

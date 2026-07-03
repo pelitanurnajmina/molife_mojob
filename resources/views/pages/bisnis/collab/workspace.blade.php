@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title', $product->name . ' · Kolaborasi')
+@section('title', $product->name . ' · ' . ($isOwner ? 'Folder Produk' : 'Kolaborasi'))
 @section('page-title', $product->name)
-@section('breadcrumb', 'Bisnis › Kolaborasi › ' . $product->name)
+@section('breadcrumb', 'Bisnis › ' . ($isOwner ? 'Folder Produk' : 'Kolaborasi') . ' › ' . $product->name)
 
 @section('content')
 @php $rp = fn($n) => 'Rp ' . number_format((int) $n, 0, ',', '.'); @endphp

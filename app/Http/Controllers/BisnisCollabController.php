@@ -22,16 +22,15 @@ class BisnisCollabController extends Controller
 
         [$ok, $message] = CollabService::invite(auth()->id(), $product, $r['email']);
 
-        return redirect()->route('kolaborasi.workspace', $product->id)->with('toast', $message);
+        // Kembali ke halaman asal (kartu folder di Proposal & Klien, atau folder produk).
+        return back()->with('toast', $message);
     }
 
     public function removeMember(string $collabId)
     {
-        $collab = BusinessCollaborator::where('owner_id', auth()->id())->findOrFail($collabId);
-        $productId = $collab->business_product_id;
-        $collab->delete();
+        BusinessCollaborator::where('owner_id', auth()->id())->findOrFail($collabId)->delete();
 
-        return redirect()->route('kolaborasi.workspace', $productId)->with('toast', __('Kolaborator dihapus.'));
+        return back()->with('toast', __('Kolaborator dihapus.'));
     }
 
     /* ═══════════ Sisi kolaborator (di luar paywall) ═══════════ */

@@ -39,6 +39,35 @@
         </div>
     </div>
 
+    {{-- ── Folder produk (kolaborasi per produk) ── --}}
+    @if(count($productRows))
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        @foreach($productRows as $pr)
+        @php
+            $nDeals  = (int) ($dealsPerProduct[$pr->name] ?? 0);
+            $nCollab = $pr->collaborators->count();
+        @endphp
+        <div onclick="location.href='{{ route('kolaborasi.workspace', $pr->id) }}'"
+            class="cursor-pointer bg-white rounded-2xl border border-gray-100 p-4 transition-all hover:border-gray-900 hover:shadow-sm group">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gray-50 text-gray-500 border border-gray-100 group-hover:bg-gray-900 group-hover:text-white flex items-center justify-center flex-shrink-0 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-800 truncate">{{ $pr->name }}</p>
+                    <p class="text-[11px] text-gray-400">{{ $nDeals }} {{ __('proposal') }} · {{ $nCollab }} {{ __('kolaborator') }}</p>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); openModal('modal-collab-{{ $pr->id }}')" title="{{ __('Undang kolaborator') }}"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl {{ $nCollab ? 'bg-gray-50 border border-gray-200 text-gray-600' : 'bg-black text-white' }} text-[11px] font-bold hover:opacity-80 transition-all flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                    {{ __('Kolaborator') }}
+                </button>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     {{-- Status filter chips --}}
     <div class="flex flex-wrap gap-2">
         @php $chip = fn($active) => $active ? 'bg-black text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300'; @endphp
@@ -186,6 +215,57 @@
         </div>
     </div>
 </div>
+
+{{-- Modal kolaborator per produk --}}
+@foreach($productRows as $pr)
+<div id="modal-collab-{{ $pr->id }}" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-collab-{{ $pr->id }}')">
+    <div class="bg-white rounded-3xl w-full max-w-md">
+        <div class="flex items-center justify-between p-6 border-b border-gray-50">
+            <div>
+                <h2 class="font-bold text-lg">{{ __('Kolaborator') }} · {{ $pr->name }}</h2>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Bisa kelola proposal & template produk ini, plus lihat statistiknya. Tanpa perlu langganan.') }}</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-collab-{{ $pr->id }}')" class="text-gray-400 hover:text-black flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="p-6">
+            <div class="space-y-2 mb-4 max-h-56 overflow-y-auto">
+                @forelse($pr->collaborators as $c)
+                <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+                    <div class="w-8 h-8 rounded-lg bg-white border border-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">{{ strtoupper(substr($c->email, 0, 1)) }}</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-gray-800 truncate">{{ $c->email }}</p>
+                        @if($c->status === 'active')
+                        <p class="text-[10px] font-bold text-green-600">{{ __('Aktif') }}{{ $c->accepted_at ? ' · ' . $c->accepted_at->translatedFormat('j M Y') : '' }}</p>
+                        @else
+                        <p class="text-[10px] font-bold text-amber-600">{{ __('Menunggu diterima') }}</p>
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('bisnis.collab.remove', $c->id) }}" class="m-0">
+                        @csrf @method('DELETE')
+                        <button type="button" onclick="askDelete(this, '{{ __('Hapus kolaborator ini? Dia langsung kehilangan akses ke produk ini.') }}')"
+                            class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </form>
+                </div>
+                @empty
+                <p class="text-center text-gray-400 text-sm py-4">{{ __('Belum ada kolaborator. Undang lewat email di bawah.') }}</p>
+                @endforelse
+            </div>
+            <form method="POST" action="{{ route('bisnis.collab.invite', $pr->id) }}" class="flex items-center gap-2 border-t border-gray-50 pt-4">
+                @csrf
+                <input type="email" name="email" maxlength="255" required placeholder="{{ __('email@rekan-kamu.com') }}"
+                    class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Undang') }}</button>
+            </form>
+            <div class="flex items-center justify-between mt-3">
+                <p class="text-[10px] text-gray-400">{{ __('Mereka menerima email berisi link bergabung.') }}</p>
+                <a href="{{ route('kolaborasi.workspace', $pr->id) }}" class="text-[10px] font-bold text-gray-500 hover:text-black transition-all whitespace-nowrap">{{ __('Buka workspace') }} ›</a>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
 
 @push('scripts')
 <script>
