@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\SholatExcusedDay;
 use App\Models\SholatPrayer;
 use App\Models\SholatSunnah;
 
@@ -9,6 +10,31 @@ class SholatService
 {
     public const WAJIB  = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
     public const SUNNAH = ['Tahajud', 'Dhuha', 'Qiyamul'];
+
+    /* ── Excused days (uzur/haid) ── */
+    public static function isExcused(int $userId, string $date): bool
+    {
+        return SholatExcusedDay::where('user_id', $userId)->whereDate('date', $date)->exists();
+    }
+
+    public static function toggleExcused(int $userId, string $date): void
+    {
+        $row = SholatExcusedDay::where('user_id', $userId)->whereDate('date', $date)->first();
+        if ($row) {
+            $row->delete();
+        } else {
+            SholatExcusedDay::create(['user_id' => $userId, 'date' => $date]);
+        }
+    }
+
+    /** Excused-day map for a set of dates: ['Y-m-d' => true]. */
+    public static function excusedMap(int $userId, array $dates): array
+    {
+        return SholatExcusedDay::where('user_id', $userId)
+            ->whereIn('date', $dates)->get()
+            ->mapWithKeys(fn($r) => [$r->date->format('Y-m-d') => true])
+            ->toArray();
+    }
 
     /** Stats for one day: wajib/takbir/rawatib/sunnah counts. */
     public static function stats(int $userId, string $date): array
@@ -57,16 +83,23 @@ class SholatService
         $streak = 0;
         $today  = (new \DateTime('today'))->format('Y-m-d');
         $check  = new \DateTime('today');
+        $guard  = 0;
         while (true) {
             $ds = $check->format('Y-m-d');
+            // Excused days (uzur/haid) are transparent: they neither break nor add to the streak.
+            if (self::isExcused($userId, $ds)) {
+                $check->modify('-1 day');
+                if (++$guard > 1500) break;
+                continue;
+            }
             if ($pass(self::stats($userId, $ds))) {
                 $streak++;
             } else {
-                if ($ds === $today && $streak === 0) { $check->modify('-1 day'); continue; }
+                if ($ds === $today && $streak === 0) { $check->modify('-1 day'); if (++$guard > 1500) break; continue; }
                 break;
             }
             $check->modify('-1 day');
-            if ($streak > 1000) break; // safety
+            if (++$guard > 1500) break; // safety
         }
         return $streak;
     }

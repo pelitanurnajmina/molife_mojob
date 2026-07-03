@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class SubscriptionController extends Controller
 {
+    private function chargeResponse(Subscription $sub)
+    {
+        return response()->json(SubscriptionService::pendingChargeData($sub));
+    }
+
     /** Full-page paywall (locks the app until subscribed). */
     public function page()
     {
@@ -18,7 +23,12 @@ class SubscriptionController extends Controller
             return redirect()->route('dashboard');
         }
         $plans = SubscriptionService::PLANS;
-        return view('pages.subscribe', compact('plans'));
+
+        // Ada QR pending yang masih berlaku? Langsung tampilkan lagi (tanpa charge baru).
+        $pendingSub    = SubscriptionService::reusablePending(auth()->id());
+        $pendingCharge = $pendingSub ? SubscriptionService::pendingChargeData($pendingSub) : null;
+
+        return view('pages.subscribe', compact('plans', 'pendingCharge'));
     }
 
     /** Polled by the subscribe/langganan page to detect activation or renewal (e.g. after gateway webhook). */
@@ -47,6 +57,16 @@ class SubscriptionController extends Controller
 
         $userId = auth()->id();
         $plan   = SubscriptionService::plan($request->plan);
+
+        // Pakai ulang QR pending paket yang sama selama masih berlaku — tanpa hit Midtrans.
+        if ($existing = SubscriptionService::reusablePending($userId, $request->plan)) {
+            return $this->chargeResponse($existing);
+        }
+
+        // Paket berbeda / QR kedaluwarsa: pending lama ditandai batal secara lokal
+        // (kalau ternyata sempat dibayar, webhook tetap mengaktifkannya — aman).
+        Subscription::where('user_id', $userId)->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
 
         // Extend from the current active end date if still subscribed, else start today.
         $active = SubscriptionService::active($userId);
@@ -84,12 +104,14 @@ class SubscriptionController extends Controller
             ], 502);
         }
 
-        return response()->json([
-            'order_id' => $orderId,
-            'qr_url'   => $charge['qr_url'],
-            'amount'   => (int) $plan['price'],
-            'ends_at'  => $end->translatedFormat('j F Y'),
+        // Simpan data gateway supaya QR bisa dipakai ulang di kunjungan berikutnya.
+        $sub->update([
+            'qr_url'                  => $charge['qr_url'],
+            'qr_expires_at'           => $charge['expires_at'],
+            'midtrans_transaction_id' => $charge['transaction_id'],
         ]);
+
+        return $this->chargeResponse($sub->fresh());
     }
 
     /**
@@ -114,6 +136,12 @@ class SubscriptionController extends Controller
         if (! $sub) {
             return response()->json(['message' => 'order not found'], 404);
         }
+
+        // Jejak audit: simpan transaction_id + payload notifikasi terakhir.
+        $sub->forceFill([
+            'midtrans_transaction_id' => $request->input('transaction_id', $sub->midtrans_transaction_id),
+            'gateway_payload'         => $request->all(),
+        ])->save();
 
         // Already activated → acknowledge idempotently.
         if ($sub->status === 'active') {

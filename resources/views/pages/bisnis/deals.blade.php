@@ -162,6 +162,10 @@
                 <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
                     <div class="w-8 h-8 rounded-lg bg-white border border-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">{{ strtoupper(substr($pr->name, 0, 1)) }}</div>
                     <span class="flex-1 text-sm font-bold text-gray-800 truncate">{{ $pr->name }}</span>
+                    <a href="{{ route('kolaborasi.workspace', $pr->id) }}" title="{{ __('Buka folder produk (kolaborasi, template, statistik)') }}"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-black hover:bg-gray-200 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+                    </a>
                     <form method="POST" action="{{ route('bisnis.product.destroy', $pr->id) }}" class="m-0">
                         @csrf @method('DELETE')
                         <button type="button" onclick="askDelete(this, '{{ __('Hapus produk ini? Proposal lama tidak terpengaruh.') }}')" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
@@ -208,6 +212,7 @@ function openEdit(d){
     if (ps._csRefresh) ps._csRefresh();
     openModal('modal-edit');
 }
+
 </script>
 @endpush
 @endsection

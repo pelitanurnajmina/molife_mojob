@@ -107,10 +107,57 @@ class FinanceController extends Controller
         $incomeCats  = self::INCOME_CATS;
         $expenseCats = self::EXPENSE_CATS;
 
+        // AI receipt scan (premium plans only)
+        $scanPremium    = \App\Services\SubscriptionService::hasPremium($userId);
+        $scanConfigured = \App\Services\ReceiptScanService::configured();
+        $scanRemaining      = $scanPremium ? \App\Services\ReceiptScanService::remainingToday($userId) : 0;
+        $scanRemainingMonth = $scanPremium ? \App\Services\ReceiptScanService::remainingThisMonth($userId) : 0;
+
         return view('pages.finance.transaksi', compact(
             'monthKey', 'summary', 'transactions', 'incomeCats', 'expenseCats',
-            'isFreemium', 'daysLimit', 'hiddenCount'
+            'isFreemium', 'daysLimit', 'hiddenCount',
+            'scanPremium', 'scanConfigured', 'scanRemaining', 'scanRemainingMonth'
         ));
+    }
+
+    /** AI receipt scan endpoint: photo in, structured transaction out (premium only). */
+    public function scanReceipt(Request $request)
+    {
+        $userId = auth()->id();
+
+        if (!\App\Services\SubscriptionService::hasPremium($userId)) {
+            return response()->json([
+                'error' => __('Scan struk hanya tersedia di paket 6 Bulan dan 1 Tahun.'),
+            ], 403);
+        }
+
+        $request->validate([
+            'receipt' => 'required|file|mimes:jpg,jpeg,png,webp|max:8192',
+        ], [
+            'receipt.mimes' => __('Format harus JPG, PNG, atau WebP.'),
+            'receipt.max'   => __('Ukuran maksimal 8 MB.'),
+        ]);
+
+        try {
+            $file   = $request->file('receipt');
+            $result = \App\Services\ReceiptScanService::scan(
+                $userId,
+                file_get_contents($file->getRealPath()),
+                $file->getMimeType() ?: 'image/jpeg',
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Receipt scan failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => __('Gagal memproses struk. Coba lagi.')], 502);
+        }
+
+        return response()->json([
+            'ok'              => true,
+            'data'            => $result,
+            'remaining'       => \App\Services\ReceiptScanService::remainingToday($userId),
+            'remaining_month' => \App\Services\ReceiptScanService::remainingThisMonth($userId),
+        ]);
     }
 
     public function addTransaction(Request $request)

@@ -108,6 +108,24 @@ class StatistikKarirController extends Controller
         ));
     }
 
+    /* ── Lowongan Kerja (premium): free public job feeds + link out ── */
+    public function lowongan(Request $request)
+    {
+        $userId     = auth()->id();
+        $hasPremium = \App\Services\SubscriptionService::hasPremium($userId);
+
+        // Default keyword follows the user's career target role.
+        $targetRole = CareerGoal::firstOrNew(['user_id' => $userId])->target_role ?? '';
+        $keyword    = trim((string) $request->query('q', '')) ?: $targetRole;
+
+        $jobs = [];
+        if ($hasPremium && trim($keyword) !== '') {
+            $jobs = \App\Services\JobFeedService::search($keyword);
+        }
+
+        return view('pages.karir.lowongan', compact('hasPremium', 'keyword', 'targetRole', 'jobs'));
+    }
+
     public function updateGoals(Request $request)
     {
         $validated = $request->validate([

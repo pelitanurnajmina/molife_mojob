@@ -11,7 +11,6 @@ class Features
     {
         return [
             'sholat'       => true,
-            'spiritual'    => false,
             'gym'          => true,
             'run'          => true,
             'cycling'      => false,

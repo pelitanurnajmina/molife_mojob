@@ -47,11 +47,26 @@ Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : view('landing');
 })->name('landing');
 
+/* ── Blog (public, SEO) ── */
+Route::get('/blog',          [\App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}',   [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
+Route::get('/sitemap.xml',   [\App\Http\Controllers\BlogController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', function () {
+    $body = "User-agent: *\nAllow: /\n\nSitemap: " . route('sitemap') . "\n";
+    return response($body, 200)->header('Content-Type', 'text/plain');
+});
+
 Route::get('/login',     [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login',    [AuthController::class, 'login'])->name('login.post');
 Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
+
+// Lupa password
+Route::get('/forgot-password',        [\App\Http\Controllers\PasswordResetController::class, 'request'])->name('password.request');
+Route::post('/forgot-password',       [\App\Http\Controllers\PasswordResetController::class, 'email'])->name('password.email');
+Route::get('/reset-password/{token}', [\App\Http\Controllers\PasswordResetController::class, 'reset'])->name('password.reset');
+Route::post('/reset-password',        [\App\Http\Controllers\PasswordResetController::class, 'update'])->name('password.update');
 
 // Login with Google (Socialite)
 Route::get('/auth/google',          [AuthController::class, 'redirectToGoogle'])->name('auth.google');
@@ -73,6 +88,20 @@ Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
 // Midtrans payment notification (public webhook — verified by signature, no CSRF)
 Route::post('/subscription/webhook', [SubscriptionController::class, 'webhook'])->name('subscription.webhook');
 
+// Kolaborasi bisnis (sisi kolaborator) — TANPA paywall langganan: undangan hanya
+// membuka workspace produk tertentu, bukan seluruh aplikasi.
+Route::get('/kolaborasi/terima/{token}', [\App\Http\Controllers\BisnisCollabController::class, 'accept'])->name('kolaborasi.terima');
+Route::middleware(['auth.simple', 'require.onboarding'])->prefix('kolaborasi')->name('kolaborasi.')->group(function () {
+    Route::get('/',        [\App\Http\Controllers\BisnisCollabController::class, 'index'])->name('index');
+    Route::get('/{productId}', [\App\Http\Controllers\BisnisCollabController::class, 'workspace'])->whereNumber('productId')->name('workspace');
+    Route::post('/{productId}/proposal',          [\App\Http\Controllers\BisnisCollabController::class, 'storeDeal'])->name('deal.store');
+    Route::post('/{productId}/proposal/{id}',     [\App\Http\Controllers\BisnisCollabController::class, 'updateDeal'])->name('deal.update');
+    Route::delete('/{productId}/proposal/{id}',   [\App\Http\Controllers\BisnisCollabController::class, 'destroyDeal'])->name('deal.destroy');
+    Route::post('/{productId}/template',          [\App\Http\Controllers\BisnisCollabController::class, 'storeTemplate'])->name('template.store');
+    Route::post('/{productId}/template/{id}',     [\App\Http\Controllers\BisnisCollabController::class, 'updateTemplate'])->name('template.update');
+    Route::delete('/{productId}/template/{id}',   [\App\Http\Controllers\BisnisCollabController::class, 'destroyTemplate'])->name('template.destroy');
+});
+
 Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/tour/done', [DashboardController::class, 'completeTour'])->name('tour.done');
@@ -89,6 +118,7 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
     Route::post('/sholat/toggle-takbir',  [SholatController::class, 'toggleTakbir'])->name('sholat.toggle-takbir');
     Route::post('/sholat/toggle-rawatib', [SholatController::class, 'toggleRawatib'])->name('sholat.toggle-rawatib');
     Route::post('/sholat/toggle-sunnah',  [SholatController::class, 'toggleSunnah'])->name('sholat.toggle-sunnah');
+    Route::post('/sholat/toggle-excused', [SholatController::class, 'toggleExcused'])->name('sholat.toggle-excused');
 
     // Spiritual (non-Islam)
     Route::get('/spiritual',        [SpiritualController::class, 'index'])->name('spiritual');
@@ -169,6 +199,7 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
 
     // Career Hub
     Route::get('/karir', [StatistikKarirController::class, 'index'])->name('karir');
+    Route::get('/karir/lowongan', [StatistikKarirController::class, 'lowongan'])->name('karir.lowongan');
     Route::post('/karir/goals', [StatistikKarirController::class, 'updateGoals'])->name('karir.goals');
     Route::post('/karir/contact', [StatistikKarirController::class, 'storeContact'])->name('karir.contact.store');
     Route::delete('/karir/contact/{id}', [StatistikKarirController::class, 'destroyContact'])->name('karir.contact.destroy');
@@ -192,6 +223,9 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
         // Products
         Route::post('/produk',        [BisnisController::class, 'storeProduct'])->name('product.store');
         Route::delete('/produk/{id}', [BisnisController::class, 'destroyProduct'])->name('product.destroy');
+        // Kolaborasi per produk (sisi owner, dikelola dari folder produk /kolaborasi/{id})
+        Route::post('/produk/{id}/kolaborator',  [\App\Http\Controllers\BisnisCollabController::class, 'invite'])->name('collab.invite');
+        Route::delete('/kolaborator/{collabId}', [\App\Http\Controllers\BisnisCollabController::class, 'removeMember'])->name('collab.remove');
         // Documents
         Route::get('/dokumen',          [BisnisDocController::class, 'index'])->name('docs');
         Route::post('/dokumen/link',    [BisnisDocController::class, 'storeLink'])->name('docs.link');
@@ -207,6 +241,7 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
         Route::get('/',                  [FinanceController::class, 'index'])->name('index');
         Route::get('/transaksi',         [FinanceController::class, 'transaksi'])->name('transaksi');
         Route::post('/transaksi',        [FinanceController::class, 'addTransaction'])->name('transaksi.add');
+        Route::post('/scan-struk',       [FinanceController::class, 'scanReceipt'])->name('scan-struk');
         Route::delete('/transaksi/{id}', [FinanceController::class, 'deleteTransaction'])->name('transaksi.delete');
         Route::get('/anggaran',          [FinanceController::class, 'anggaran'])->name('anggaran');
         Route::post('/anggaran',         [FinanceController::class, 'setBudget'])->name('anggaran.set');

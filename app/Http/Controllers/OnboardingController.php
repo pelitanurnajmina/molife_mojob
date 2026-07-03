@@ -20,7 +20,7 @@ class OnboardingController extends Controller
     {
         $request->validate([
             'display_name'      => 'required|string|max:100',
-            'religion'          => 'required|string|in:islam,kristen,hindu,buddha,lainnya,none',
+            'gender'            => 'required|in:male,female',
             'sports'            => 'nullable|array',
             'custom_sport_name' => 'nullable|string|max:50',
             'features'          => 'nullable|array',
@@ -28,30 +28,22 @@ class OnboardingController extends Controller
         ]);
 
         $userId   = auth()->id();
-        $religion = $request->religion;
         $sports   = $request->sports ?? [];
         $features = $request->features ?? [];
 
-        // Save profile
+        // Save profile (Molife is Islam-focused — religion fixed to 'islam').
         $profile = Profile::model($userId);
         $profile->fill([
             'setup_done'        => true,
             'display_name'      => trim($request->display_name),
-            'religion'          => $religion,
+            'gender'            => $request->gender,
+            'religion'          => 'islam',
             'custom_sport_name' => trim($request->custom_sport_name ?? ''),
         ])->save();
 
-        // Spiritual features from religion
-        if ($religion === 'islam') {
-            Features::set($userId, 'sholat', true);
-            Features::set($userId, 'spiritual', false);
-        } elseif ($religion === 'none') {
-            Features::set($userId, 'sholat', false);
-            Features::set($userId, 'spiritual', false);
-        } else {
-            Features::set($userId, 'sholat', false);
-            Features::set($userId, 'spiritual', true);
-        }
+        // Spiritual feature: sholat tracker on for everyone.
+        Features::set($userId, 'sholat', true);
+        Features::set($userId, 'spiritual', false);
 
         // Sport features
         foreach (['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'] as $sport) {

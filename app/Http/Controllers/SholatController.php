@@ -22,6 +22,11 @@ class SholatController extends Controller
         $takbirStreak = SholatService::takbirStreak($userId);
         $monthDates   = Dates::monthDates();
 
+        // Gender-aware uzur (haid) handling — only relevant for women.
+        $isFemale     = Profile::isFemale($userId);
+        $isExcused    = SholatService::isExcused($userId, $date);
+        $excusedMap   = SholatService::excusedMap($userId, $monthDates);
+
         // Precompute stats per day for the month calendar
         $monthStats = [];
         foreach ($monthDates as $d) {
@@ -66,8 +71,15 @@ class SholatController extends Controller
         return view('pages.sholat', compact(
             'date', 'today', 'sholatData', 'sholatStats', 'streak', 'takbirStreak',
             'monthDates', 'monthStats', 'range', 'months', 'stripRows', 'rangeActive', 'rangeTitle',
-            'prayerTimes', 'prayerCityLabel', 'nextPrayer'
+            'prayerTimes', 'prayerCityLabel', 'nextPrayer',
+            'isFemale', 'isExcused', 'excusedMap'
         ));
+    }
+
+    public function toggleExcused(Request $request)
+    {
+        SholatService::toggleExcused(auth()->id(), $request->date);
+        return redirect()->back();
     }
 
     public function toggleWajib(Request $request)

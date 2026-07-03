@@ -39,6 +39,16 @@
                     <p class="text-[10px] text-gray-400 mt-1">{{ __('Digunakan untuk login') }}</p>
                 </div>
             </div>
+            <div class="mb-5 sm:max-w-[calc(50%-0.5rem)]">
+                <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Jenis Kelamin') }}</label>
+                <select name="gender"
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-gray-400 focus:bg-white transition-all">
+                    <option value="" {{ ($profile['gender'] ?? '') === '' ? 'selected' : '' }}>{{ __('Tidak ditentukan') }}</option>
+                    <option value="male" {{ ($profile['gender'] ?? '') === 'male' ? 'selected' : '' }}>{{ __('Laki-laki') }}</option>
+                    <option value="female" {{ ($profile['gender'] ?? '') === 'female' ? 'selected' : '' }}>{{ __('Perempuan') }}</option>
+                </select>
+                <p class="text-[10px] text-gray-400 mt-1">{{ __('Menyesuaikan fitur seperti penanganan hari uzur di tracker sholat.') }}</p>
+            </div>
             @error('username')<p class="text-xs text-red-500 mb-3">{{ $message }}</p>@enderror
             <button type="submit" class="px-6 py-2.5 bg-black text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all">
                 {{ __('Simpan Profil') }}

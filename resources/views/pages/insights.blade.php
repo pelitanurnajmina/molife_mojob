@@ -261,7 +261,7 @@
             <div class="p-4 bg-green-50 rounded-2xl">
                 <p class="text-2xl font-bold text-green-700">{{ $sholatDaysMonth }}</p>
                 <p class="text-xs text-green-600 font-bold mt-1">{{ __('hari sholat penuh') }}</p>
-                <p class="text-[10px] text-green-500 mt-0.5">{{ $todayStats['takbir'] }}/5 takbir {{ __('hari ini') }}</p>
+                <p class="text-[10px] text-green-500 mt-0.5">{{ $todayStats['takbir'] }}/5 {{ \App\Support\Profile::prayerQuality()['short'] }} {{ __('hari ini') }}</p>
             </div>
             <div class="p-4 bg-blue-50 rounded-2xl">
                 <p class="text-2xl font-bold text-blue-700">{{ $gymMonthly }}</p>

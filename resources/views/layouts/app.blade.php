@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="id">
+<html lang="id" style="background-color:#F8F9FA">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=2">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -28,21 +28,22 @@
         @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
         .animate-fade-in { animation: fadeIn .3s ease; }
 
-        /* ── Page transitions ── */
-        @keyframes pageIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+        /* ── Page transitions ──
+           Cross-document View Transitions: browser menahan tampilan halaman lama
+           sampai halaman baru siap, lalu crossfade. Tidak ada layar putih/kedip.
+           (Chrome/Edge/Safari terbaru; browser lain fallback ke navigasi biasa.) */
+        @view-transition { navigation: auto; }
+        @keyframes vtOut { to { opacity: 0; } }
+        @keyframes vtIn  { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        ::view-transition-old(root) { animation: vtOut .12s ease-out both; }
+        ::view-transition-new(root) { animation: vtIn .22s ease-out both; }
+        @media (prefers-reduced-motion: reduce) {
+            ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
         }
-        .page-content {
-            animation: pageIn .22s ease-out both;
-            will-change: opacity;
-        }
-
-        /* Exit state — pure opacity fade before navigation */
-        .page-leaving {
-            opacity: 0;
-            transition: opacity .12s ease-out;
-        }
+        /* Fallback universal (browser tanpa View Transitions): fade-in singkat
+           supaya kemunculan halaman tidak "menghentak". */
+        @keyframes pageIn { from { opacity: .35; } to { opacity: 1; } }
+        .page-content { animation: pageIn .18s ease-out both; }
 
         /* Subtle hover lift for nav items + cards */
         .nav-item { transition: background-color .15s ease, color .15s ease, transform .15s ease; }
@@ -107,10 +108,6 @@
         .form-check-orange + .sport-icon { color: #6b7280; transition: color .15s ease; }
         .form-check-orange:checked + .sport-icon { color: #EF8221; }
 
-        /* Respect reduced motion */
-        @media (prefers-reduced-motion: reduce) {
-            .page-content, .page-leaving { animation: none !important; transition: none !important; }
-        }
         /* Status pills */
         .pill-wishlist  { background:#f3e8ff; color:#6d28d9; }
         .pill-applied   { background:#f1f5f9; color:#334155; }
@@ -274,13 +271,6 @@
     $_feats   = auth()->check() ? \App\Support\Features::map() : [];
     $_profile = auth()->check() ? \App\Support\Profile::data() : [];
     $_f       = fn($k) => $_feats[$k] ?? false;
-    $_religion = $_profile['religion'] ?? '';
-    $_spiritualLabel = match($_religion) {
-        'kristen'        => 'Ibadah',
-        'hindu','buddha' => 'Sembahyang',
-        'lainnya'        => 'Spiritual',
-        default          => 'Spiritual',
-    };
     $_sportLabel = $_profile['custom_sport_name'] ?? __('Olahraga');
 @endphp
 
@@ -316,7 +306,6 @@
 
             $lifeNav = [
                 ['route'=>'sholat',     'feat'=>'sholat',       'label'=>__('Sholat'),          'match'=>'sholat',      'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
-                ['route'=>'spiritual',  'feat'=>'spiritual',    'label'=>$_spiritualLabel,      'match'=>'spiritual',   'icon'=>'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
                 ['route'=>'gym',        'feat'=>'gym',          'label'=>'Gym',                 'match'=>'gym',         'icon'=>'M13 10V3L4 14h7v7l9-11h-7z'],
                 ['route'=>'run',        'feat'=>'run',          'label'=>__('Lari'),            'match'=>'run',         'icon'=>'M22 12h-4l-3 9L9 3l-3 9H2'],
                 ['route'=>'cycling',    'feat'=>'cycling',      'label'=>__('Bersepeda'),       'match'=>'cycling',     'icon'=>'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'],
@@ -339,6 +328,7 @@
             $careerNav = [
                 ['route'=>'karir',           'feat'=>'lamaran',   'match'=>'karir',       'label'=>__('Overview'),          'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
                 ['route'=>'lamaran.index',   'feat'=>'lamaran',   'match'=>'lamaran.*',   'label'=>__('Lamaran Kerja'),     'icon'=>'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                ['route'=>'karir.lowongan',  'feat'=>'lamaran',   'match'=>'karir.lowongan', 'label'=>__('Lowongan Kerja'), 'icon'=>'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'persiapan.index', 'feat'=>'persiapan', 'match'=>'persiapan.*', 'label'=>__('Persiapan Melamar'),'icon'=>'M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z'],
             ];
 
@@ -347,6 +337,11 @@
                 ['route'=>'bisnis.deals', 'feat'=>'bisnis', 'match'=>'bisnis.deals', 'label'=>__('Proposal & Klien'), 'icon'=>'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
                 ['route'=>'bisnis.docs',  'feat'=>'bisnis', 'match'=>'bisnis.docs',  'label'=>__('Dokumen & File'),  'icon'=>'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z'],
             ];
+            // Kolaborasi: tampil bila user diundang ke produk orang lain (tanpa perlu fitur bisnis aktif).
+            $hasCollab = \App\Services\CollabService::hasAny(auth()->id());
+            if ($hasCollab) {
+                $businessNav[] = ['route'=>'kolaborasi.index', 'match'=>'kolaborasi.*', 'label'=>__('Kolaborasi'), 'icon'=>'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'];
+            }
 
             $financeNav = [
                 ['route'=>'finance.index',    'feat'=>'finance', 'match'=>'finance.index',   'label'=>__('Overview'),      'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
@@ -365,7 +360,7 @@
             /* Determine which section is active */
             $activeSection = 'life';
             if (request()->routeIs('karir') || request()->routeIs('lamaran.*') || request()->routeIs('persiapan.*')) $activeSection = 'karir';
-            if (request()->routeIs('bisnis.*'))   $activeSection = 'bisnis';
+            if (request()->routeIs('bisnis.*') || request()->routeIs('kolaborasi.*')) $activeSection = 'bisnis';
             if (request()->routeIs('finance.*'))  $activeSection = 'finance';
             if (request()->routeIs('settings.*') || request()->routeIs('settings')) $activeSection = 'settings';
 
@@ -563,7 +558,6 @@
     $mobileNavAll = [
         ['route'=>'dashboard',       'match'=>'dashboard',    'label'=>'Home',                       'icon'=>$_ico['dashboard'],    'show'=>true],
         ['route'=>'sholat',          'match'=>'sholat',       'label'=>'Sholat',                     'icon'=>$_ico['spiritual'],    'show'=>$_f('sholat')],
-        ['route'=>'spiritual',       'match'=>'spiritual',    'label'=>mb_substr($_spiritualLabel,0,7),'icon'=>$_ico['spiritual'],   'show'=>$_f('spiritual')],
         ['route'=>'gym',             'match'=>'gym',          'label'=>'Gym',                        'icon'=>$_ico['gym'],          'show'=>$_f('gym')],
         ['route'=>'run',             'match'=>'run',          'label'=>'Lari',                       'icon'=>$_ico['run'],          'show'=>$_f('run')],
         ['route'=>'cycling',         'match'=>'cycling',      'label'=>'Sepeda',                     'icon'=>$_ico['cycling'],      'show'=>$_f('cycling')],
@@ -952,50 +946,6 @@
         } catch(e) {}
     })();
 
-    /* ── Smooth page transitions ── */
-    (function() {
-        // BFCache: re-trigger fade-in when navigating back
-        window.addEventListener('pageshow', function(e) {
-            var pc = document.getElementById('pageContent');
-            if (pc) {
-                pc.classList.remove('page-leaving');
-                pc.style.opacity = '';
-                pc.style.transform = '';
-            }
-        });
-
-        // Intercept internal navigation links and fade-out before navigation
-        document.addEventListener('click', function(e) {
-            var a = e.target.closest('a[href]');
-            if (!a) return;
-            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // open in new tab/window
-            if (a.target && a.target !== '_self') return;
-            if (a.hasAttribute('download')) return;
-
-            var url = a.getAttribute('href');
-            if (!url || url.startsWith('#') || url.startsWith('javascript:') ||
-                url.startsWith('mailto:') || url.startsWith('tel:')) return;
-
-            // Only same-origin
-            try {
-                var dest = new URL(a.href, window.location.href);
-                if (dest.origin !== window.location.origin) return;
-                if (dest.pathname === window.location.pathname &&
-                    dest.search === window.location.search) return; // same page
-            } catch (err) { return; }
-
-            // Respect reduced-motion
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-            var pc = document.getElementById('pageContent');
-            if (!pc) return;
-
-            e.preventDefault();
-            pc.classList.add('page-leaving');
-            setTimeout(function() { window.location.href = a.href; }, 110);
-        });
-    })();
-
     function getState() {
         try { return JSON.parse(localStorage.getItem('sbState') || '{}'); } catch(e) { return {}; }
     }
@@ -1169,6 +1119,7 @@ function fpBuildMonthPicker(fp) {
 
     /* Panel appended to body so it escapes any overflow/stacking context */
     var panel = document.createElement('div');
+    panel.className = 'fp-month-panel';
     panel.style.cssText = [
         'display:none', 'position:fixed',
         'background:#fff', 'border-radius:16px',
@@ -1201,7 +1152,13 @@ function fpBuildMonthPicker(fp) {
         panel.style.display = 'block';
     });
 
-    document.addEventListener('click', function() { panel.style.display = 'none'; });
+    /* One global closer for all month panels (avoids listener piling up on re-init) */
+    if (!window.__fpPanelCloser) {
+        window.__fpPanelCloser = function () {
+            document.querySelectorAll('.fp-month-panel').forEach(function (p) { p.style.display = 'none'; });
+        };
+        document.addEventListener('click', window.__fpPanelCloser);
+    }
 
     /* Replace native select with button */
     select.parentNode.replaceChild(btn, select);
@@ -1210,9 +1167,15 @@ function fpBuildMonthPicker(fp) {
     fp.config.onMonthChange.push(setLabel);
 }
 
-/* ── Flatpickr Init ── */
-document.addEventListener('DOMContentLoaded', function () {
+/* ── Flatpickr Init (reusable — dipanggil ulang setelah konten di-swap AJAX) ── */
+window.initDatePickers = function () {
+    /* Bersihkan instance & panel bulan lama agar tidak menumpuk */
+    (window.__fpInstances || []).forEach(function (fp) { try { fp.destroy(); } catch (e) {} });
+    window.__fpInstances = [];
+    document.querySelectorAll('.fp-month-panel').forEach(function (p) { p.remove(); });
+
     document.querySelectorAll('input[type="date"]').forEach(function (input) {
+        if (input._flatpickr) { try { input._flatpickr.destroy(); } catch (e) {} }
         var originalOnchange = input.onchange;
         var maxDate    = input.getAttribute('max')  || null;
         var minDate    = input.getAttribute('min')  || null;
@@ -1244,6 +1207,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (originalOnchange) originalOnchange.call(input);
             },
         });
+        if (input._flatpickr) window.__fpInstances.push(input._flatpickr);
+    });
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initDatePickers);
+} else {
+    window.initDatePickers();
+}
+
+/* ── Instant forms (data-instant): submit tanpa reload, konten di-swap di tempat ──
+   Dipakai untuk toggle cepat (mis. ceklis sholat) supaya tidak ada kedipan reload. */
+document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-instant')) return;
+    e.preventDefault();
+
+    var fd = new FormData(form);
+    form.querySelectorAll('button[type="submit"]').forEach(function (b) {
+        b.classList.add('opacity-60', 'pointer-events-none');
+    });
+
+    fetch(form.action, {
+        method: (form.method || 'POST').toUpperCase(),
+        body: fd,
+        credentials: 'same-origin',
+        headers: { 'Accept': 'text/html' },
+    }).then(function (res) { return res.text(); }).then(function (html) {
+        var doc   = new DOMParser().parseFromString(html, 'text/html');
+        var fresh = doc.getElementById('pageContent');
+        var cur   = document.getElementById('pageContent');
+        if (!fresh || !cur) { window.location.reload(); return; }
+
+        var swap = function () {
+            cur.innerHTML = fresh.innerHTML;
+            if (window.initCustomSelects) try { window.initCustomSelects(); } catch (err) {}
+            if (window.initDatePickers)  try { window.initDatePickers(); }  catch (err) {}
+        };
+        if (document.startViewTransition) document.startViewTransition(swap);
+        else swap();
+    }).catch(function () {
+        // Fallback: submit biasa (full reload)
+        form.removeAttribute('data-instant');
+        form.requestSubmit ? form.requestSubmit() : form.submit();
     });
 });
 

@@ -69,7 +69,7 @@
                 <p class="text-xs font-bold text-gray-500 mb-3">{{ __('Agama / Kepercayaan') }}</p>
                 @php
                 $religions = [
-                    ['value'=>'islam',   'label'=>'Islam',       'sub'=>'Sholat 5 waktu, Rawatib, Takbir'],
+                    ['value'=>'islam',   'label'=>'Islam',       'sub'=>'Sholat 5 waktu, Rawatib, Tepat Waktu'],
                     ['value'=>'kristen', 'label'=>'Kristen',     'sub'=>'Doa harian, Baca Alkitab, Ibadah Minggu'],
                     ['value'=>'hindu',   'label'=>'Hindu',       'sub'=>'Sembahyang pagi/sore, Meditasi'],
                     ['value'=>'buddha',  'label'=>'Buddha',      'sub'=>'Sembahyang pagi/sore, Meditasi'],
@@ -152,7 +152,6 @@
         $featureGroups = [
             'Life' => [
                 ['key'=>'sholat',      'label'=>'Sholat',           'desc'=>'Tracker sholat wajib, rawatib & sunnah'],
-                ['key'=>'spiritual',   'label'=>'Spiritual',         'desc'=>'Ibadah / Sembahyang / Praktik spiritual'],
                 ['key'=>'gym',         'label'=>'Gym',               'desc'=>'Log sesi gym dan kalori terbakar'],
                 ['key'=>'run',         'label'=>'Lari',              'desc'=>'Tracker jarak, pace, dan sesi lari'],
                 ['key'=>'cycling',     'label'=>'Bersepeda',         'desc'=>'Track km dan durasi bersepeda'],

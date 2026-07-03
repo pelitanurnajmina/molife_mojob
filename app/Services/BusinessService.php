@@ -18,19 +18,23 @@ class BusinessService
         ];
     }
 
-    public static function counts(int $userId): array
+    public static function counts(int $userId, ?string $product = null): array
     {
         $rows = BusinessDeal::where('user_id', $userId)
+            ->when($product !== null, fn($q) => $q->where('product', $product))
             ->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status')->toArray();
         $out = [];
         foreach (array_keys(self::statuses()) as $s) $out[$s] = (int) ($rows[$s] ?? 0);
         return $out;
     }
 
-    public static function analytics(int $userId): array
+    /** Analitik; bila $product diisi, semua angka di-scope ke produk itu saja (dipakai kolaborasi). */
+    public static function analytics(int $userId, ?string $product = null): array
     {
-        $deals  = BusinessDeal::where('user_id', $userId)->get();
-        $counts = self::counts($userId);
+        $deals  = BusinessDeal::where('user_id', $userId)
+            ->when($product !== null, fn($q) => $q->where('product', $product))
+            ->get();
+        $counts = self::counts($userId, $product);
         $total  = $deals->count();
 
         $active        = $counts['lead'] + $counts['sent'] + $counts['negotiation'];

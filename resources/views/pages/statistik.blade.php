@@ -29,7 +29,7 @@
                     @if($row['key'] === 'sholat')
                     <div class="flex items-center gap-3 text-[10px]">
                         <div class="flex items-center gap-1"><div class="w-3 h-3 bg-green-500 rounded"></div><span class="text-gray-500">5 {{ __('Wajib') }}</span></div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-yellow-400 rounded"></div><span class="text-gray-500">5 {{ __('Takbir') }}</span></div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-yellow-400 rounded"></div><span class="text-gray-500">5 {{ \App\Support\Profile::prayerQuality()['label'] }}</span></div>
                     </div>
                     @endif
                 </div>

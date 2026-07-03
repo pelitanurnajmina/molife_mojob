@@ -274,7 +274,7 @@
             <div class="p-4 bg-green-50 rounded-2xl">
                 <p class="text-2xl font-bold text-green-700">{{ $sholatDaysMonth }}</p>
                 <p class="text-xs text-green-600 font-bold mt-1">{{ __('hari sholat penuh') }}</p>
-                <p class="text-[10px] text-green-500 mt-0.5">{{ $todayStats['takbir'] }}/5 takbir {{ __('hari ini') }}</p>
+                <p class="text-[10px] text-green-500 mt-0.5">{{ $todayStats['takbir'] }}/5 {{ \App\Support\Profile::prayerQuality()['short'] }} {{ __('hari ini') }}</p>
             </div>
             <div class="p-4 bg-blue-50 rounded-2xl">
                 <p class="text-2xl font-bold text-blue-700">{{ $gymMonthly }}</p>
@@ -368,7 +368,7 @@
         { sel: '#dashKpis',     title: '{{ __('Ringkasan cepat') }}',            text: '{{ __('Skor hidup, streak sholat, fokus, dan keuangan dalam sekejap.') }}' },
         { sel: '#dashInsights', title: '{{ __('Insight harian') }}',             text: '{{ __('Saran & pola dari semua aktivitasmu muncul di sini setiap hari.') }}' },
         { sel: '[data-tour="dashboard-nav"]', r: true, title: '{{ __('Dashboard') }}', text: '{{ __('Halaman ini — pusat ringkasan semua aktivitasmu.') }}' },
-        { sel: '[data-feat="sholat"]',   r: true, open: 'life', title: '{{ __('Sholat') }}',      text: '{{ __('Catat sholat 5 waktu, rawatib & takbir, plus jadwal otomatis sesuai lokasi.') }}' },
+        { sel: '[data-feat="sholat"]',   r: true, open: 'life', title: '{{ __('Sholat') }}',      text: '{{ __('Catat sholat 5 waktu, rawatib & tepat waktu, plus jadwal otomatis sesuai lokasi.') }}' },
         { sel: '[data-feat="pomodoro"]', r: true, open: 'life', title: 'Pomodoro',                text: '{{ __('Timer fokus yang tetap berjalan walau kamu pindah menu.') }}' },
         { sel: '[data-feat="tasks"]',    r: true, open: 'life', title: 'Tasks & Notes',           text: '{{ __('To-do harian & mingguan, catatan, refleksi, dan riwayatnya.') }}' },
         { sel: '[data-feat="goals"]',    r: true, open: 'life', title: '{{ __('Goals & Reminder') }}', text: '{{ __('Target bulanan & pengingat, termasuk atur lokasi jadwal sholat.') }}' },

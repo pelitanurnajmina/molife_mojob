@@ -30,10 +30,38 @@ class Profile
             'setup_done'        => (bool) $p->setup_done,
             'display_name'      => $p->display_name ?? '',
             'religion'          => $p->religion ?? '',
+            'gender'            => $p->gender ?? '',
             'custom_sport_name' => $p->custom_sport_name ?? '',
             'sports'            => $sports,
             'plan'              => $p->plan ?? 'freemium',
             'referral_code'     => $p->referral_code ?? '',
+        ];
+    }
+
+    /* ── Gender ── */
+    public static function gender(?int $userId = null): ?string
+    {
+        return self::model($userId)->gender;
+    }
+    public static function isFemale(?int $userId = null): bool
+    {
+        return self::model($userId)->gender === 'female';
+    }
+
+    /**
+     * Label set for the sholat "quality" metric, gender-aware.
+     * Women: "Tepat Waktu" (praying at the start of its time).
+     * Men & legacy/unset accounts: "Takbir Pertama" (first takbir with the imam).
+     */
+    public static function prayerQuality(?int $userId = null): array
+    {
+        $takbir = self::gender($userId) !== 'female';
+        return [
+            'button' => $takbir ? __('Takbir')          : __('Tepat Waktu'),
+            'label'  => $takbir ? __('Takbir Pertama')  : __('Tepat Waktu'),
+            'streak' => $takbir ? __('Streak Takbir')   : __('Streak Tepat Waktu'),
+            'short'  => $takbir ? __('takbir')          : __('tepat waktu'),
+            'tip'    => $takbir ? __('Takbir pertama bersama imam') : __('Sholat di awal waktu'),
         ];
     }
 

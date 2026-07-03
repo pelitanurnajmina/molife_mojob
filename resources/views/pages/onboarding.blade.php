@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" style="background-color:#F8F9FA">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,9 +10,11 @@
     <link rel="apple-touch-icon" href="{{ asset('images/icon.png') }}?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=2">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @view-transition { navigation: auto; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
         .option-card { transition: all .18s; cursor: pointer; }
         .option-card.selected { border-color: #111827 !important; background: #111827 !important; color: #fff !important; }
         .option-card.selected .opt-icon { color: #fff !important; }
@@ -21,6 +23,9 @@
         .sport-card, .feat-card { transition: all .18s; cursor: pointer; }
         .sport-card.selected, .feat-card.selected { border-color: #111827 !important; background: #111827 !important; color: #fff !important; }
         .feat-card.selected .fc-sub { color: #9ca3af !important; }
+        .gender-card { transition: all .18s; cursor: pointer; }
+        .gender-card.selected { border-color: #111827 !important; background: #111827 !important; color: #fff !important; }
+        .gender-card.selected svg { color: #fff !important; }
         .step-panel { display: none; }
         .step-panel.active { display: block; }
         @keyframes slideIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
@@ -41,17 +46,16 @@
         <div id="prog1" class="h-1.5 flex-1 rounded-full bg-black transition-all duration-300"></div>
         <div id="prog2" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all duration-300"></div>
         <div id="prog3" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all duration-300"></div>
-        <div id="prog4" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all duration-300"></div>
     </div>
 
     <form method="POST" action="{{ route('onboarding.store') }}" id="onboardingForm">
         @csrf
-        <input type="hidden" name="religion"          id="hiddenReligion">
+        <input type="hidden" name="gender"            id="hiddenGender">
         <input type="hidden" name="custom_sport_name" id="hiddenCustomName" value="">
 
         {{-- ── Step 1: Name ── --}}
         <div class="step-panel active bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step1">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 1 dari 4</p>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 1 dari 3</p>
             <h2 class="text-2xl font-bold mb-1">Selamat datang di Molife 👋</h2>
             <p class="text-sm text-gray-500 mb-6">Yuk kenalan dulu — siapa namamu?</p>
 
@@ -61,59 +65,28 @@
                 class="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl text-base font-semibold outline-none focus:border-black transition-all"
                 required>
 
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-6 mb-2">Jenis Kelamin</p>
+            <div class="grid grid-cols-2 gap-2.5">
+                <div class="gender-card flex items-center justify-center gap-2 p-4 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-gray-300" onclick="selectGender('male', this)">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="10" cy="14" r="6"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 9.5L20 4m0 0h-5m5 0v5"/></svg>
+                    <span class="font-bold text-sm">Laki-laki</span>
+                </div>
+                <div class="gender-card flex items-center justify-center gap-2 p-4 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-gray-300" onclick="selectGender('female', this)">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v6m-3-3h6"/></svg>
+                    <span class="font-bold text-sm">Perempuan</span>
+                </div>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-2">Dipakai untuk menyesuaikan fitur (mis. penanganan hari uzur di tracker sholat).</p>
+
             <button type="button" onclick="goStep(2)"
                 class="w-full mt-6 py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
                 Lanjut
             </button>
         </div>
 
-        {{-- ── Step 2: Religion ── --}}
+        {{-- ── Step 2: Sports ── --}}
         <div class="step-panel bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step2">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 2 dari 4</p>
-            <h2 class="text-2xl font-bold mb-1">Agama / kepercayaan</h2>
-            <p class="text-sm text-gray-500 mb-6">Kami akan menyesuaikan fitur spiritual sesuai pilihanmu.</p>
-
-            <div class="space-y-2.5">
-                @php
-                $religions = [
-                    ['value'=>'islam',   'label'=>'Islam',       'sub'=>'Sholat 5 waktu, Rawatib, Takbir',       'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
-                    ['value'=>'kristen', 'label'=>'Kristen',     'sub'=>'Doa pagi/malam, Baca Alkitab, Ibadah',  'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                    ['value'=>'hindu',   'label'=>'Hindu',       'sub'=>'Sembahyang pagi/sore, Meditasi',         'icon'=>'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
-                    ['value'=>'buddha',  'label'=>'Buddha',      'sub'=>'Sembahyang pagi/sore, Meditasi',         'icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
-                    ['value'=>'lainnya', 'label'=>'Lainnya',     'sub'=>'Praktik spiritual & jurnal syukur',      'icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
-                    ['value'=>'none',    'label'=>'Tidak ada',   'sub'=>'Fitur spiritual disembunyikan',          'icon'=>'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'],
-                ];
-                @endphp
-
-                @foreach($religions as $rel)
-                <div class="option-card flex items-center gap-4 p-4 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-gray-300"
-                     onclick="selectReligion('{{ $rel['value'] }}', this)">
-                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 opt-icon">
-                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $rel['icon'] }}"/>
-                        </svg>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-bold text-sm opt-label">{{ $rel['label'] }}</p>
-                        <p class="text-xs text-gray-400 opt-sub">{{ $rel['sub'] }}</p>
-                    </div>
-                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0 opt-radio"></div>
-                </div>
-                @endforeach
-            </div>
-
-            <div class="flex gap-3 mt-6">
-                <button type="button" onclick="goStep(1)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
-                <button type="button" onclick="goStep(3)" id="btnStep2Next" disabled
-                    class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                    Lanjut
-                </button>
-            </div>
-        </div>
-
-        {{-- ── Step 3: Sports ── --}}
-        <div class="step-panel bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step3">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 3 dari 4</p>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 2 dari 3</p>
             <h2 class="text-2xl font-bold mb-1">Olahraga apa saja?</h2>
             <p class="text-sm text-gray-500 mb-6">Pilih yang kamu lakukan. Bisa lebih dari satu, atau lewati jika tidak ada.</p>
 
@@ -151,14 +124,14 @@
             </div>
 
             <div class="flex gap-3 mt-2">
-                <button type="button" onclick="goStep(2)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
-                <button type="button" onclick="goStep(4)" class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">Lanjut</button>
+                <button type="button" onclick="goStep(1)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
+                <button type="button" onclick="goStep(3)" class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">Lanjut</button>
             </div>
         </div>
 
-        {{-- ── Step 4: Other features ── --}}
-        <div class="step-panel bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step4">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 4 dari 4</p>
+        {{-- ── Step 3: Other features ── --}}
+        <div class="step-panel bg-white rounded-3xl p-6 md:p-8 shadow-sm" id="step3">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Langkah 3 dari 3</p>
             <h2 class="text-2xl font-bold mb-1">Fitur yang mau kamu pakai</h2>
             <p class="text-sm text-gray-500 mb-6">Aktifkan yang relevan. Semua bisa diubah lagi di Pengaturan.</p>
 
@@ -192,7 +165,7 @@
             </div>
 
             <div class="flex gap-3 mt-5">
-                <button type="button" onclick="goStep(3)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
+                <button type="button" onclick="goStep(2)" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">Kembali</button>
                 <button type="submit" id="btnFinish"
                     class="flex-[2] py-4 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
                     Mulai Sekarang
@@ -206,9 +179,16 @@
 
 <script>
 let currentStep = 1;
-const MAX_STEP = 4;
-let selectedReligion = '';
+const MAX_STEP = 3;
+let selectedGender = '';
 let selectedSports = new Set();
+
+function selectGender(value, card) {
+    document.querySelectorAll('.gender-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedGender = value;
+    document.getElementById('hiddenGender').value = value;
+}
 
 function goStep(n) {
     if (n > 1) {
@@ -219,8 +199,12 @@ function goStep(n) {
             return;
         }
         document.getElementById('displayName').style.borderColor = '';
+        if (!selectedGender) {
+            document.querySelectorAll('.gender-card').forEach(c => c.style.borderColor = '#ef4444');
+            return;
+        }
+        document.querySelectorAll('.gender-card').forEach(c => c.style.borderColor = '');
     }
-    if (n > 2 && !selectedReligion) return;
 
     document.getElementById('step' + currentStep).classList.remove('active');
     document.getElementById('step' + n).classList.add('active');
@@ -230,21 +214,6 @@ function goStep(n) {
         document.getElementById('prog' + i).style.background = (i <= n) ? '#111827' : '#e5e7eb';
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function selectReligion(value, card) {
-    document.querySelectorAll('.option-card').forEach(c => {
-        c.classList.remove('selected');
-        c.querySelector('.opt-radio').style.background = '';
-        c.querySelector('.opt-radio').style.borderColor = '#d1d5db';
-    });
-    card.classList.add('selected');
-    card.querySelector('.opt-radio').style.background = '#fff';
-    card.querySelector('.opt-radio').style.borderColor = '#fff';
-
-    selectedReligion = value;
-    document.getElementById('hiddenReligion').value = value;
-    document.getElementById('btnStep2Next').disabled = false;
 }
 
 function toggleSport(value, card) {

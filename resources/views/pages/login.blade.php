@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" style="background-color:#ffffff">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +10,8 @@
     <link rel="apple-touch-icon" href="{{ asset('images/icon.png') }}?v=2">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=2">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style>
 </head>
 <body class="min-h-screen bg-white">
 <div class="min-h-screen flex">
@@ -35,6 +35,12 @@
 
             <h2 class="text-3xl font-extrabold tracking-tight">{{ __('Selamat Datang Kembali') }}</h2>
             <p class="text-sm text-gray-500 mt-2">{{ __('Masuk untuk melanjutkan ke dashboard-mu.') }}</p>
+
+            @if(session('status'))
+            <div class="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 mt-6 text-sm font-medium">
+                {{ session('status') }}
+            </div>
+            @endif
 
             @if($errors->any())
             <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mt-6 text-sm font-medium">
@@ -72,6 +78,7 @@
                         <input type="checkbox" name="remember" id="remember" checked class="w-4 h-4 rounded border-gray-300 accent-black cursor-pointer">
                         <span class="text-sm text-gray-500">{{ __('Tetap masuk') }}</span>
                     </label>
+                    <a href="{{ route('password.request') }}" class="text-sm font-bold text-gray-500 hover:text-black transition-all">{{ __('Lupa password?') }}</a>
                 </div>
 
                 <button type="submit" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-all">

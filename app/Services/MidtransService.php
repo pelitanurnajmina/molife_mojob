@@ -25,9 +25,9 @@ class MidtransService
     }
 
     /**
-     * Create a QRIS charge and return the QR image URL + raw response.
+     * Create a QRIS charge and return the QR image URL + metadata.
      *
-     * @return array{qr_url: ?string, order_id: string, raw: object}
+     * @return array{qr_url: ?string, order_id: string, transaction_id: ?string, expires_at: ?\Carbon\Carbon, raw: object}
      */
     public static function chargeQris(string $orderId, int $amount): array
     {
@@ -52,7 +52,22 @@ class MidtransService
             }
         }
 
-        return ['qr_url' => $qrUrl, 'order_id' => $orderId, 'raw' => $res];
+        // expiry_time dari Midtrans berformat "Y-m-d H:i:s" WIB (app timezone = Asia/Jakarta).
+        $expiresAt = null;
+        if (!empty($res->expiry_time)) {
+            try { $expiresAt = \Carbon\Carbon::parse($res->expiry_time); } catch (\Throwable) {}
+        }
+        if (!$expiresAt) {
+            $expiresAt = now()->addMinutes(15); // default masa berlaku QRIS
+        }
+
+        return [
+            'qr_url'         => $qrUrl,
+            'order_id'       => $orderId,
+            'transaction_id' => $res->transaction_id ?? null,
+            'expires_at'     => $expiresAt,
+            'raw'            => $res,
+        ];
     }
 
     /** Verify the SHA-512 signature sent on the HTTP notification (webhook). */

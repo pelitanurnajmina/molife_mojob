@@ -16,44 +16,12 @@
             </div>
             <div>
                 <h3 class="text-base font-bold">{{ __('Preferensi') }}</h3>
-                <p class="text-xs text-gray-400">{{ __('Agama dan olahraga — menentukan fitur yang tampil di navigasi') }}</p>
+                <p class="text-xs text-gray-400">{{ __('Olahraga yang kamu lakukan, menentukan fitur yang tampil di navigasi') }}</p>
             </div>
         </div>
 
         <form method="POST" action="{{ route('settings.onboarding') }}">
             @csrf
-            {{-- Religion --}}
-            <div class="mb-6">
-                <p class="text-xs font-bold text-gray-500 mb-3">{{ __('Agama / Kepercayaan') }}</p>
-                @php
-                $religions = [
-                    ['value'=>'islam',   'label'=>'Islam',       'sub'=>'Sholat 5 waktu, Rawatib, Takbir'],
-                    ['value'=>'kristen', 'label'=>'Kristen',     'sub'=>'Doa harian, Baca Alkitab, Ibadah Minggu'],
-                    ['value'=>'hindu',   'label'=>'Hindu',       'sub'=>'Sembahyang pagi/sore, Meditasi'],
-                    ['value'=>'buddha',  'label'=>'Buddha',      'sub'=>'Sembahyang pagi/sore, Meditasi'],
-                    ['value'=>'lainnya', 'label'=>'Lainnya',     'sub'=>'Praktik spiritual & jurnal syukur'],
-                    ['value'=>'none',    'label'=>'Tidak ada',   'sub'=>'Fitur spiritual disembunyikan'],
-                ];
-                $currentReligion = $profile['religion'] ?? '';
-                @endphp
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    @foreach($religions as $rel)
-                    <label class="flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all
-                        {{ $currentReligion === $rel['value'] ? 'border-orange-100 bg-orange-50' : 'border-gray-100 hover:border-gray-200' }}"
-                        id="relLabel_{{ $rel['value'] }}">
-                        <input type="radio" name="religion" value="{{ $rel['value'] }}"
-                            {{ $currentReligion === $rel['value'] ? 'checked' : '' }}
-                            class="form-radio-orange mt-0.5"
-                            onchange="document.querySelectorAll('[id^=relLabel_]').forEach(function(l){ l.classList.remove('border-orange-100','bg-orange-50'); l.classList.add('border-gray-100'); }); this.closest('label').classList.add('border-orange-100','bg-orange-50'); this.closest('label').classList.remove('border-gray-100');">
-                        <div>
-                            <p class="font-bold text-xs text-gray-800">{{ $rel['label'] }}</p>
-                            <p class="text-[10px] text-gray-400 leading-relaxed mt-0.5">{{ $rel['sub'] }}</p>
-                        </div>
-                    </label>
-                    @endforeach
-                </div>
-            </div>
-
             {{-- Sports --}}
             <div class="mb-6">
                 <p class="text-xs font-bold text-gray-500 mb-3">{{ __('Olahraga') }}</p>
@@ -115,7 +83,6 @@
         $featureGroups = [
             ['label'=>'Life', 'items'=>[
                 ['key'=>'sholat',      'label'=>'Sholat',            'desc'=>'Tracker sholat wajib, rawatib & sunnah'],
-                ['key'=>'spiritual',   'label'=>'Spiritual',          'desc'=>'Ibadah / Sembahyang / Praktik spiritual'],
                 ['key'=>'gym',         'label'=>'Gym',                'desc'=>'Log sesi gym dan kalori terbakar'],
                 ['key'=>'run',         'label'=>'Lari',               'desc'=>'Tracker jarak, pace, dan sesi lari'],
                 ['key'=>'cycling',     'label'=>'Bersepeda',          'desc'=>'Track km dan durasi bersepeda'],

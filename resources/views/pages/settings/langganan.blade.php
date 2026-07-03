@@ -10,6 +10,23 @@
 @endphp
 <div class="space-y-4 md:space-y-6">
 
+    {{-- ── Menunggu pembayaran: QR pending yang belum dibayar (mis. modal tak sengaja ditutup) ── --}}
+    @if(!empty($pendingCharge))
+    <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-amber-900">{{ __('Menunggu pembayaran') }} · {{ $pendingCharge['label'] }} · Rp {{ number_format($pendingCharge['amount'], 0, ',', '.') }}</p>
+            <p class="text-xs text-amber-700/80 mt-0.5">{{ __('Kamu punya QR yang belum dibayar. QR berlaku sampai') }} {{ $pendingCharge['expires_at'] }}.</p>
+        </div>
+        <button type="button" onclick="openPay('{{ $pendingCharge['plan'] }}')"
+            class="flex-shrink-0 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition-all">
+            {{ __('Lanjutkan Pembayaran') }}
+        </button>
+    </div>
+    @endif
+
     {{-- ── Current subscription ── --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center gap-3 mb-6">
@@ -76,6 +93,12 @@
                 <p class="text-sm font-bold text-gray-700 mt-1">{{ $p['label'] }}</p>
                 <p class="text-2xl md:text-[26px] font-black text-gray-900 leading-none mt-2">{{ $rp($p['price']) }}</p>
                 <p class="text-[10px] text-gray-400 mt-1">{{ $perMonth[$key] ?? '' }}</p>
+                @if(in_array($key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
+                <p class="text-[10px] font-bold text-violet-600 mt-1.5 inline-flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                    {{ __('Termasuk Fitur AI') }}
+                </p>
+                @endif
                 @if($isCurrent)
                 <div class="mt-4 py-2.5 text-center text-xs font-bold rounded-xl bg-gray-100 text-gray-500 inline-flex items-center justify-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
@@ -92,7 +115,18 @@
             @endforeach
         </div>
 
-        <div class="mt-6 p-4 md:p-5 rounded-2xl bg-gray-50">
+        <div class="mt-6 p-4 md:p-5 rounded-2xl bg-violet-50 border border-violet-100">
+            <p class="text-xs font-bold text-violet-700 mb-2 inline-flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                {{ __('Eksklusif paket 6 Bulan & 1 Tahun') }}
+            </p>
+            <ul class="space-y-1.5 text-xs text-violet-800">
+                <li>{{ __('Scan Struk AI: foto struk belanja, transaksi terisi otomatis') }}</li>
+                <li>{{ __('Lowongan Kerja: rekomendasi lowongan dari seluruh dunia sesuai target kariermu') }}</li>
+            </ul>
+        </div>
+
+        <div class="mt-4 p-4 md:p-5 rounded-2xl bg-gray-50">
             <p class="text-xs font-bold text-gray-500 mb-3">{{ __('Semua paket termasuk:') }}</p>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                 @foreach(['Semua tracker: sholat, olahraga, pomodoro, mood, tugas','Career Hub & pelacak lamaran','Bisnis: proposal, klien, dokumen & analitik','Keuangan: pemasukan, pengeluaran, anggaran, tabungan','Statistik 30 hari, insight & Life Score','Export data ke CSV'] as $f)
@@ -125,13 +159,23 @@
                 </thead>
                 <tbody>
                     @foreach($history as $s)
-                    @php $expired = $s->ends_at->lt($today); @endphp
+                    @php
+                        // Label mengikuti status pembayaran, bukan sekadar tanggal.
+                        [$badgeClass, $badgeLabel] = match (true) {
+                            $s->status === 'pending'                           => ['bg-amber-100 text-amber-700', __('Menunggu Pembayaran')],
+                            $s->status === 'cancelled'                         => ['bg-gray-100 text-gray-500', __('Dibatalkan')],
+                            $s->status === 'failed'                            => ['bg-red-100 text-red-600', __('Gagal')],
+                            $s->status === 'active' && $s->ends_at->lt($today) => ['bg-gray-100 text-gray-500', __('Berakhir')],
+                            $s->status === 'active'                            => ['bg-green-100 text-green-700', __('Aktif')],
+                            default                                            => ['bg-gray-100 text-gray-500', ucfirst($s->status)],
+                        };
+                    @endphp
                     <tr class="border-b border-gray-50 last:border-0">
                         <td class="px-3 py-3.5 font-bold text-gray-800 whitespace-nowrap">molife · {{ $plans[$s->plan]['label'] ?? $s->plan }}</td>
                         <td class="px-3 py-3.5 text-gray-500 whitespace-nowrap">{{ $s->starts_at->translatedFormat('j M Y') }} – {{ $s->ends_at->translatedFormat('j M Y') }}</td>
                         <td class="px-3 py-3.5 text-right font-bold text-gray-700 whitespace-nowrap">{{ $rp($s->price) }}</td>
                         <td class="px-3 py-3.5">
-                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full {{ $expired ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-700' }}">{{ $expired ? __('Berakhir') : __('Aktif') }}</span>
+                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full {{ $badgeClass }}">{{ $badgeLabel }}</span>
                         </td>
                     </tr>
                     @endforeach
@@ -177,7 +221,12 @@
                     </div>
                 </div>
                 <p class="text-xs text-gray-400 mt-3">{{ __('Bayar dari aplikasi apa pun yang mendukung QRIS.') }}</p>
+                <p id="payExpiry" class="hidden text-[11px] text-gray-400 mt-1"></p>
                 <p id="payError" class="hidden text-xs font-bold text-red-500 mt-3 max-w-[230px] mx-auto"></p>
+                <button id="payRetry" type="button" onclick="openPay(window.__lastPayKey)"
+                    class="hidden mt-3 px-5 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition-all">
+                    {{ __('Coba Lagi') }}
+                </button>
             </div>
 
             {{-- Waiting for payment --}}
@@ -220,6 +269,7 @@ const CSRF_TOKEN   = '{{ csrf_token() }}';
 async function openPay(key) {
     const m = PLAN_META[key];
     if (!m) return;
+    window.__lastPayKey = key;
 
     document.getElementById('payKicker').textContent = IS_RENEWAL ? '{{ __('Perpanjang Langganan') }}' : '{{ __('Aktifkan Langganan') }}';
     document.getElementById('payPlan').textContent   = m.label;
@@ -256,6 +306,8 @@ async function openPay(key) {
     qr.classList.add('opacity-0');
     document.getElementById('payQrLoading').classList.remove('hidden');
     document.getElementById('payError').classList.add('hidden');
+    document.getElementById('payRetry').classList.add('hidden');
+    document.getElementById('payExpiry').classList.add('hidden');
     document.getElementById('payModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
@@ -267,22 +319,37 @@ async function openPay(key) {
         });
         const d = await r.json();
         if (!r.ok || !d.qr_url) {
-            showPayError(d.error || '{{ __('Gagal membuat pembayaran. Coba lagi.') }}');
+            showPayError(d.error || '{{ __('Gagal membuat pembayaran. Coba lagi.') }}', true);
             return;
         }
         qr.onload = () => { qr.classList.remove('opacity-0'); document.getElementById('payQrLoading').classList.add('hidden'); };
         qr.src = d.qr_url;
+
+        // Masa berlaku QR (server pakai ulang QR pending yang sama selama belum kedaluwarsa).
+        if (d.expires_at) {
+            const exp = document.getElementById('payExpiry');
+            exp.textContent = '{{ __('QR berlaku sampai') }} ' + d.expires_at;
+            exp.classList.remove('hidden');
+        }
+        if (window.__payExpTimer) clearTimeout(window.__payExpTimer);
+        if (d.expires_in > 0) {
+            window.__payExpTimer = setTimeout(() => {
+                showPayError('{{ __('QR sudah kedaluwarsa. Klik Coba Lagi untuk membuat QR baru.') }}', true);
+            }, d.expires_in * 1000);
+        }
+
         startPolling();
     } catch (e) {
-        showPayError('{{ __('Gagal terhubung. Periksa koneksi lalu coba lagi.') }}');
+        showPayError('{{ __('Gagal terhubung. Periksa koneksi lalu coba lagi.') }}', true);
     }
 }
 
-function showPayError(msg) {
+function showPayError(msg, withRetry) {
     document.getElementById('payQrLoading').classList.add('hidden');
     const el = document.getElementById('payError');
     el.textContent = msg;
     el.classList.remove('hidden');
+    if (withRetry) document.getElementById('payRetry').classList.remove('hidden');
 }
 
 function closePay() {

@@ -37,7 +37,12 @@ class SettingsController extends Controller
         $active  = \App\Services\SubscriptionService::active($userId);
         $history = \App\Services\SubscriptionService::history($userId);
         $plans   = \App\Services\SubscriptionService::PLANS;
-        return view('pages.settings.langganan', compact('active', 'history', 'plans'));
+
+        // QR pending yang masih berlaku (mis. modal tak sengaja ditutup sebelum bayar).
+        $pendingSub    = \App\Services\SubscriptionService::reusablePending($userId);
+        $pendingCharge = $pendingSub ? \App\Services\SubscriptionService::pendingChargeData($pendingSub) : null;
+
+        return view('pages.settings.langganan', compact('active', 'history', 'plans', 'pendingCharge'));
     }
 
     public function referral()
@@ -101,11 +106,15 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'username'     => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'display_name' => ['nullable', 'string', 'max:100'],
+            'gender'       => ['nullable', 'in:male,female'],
         ]);
 
         $user->update(['username' => $validated['username']]);
 
-        Profile::model()->update(['display_name' => trim($validated['display_name'] ?? '')]);
+        Profile::model()->update([
+            'display_name' => trim($validated['display_name'] ?? ''),
+            'gender'       => $validated['gender'] ?? null,
+        ]);
 
         return back()->with('toast', __('Profil berhasil diperbarui.'));
     }
@@ -113,30 +122,20 @@ class SettingsController extends Controller
     public function updateOnboarding(Request $request)
     {
         $request->validate([
-            'religion'          => 'required|string|in:islam,kristen,hindu,buddha,lainnya,none',
             'sports'            => 'nullable|array',
             'custom_sport_name' => 'nullable|string|max:50',
         ]);
 
-        $userId   = auth()->id();
-        $religion = $request->religion;
-        $sports   = $request->sports ?? [];
+        $userId = auth()->id();
+        $sports = $request->sports ?? [];
 
+        // Molife is Islam-focused — keep religion fixed and the sholat tracker on.
         Profile::model($userId)->update([
-            'religion'          => $religion,
+            'religion'          => 'islam',
             'custom_sport_name' => trim($request->custom_sport_name ?? ''),
         ]);
-
-        if ($religion === 'islam') {
-            Features::set($userId, 'sholat', true);
-            Features::set($userId, 'spiritual', false);
-        } elseif ($religion === 'none') {
-            Features::set($userId, 'sholat', false);
-            Features::set($userId, 'spiritual', false);
-        } else {
-            Features::set($userId, 'sholat', false);
-            Features::set($userId, 'spiritual', true);
-        }
+        Features::set($userId, 'sholat', true);
+        Features::set($userId, 'spiritual', false);
 
         foreach (['gym', 'run', 'cycling', 'swimming', 'racket', 'custom_sport'] as $sport) {
             Features::set($userId, $sport, in_array($sport, $sports));
