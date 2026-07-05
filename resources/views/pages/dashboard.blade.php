@@ -46,6 +46,31 @@
 
 <div class="space-y-4 md:space-y-6">
 
+    {{-- ── Peringatan langganan hampir habis ── --}}
+    @if(isset($subDaysLeft) && $subDaysLeft !== null)
+    <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-amber-900">
+                @if($subDaysLeft === 0)
+                {{ __('Langganan kamu berakhir hari ini!') }}
+                @elseif($subDaysLeft === 1)
+                {{ __('Langganan kamu berakhir besok.') }}
+                @else
+                {{ __('Langganan kamu berakhir :n hari lagi.', ['n' => $subDaysLeft]) }}
+                @endif
+            </p>
+            <p class="text-xs text-amber-700/80 mt-0.5">{{ __('Perpanjang sekarang supaya akses dan streak kamu tidak terputus.') }}</p>
+        </div>
+        <a href="{{ route('settings.langganan') }}"
+           class="px-4 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition-all text-center flex-shrink-0">
+            {{ __('Perpanjang Sekarang') }}
+        </a>
+    </div>
+    @endif
+
     {{-- ── KPI hero row ── --}}
     @php
         // Mini sparkline from 7-day overall life score

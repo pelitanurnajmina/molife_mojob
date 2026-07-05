@@ -23,58 +23,21 @@
                 </p>
             </div>
         </div>
-        <a href="{{ $isOwner ? route('bisnis.deals') : route('kolaborasi.index') }}"
-           class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-500 hover:border-gray-400 hover:text-black transition-all flex-shrink-0 self-start sm:self-auto">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-            {{ $isOwner ? __('Ke Menu Bisnis') : __('Semua Kolaborasi') }}
-        </a>
-    </div>
-
-    {{-- ── Kolaborator (khusus owner) ── --}}
-    @if($isOwner)
-    <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 border border-gray-50">
-        <div class="mb-4">
-            <h3 class="font-bold">{{ __('Kolaborator') }} {{ $product->name }}</h3>
-            <p class="text-xs text-gray-400 mt-0.5">{{ __('Mereka bisa ikut mengelola proposal & template produk ini, plus melihat statistiknya. Kolaborator tidak perlu langganan molife.') }}</p>
+        <div class="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+            @if($isOwner)
+            <button type="button" onclick="openModal('modal-invite')"
+                class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                {{ __('Undang Partner') }}{{ count($collabRows) ? ' (' . count($collabRows) . ')' : '' }}
+            </button>
+            @endif
+            <a href="{{ $isOwner ? route('bisnis.deals') : route('kolaborasi.index') }}"
+               class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-500 hover:border-gray-400 hover:text-black transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                {{ $isOwner ? __('Ke Menu Bisnis') : __('Semua Kolaborasi') }}
+            </a>
         </div>
-
-        <div class="space-y-2 mb-4">
-            @forelse($collabRows as $c)
-            <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                <div class="w-8 h-8 rounded-lg bg-white border border-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">{{ strtoupper(substr($c->email, 0, 1)) }}</div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-gray-800 truncate">{{ $c->email }}</p>
-                    @if($c->status === 'active')
-                    <p class="text-[10px] font-bold text-green-600">{{ __('Aktif') }}{{ $c->accepted_at ? ' · ' . __('bergabung') . ' ' . $c->accepted_at->translatedFormat('j M Y') : '' }}</p>
-                    @else
-                    <p class="text-[10px] font-bold text-amber-600">{{ __('Menunggu diterima') }}</p>
-                    @endif
-                </div>
-                <form method="POST" action="{{ route('bisnis.collab.remove', $c->id) }}" class="m-0">
-                    @csrf @method('DELETE')
-                    <button type="button" onclick="askDelete(this, '{{ __('Hapus kolaborator ini? Dia langsung kehilangan akses ke produk ini.') }}')"
-                        class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </form>
-            </div>
-            @empty
-            <p class="text-center text-gray-400 text-sm py-4">{{ __('Belum ada kolaborator. Undang lewat email di bawah.') }}</p>
-            @endforelse
-        </div>
-
-        <form method="POST" action="{{ route('bisnis.collab.invite', $product->id) }}" class="flex items-center gap-2 border-t border-gray-50 pt-4">
-            @csrf
-            <input type="email" name="email" maxlength="255" required placeholder="{{ __('email@rekan-kamu.com') }}"
-                class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Undang') }}</button>
-        </form>
-        @error('email')
-        <p class="text-xs font-bold text-red-500 mt-2">{{ $message }}</p>
-        @enderror
-        <p class="text-[10px] text-gray-400 mt-2">{{ __('Mereka akan menerima email berisi link untuk bergabung.') }}</p>
     </div>
-    @endif
 
     {{-- ── Statistik produk ── --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -237,6 +200,57 @@
     </div>
 
 </div>
+
+{{-- ── Modal undang partner (khusus owner) ── --}}
+@if($isOwner)
+<div id="modal-invite" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-invite')">
+    <div class="bg-white rounded-3xl w-full max-w-md">
+        <div class="flex items-center justify-between p-6 border-b border-gray-50">
+            <div>
+                <h2 class="font-bold text-lg">{{ __('Undang Partner') }} · {{ $product->name }}</h2>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Bisa kelola proposal & template produk ini, plus lihat statistiknya. Tanpa perlu langganan.') }}</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-invite')" class="text-gray-400 hover:text-black flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="p-6">
+            <div class="space-y-2 mb-4 max-h-56 overflow-y-auto">
+                @forelse($collabRows as $c)
+                <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+                    <div class="w-8 h-8 rounded-lg bg-white border border-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">{{ strtoupper(substr($c->email, 0, 1)) }}</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-gray-800 truncate">{{ $c->email }}</p>
+                        @if($c->status === 'active')
+                        <p class="text-[10px] font-bold text-green-600">{{ __('Aktif') }}{{ $c->accepted_at ? ' · ' . $c->accepted_at->translatedFormat('j M Y') : '' }}</p>
+                        @else
+                        <p class="text-[10px] font-bold text-amber-600">{{ __('Menunggu diterima') }}</p>
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('bisnis.collab.remove', $c->id) }}" class="m-0">
+                        @csrf @method('DELETE')
+                        <button type="button" onclick="askDelete(this, '{{ __('Hapus kolaborator ini? Dia langsung kehilangan akses ke produk ini.') }}')"
+                            class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </form>
+                </div>
+                @empty
+                <p class="text-center text-gray-400 text-sm py-4">{{ __('Belum ada partner. Undang lewat email di bawah.') }}</p>
+                @endforelse
+            </div>
+            <form method="POST" action="{{ route('bisnis.collab.invite', $product->id) }}" class="flex items-center gap-2 border-t border-gray-50 pt-4">
+                @csrf
+                <input type="email" name="email" maxlength="255" required placeholder="{{ __('email@rekan-kamu.com') }}"
+                    class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Undang') }}</button>
+            </form>
+            @error('email')
+            <p class="text-xs font-bold text-red-500 mt-2">{{ $message }}</p>
+            @enderror
+            <p class="text-[10px] text-gray-400 mt-2">{{ __('Mereka akan menerima email berisi link untuk bergabung.') }}</p>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- ── Modal tambah proposal ── --}}
 <div id="modal-add-deal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this)closeModal('modal-add-deal')">

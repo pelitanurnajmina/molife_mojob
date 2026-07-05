@@ -105,6 +105,13 @@ class DashboardController extends Controller
         /* ── Product tour: only until the user finishes it ── */
         $showTour = !Profile::model($userId)->tour_done;
 
+        /* ── Peringatan langganan hampir habis (H-7) ── */
+        $subDaysLeft = null;
+        if ($activeSub = \App\Services\SubscriptionService::active($userId)) {
+            $left = (int) now()->startOfDay()->diffInDays($activeSub->ends_at->startOfDay(), false);
+            if ($left >= 0 && $left <= 7) $subDaysLeft = $left;
+        }
+
         return view('pages.dashboard', compact(
             'greeting', 'displayName', 'profile', 'features', 'today',
             'insights', 'lifeScore', 'moodHistory', 'stats30', 'streak',
@@ -114,7 +121,7 @@ class DashboardController extends Controller
             'gymWeekly', 'runWeeklyCount', 'runMonthlyDist', 'caloriesWeek', 'todayStats',
             'showCareer', 'showFinance',
             'careerSummary', 'careerInsights', 'financeSummary', 'financeInsights',
-            'lifeDelta', 'scoreSpark', 'pomoToday', 'pomoWeek', 'showTour'
+            'lifeDelta', 'scoreSpark', 'pomoToday', 'pomoWeek', 'showTour', 'subDaysLeft'
         ));
     }
 

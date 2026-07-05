@@ -212,6 +212,7 @@
             color: #111827; cursor: pointer; transition: border-color .15s, background .15s;
         }
         .cs-trigger:hover { border-color: #9ca3af; }
+        .cs-trigger.cs-white { background: #fff; }
         .cs-trigger.open, .cs-trigger:focus { border-color: #000; background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
         .cs-trigger-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cs-chevron { flex-shrink: 0; width: 14px; height: 14px; color: #9ca3af; transition: transform .2s, color .15s; }
@@ -721,6 +722,8 @@
             var trigger = document.createElement('button');
             trigger.type = 'button';
             trigger.className = 'cs-trigger';
+            /* Select toolbar (ditulis bg-white) → trigger ikut putih; select form modal tetap abu. */
+            if (select.classList.contains('bg-white')) trigger.classList.add('cs-white');
             trigger.innerHTML =
                 '<span class="cs-trigger-label"></span>' +
                 '<svg class="cs-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
