@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Cache;
 /**
  * AI receipt scanning for the Finance module.
  *
- * Sends a receipt photo to Claude (claude-haiku-4-5 — cheapest vision-capable
- * model, roughly Rp 70 per scan) and extracts a structured transaction:
- * amount, date, category, merchant, and item summary. The result prefills the
- * add-transaction form; the user reviews before saving.
+ * Dua provider, dipilih lewat .env RECEIPT_SCAN_PROVIDER (bisa bolak-balik kapan saja):
+ *  - 'gemini' : Google Gemini Flash — free tier (Rp 0/scan), butuh GEMINI_API_KEY
+ *  - 'claude' : Claude Haiku — berbayar (±Rp 70/scan), butuh ANTHROPIC_API_KEY
+ *
+ * Prompt, skema JSON, sanitasi hasil, dan limit pemakaian dipakai bersama;
+ * yang berbeda hanya pemanggilan API-nya.
  *
  * Cost controls:
  *  - images are downscaled before upload (image tokens scale with pixels)
@@ -21,14 +23,22 @@ use Illuminate\Support\Facades\Cache;
  */
 class ReceiptScanService
 {
-    private const MODEL        = 'claude-haiku-4-5';
+    private const CLAUDE_MODEL = 'claude-haiku-4-5';
     public const DAILY_LIMIT   = 20;   // scan per user per hari
     public const MONTHLY_LIMIT = 60;   // scan per user per bulan — jaga margin: worst case ±Rp 4.200/bln, selalu di bawah harga paket
     private const MAX_EDGE     = 1568; // px — downscale cap to keep image tokens low
 
+    /** Provider aktif: 'gemini' atau 'claude'. */
+    public static function provider(): string
+    {
+        return config('services.receipt_scan.provider') === 'claude' ? 'claude' : 'gemini';
+    }
+
     public static function configured(): bool
     {
-        return (bool) config('services.anthropic.api_key');
+        return self::provider() === 'claude'
+            ? (bool) config('services.anthropic.api_key')
+            : (bool) config('services.gemini.api_key');
     }
 
     /* ── Limits (harian + bulanan) ── */
@@ -93,24 +103,66 @@ class ReceiptScanService
 
         [$imageBinary, $mimeType] = self::downscale($imageBinary, $mimeType);
 
-        $client = new Client(apiKey: config('services.anthropic.api_key'));
+        $data = self::provider() === 'claude'
+            ? self::callClaude($imageBinary, $mimeType)
+            : self::callGemini($imageBinary, $mimeType);
 
+        self::countUsage($userId);
+
+        if (!is_array($data)) {
+            throw new \RuntimeException(__('Struk tidak bisa dibaca. Coba foto ulang dengan pencahayaan lebih baik.'));
+        }
+
+        // Sanitize against the app's own rules.
+        $type = ($data['type'] ?? 'expense') === 'income' ? 'income' : 'expense';
+        $cats = $type === 'income'
+            ? \App\Http\Controllers\FinanceController::INCOME_CATS
+            : \App\Http\Controllers\FinanceController::EXPENSE_CATS;
+        $category = in_array($data['category'] ?? '', $cats, true) ? $data['category'] : 'Lainnya';
+
+        $date = (string) ($data['date'] ?? '');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || strtotime($date) === false || strtotime($date) > time()) {
+            $date = date('Y-m-d');
+        }
+
+        return [
+            'type'       => $type,
+            'date'       => $date,
+            'amount'     => max(0, (int) ($data['amount'] ?? 0)),
+            'category'   => $category,
+            'merchant'   => mb_substr(trim((string) ($data['merchant'] ?? '')), 0, 80),
+            'note'       => mb_substr(trim((string) ($data['note'] ?? '')), 0, 200),
+            'confidence' => ($data['confidence'] ?? 'rendah') === 'tinggi' ? 'tinggi' : 'rendah',
+        ];
+    }
+
+    /** Instruksi ekstraksi yang sama untuk kedua provider. */
+    private static function prompt(): string
+    {
         $expenseCats = implode(', ', \App\Http\Controllers\FinanceController::EXPENSE_CATS);
         $incomeCats  = implode(', ', \App\Http\Controllers\FinanceController::INCOME_CATS);
 
+        return "Kamu adalah mesin pembaca struk belanja untuk aplikasi keuangan Indonesia. "
+            . "Ekstrak data transaksi dari foto struk. Aturan: "
+            . "amount = total akhir yang dibayar dalam Rupiah (integer, tanpa titik/koma; jika struk memakai mata uang lain, konversi kasar tidak perlu, pakai angka apa adanya). "
+            . "date = tanggal pada struk format YYYY-MM-DD; jika tidak terbaca pakai string kosong. "
+            . "type = 'expense' untuk struk belanja biasa, 'income' hanya jika jelas bukti penerimaan uang. "
+            . "category harus salah satu dari daftar ini persis: expense [{$expenseCats}] atau income [{$incomeCats}]; pilih yang paling cocok, jika ragu pakai 'Lainnya'. "
+            . "merchant = nama toko/merchant. "
+            . "note = ringkasan item utama, maksimal 120 karakter, bahasa Indonesia. "
+            . "confidence = 'tinggi' jika struk terbaca jelas, 'rendah' jika buram/terpotong. "
+            . "Jika gambar bukan struk, set amount 0 dan confidence 'rendah'.";
+    }
+
+    /** Panggil Claude Haiku (berbayar, ±Rp 70/scan). Mengembalikan array hasil decode atau null. */
+    private static function callClaude(string $imageBinary, string $mimeType): ?array
+    {
+        $client = new Client(apiKey: config('services.anthropic.api_key'));
+
         $message = $client->messages->create(
-            model: self::MODEL,
+            model: self::CLAUDE_MODEL,
             maxTokens: 1024,
-            system: "Kamu adalah mesin pembaca struk belanja untuk aplikasi keuangan Indonesia. "
-                . "Ekstrak data transaksi dari foto struk. Aturan: "
-                . "amount = total akhir yang dibayar dalam Rupiah (integer, tanpa titik/koma; jika struk memakai mata uang lain, konversi kasar tidak perlu, pakai angka apa adanya). "
-                . "date = tanggal pada struk format YYYY-MM-DD; jika tidak terbaca pakai string kosong. "
-                . "type = 'expense' untuk struk belanja biasa, 'income' hanya jika jelas bukti penerimaan uang. "
-                . "category harus salah satu dari daftar ini persis: expense [{$expenseCats}] atau income [{$incomeCats}]; pilih yang paling cocok, jika ragu pakai 'Lainnya'. "
-                . "merchant = nama toko/merchant. "
-                . "note = ringkasan item utama, maksimal 120 karakter, bahasa Indonesia. "
-                . "confidence = 'tinggi' jika struk terbaca jelas, 'rendah' jika buram/terpotong. "
-                . "Jika gambar bukan struk, set amount 0 dan confidence 'rendah'.",
+            system: self::prompt(),
             messages: [
                 [
                     'role'    => 'user',
@@ -144,38 +196,62 @@ class ReceiptScanService
             ],
         );
 
-        self::countUsage($userId);
-
         $text = '';
         foreach ($message->content as $block) {
             if ($block->type === 'text') { $text = $block->text; break; }
         }
-        $data = json_decode($text, true);
-        if (!is_array($data)) {
-            throw new \RuntimeException(__('Struk tidak bisa dibaca. Coba foto ulang dengan pencahayaan lebih baik.'));
+
+        return is_array($decoded = json_decode($text, true)) ? $decoded : null;
+    }
+
+    /** Panggil Google Gemini Flash (free tier). Mengembalikan array hasil decode atau null. */
+    private static function callGemini(string $imageBinary, string $mimeType): ?array
+    {
+        $model = config('services.gemini.model', 'gemini-3.5-flash');
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':generateContent';
+
+        $response = \Illuminate\Support\Facades\Http::timeout(60)
+            ->withHeaders(['x-goog-api-key' => config('services.gemini.api_key')])
+            ->post($url, [
+                'contents' => [[
+                    'parts' => [
+                        ['inline_data' => ['mime_type' => $mimeType, 'data' => base64_encode($imageBinary)]],
+                        ['text' => 'Ekstrak transaksi dari struk ini.'],
+                    ],
+                ]],
+                'systemInstruction' => ['parts' => [['text' => self::prompt()]]],
+                'generationConfig'  => [
+                    'responseMimeType' => 'application/json',
+                    'responseSchema'   => [
+                        'type'       => 'OBJECT',
+                        'properties' => [
+                            'type'       => ['type' => 'STRING', 'enum' => ['income', 'expense']],
+                            'date'       => ['type' => 'STRING'],
+                            'amount'     => ['type' => 'INTEGER'],
+                            'category'   => ['type' => 'STRING'],
+                            'merchant'   => ['type' => 'STRING'],
+                            'note'       => ['type' => 'STRING'],
+                            'confidence' => ['type' => 'STRING', 'enum' => ['tinggi', 'rendah']],
+                        ],
+                        'required' => ['type', 'date', 'amount', 'category', 'merchant', 'note', 'confidence'],
+                    ],
+                ],
+            ]);
+
+        if ($response->status() === 429) {
+            throw new \RuntimeException(__('Layanan scan sedang penuh. Tunggu sebentar lalu coba lagi.'));
+        }
+        if (!$response->successful()) {
+            \Illuminate\Support\Facades\Log::error('Gemini scan failed', [
+                'status' => $response->status(),
+                'body'   => mb_substr($response->body(), 0, 500),
+            ]);
+            throw new \RuntimeException(__('Struk tidak bisa diproses saat ini. Coba lagi sebentar.'));
         }
 
-        // Sanitize against the app's own rules.
-        $type = ($data['type'] ?? 'expense') === 'income' ? 'income' : 'expense';
-        $cats = $type === 'income'
-            ? \App\Http\Controllers\FinanceController::INCOME_CATS
-            : \App\Http\Controllers\FinanceController::EXPENSE_CATS;
-        $category = in_array($data['category'] ?? '', $cats, true) ? $data['category'] : 'Lainnya';
+        $text = $response->json('candidates.0.content.parts.0.text', '');
 
-        $date = (string) ($data['date'] ?? '');
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || strtotime($date) === false || strtotime($date) > time()) {
-            $date = date('Y-m-d');
-        }
-
-        return [
-            'type'       => $type,
-            'date'       => $date,
-            'amount'     => max(0, (int) ($data['amount'] ?? 0)),
-            'category'   => $category,
-            'merchant'   => mb_substr(trim((string) ($data['merchant'] ?? '')), 0, 80),
-            'note'       => mb_substr(trim((string) ($data['note'] ?? '')), 0, 200),
-            'confidence' => ($data['confidence'] ?? 'rendah') === 'tinggi' ? 'tinggi' : 'rendah',
-        ];
+        return is_array($decoded = json_decode((string) $text, true)) ? $decoded : null;
     }
 
     /** Downscale the image so the long edge is at most MAX_EDGE px (saves image tokens). */
