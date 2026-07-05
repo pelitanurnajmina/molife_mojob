@@ -5,7 +5,7 @@
     "require": {
         "php": "^8.2",
         "anthropic-ai/sdk": "^0.35.1",
-        "laravel/framework": "^11.0",
+        "laravel/framework": "^12.0",
         "laravel/socialite": "^5.27",
         "laravel/tinker": "^2.9",
         "midtrans/midtrans-php": "^2.6"
@@ -59,17 +59,6 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        },
-        "audit": {
-            "ignore": {
-                "PKSA-m5cs-t1y6-qpcs": "Laravel 11: fix hanya di Laravel 12, upgrade direncanakan",
-                "PKSA-3r5d-mb8f-1qw9": "Laravel 11: fix hanya di Laravel 12, upgrade direncanakan",
-                "PKSA-mdq4-51ck-6kdq": "Laravel 11: fix hanya di Laravel 12, upgrade direncanakan",
-                "PKSA-8qx3-n5y5-vvnd": "Laravel 11: fix hanya di Laravel 12, upgrade direncanakan",
-                "PKSA-q46n-4fdk-zjr4": "Laravel 11: fix hanya di Laravel 12, upgrade direncanakan",
-                "PKSA-qzrn-rnz3-85w1": "Laravel 11: fix hanya di Laravel 12, upgrade direncanakan",
-                "PKSA-w7xr-vk7n-rstm": "Laravel 11: fix hanya di Laravel 12, upgrade direncanakan"
-            }
         }
     },
     "minimum-stability": "stable",
