@@ -208,6 +208,9 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
     Route::prefix('lamaran')->name('lamaran.')->group(function () {
         Route::get('/',              [LamaranController::class, 'index'])->name('index');
         Route::post('/',             [LamaranController::class, 'store'])->name('store');
+        // Impor harus di atas rute '/{id}' agar '/impor' tidak dianggap id.
+        Route::get('/impor/contoh',  [LamaranController::class, 'importTemplate'])->name('import.template');
+        Route::post('/impor',        [LamaranController::class, 'import'])->name('import');
         Route::post('/{id}',         [LamaranController::class, 'update'])->name('update');
         Route::delete('/{id}',       [LamaranController::class, 'destroy'])->name('destroy');
         Route::get('/ekspor',        [LamaranController::class, 'export'])->name('export');
@@ -218,6 +221,9 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
         Route::get('/',              [BisnisController::class, 'index'])->name('index');
         Route::get('/proposal',      [BisnisController::class, 'deals'])->name('deals');
         Route::post('/proposal',     [BisnisController::class, 'store'])->name('store');
+        Route::get('/ekspor',        [BisnisController::class, 'export'])->name('export');
+        Route::get('/impor/contoh',  [BisnisController::class, 'importTemplate'])->name('import.template');
+        Route::post('/impor',        [BisnisController::class, 'import'])->name('import');
         Route::post('/proposal/{id}',[BisnisController::class, 'update'])->name('update');
         Route::delete('/proposal/{id}', [BisnisController::class, 'destroy'])->name('destroy');
         // Products

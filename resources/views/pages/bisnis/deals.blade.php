@@ -26,6 +26,11 @@
             </div>
         </form>
         <div class="flex items-center gap-2 flex-shrink-0">
+            <button type="button" onclick="openModal('modal-impor')" title="{{ __('Impor / Ekspor Data') }}"
+                class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4"/></svg>
+                <span class="hidden lg:inline">{{ __('Impor') }}</span>
+            </button>
             <button type="button" onclick="openModal('modal-products')"
                 class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
@@ -212,6 +217,46 @@
                     class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
                 <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Tambah') }}</button>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- Modal impor / ekspor --}}
+<div id="modal-impor" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-impor')">
+    <div class="bg-white rounded-3xl w-full max-w-md">
+        <div class="flex items-center justify-between p-6 border-b border-gray-50">
+            <div>
+                <h2 class="font-bold text-lg">{{ __('Impor / Ekspor Data') }}</h2>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Pindahkan data proposal & klien lamamu ke molife, atau unduh datamu.') }}</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-impor')" class="text-gray-400 hover:text-black flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="p-6 space-y-5">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{{ __('Impor dari file') }}</p>
+                <p class="text-xs text-gray-400 mb-3">{{ __('Format CSV atau Excel (.xlsx), maksimal 500 baris. Kolom: Nama Klien, Bidang, Alamat, Kontak, Produk, Nilai, Status, Tanggal Proposal, Catatan. Produk baru dibuat otomatis.') }}</p>
+                <a href="{{ route('bisnis.import.template') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-all mb-3">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    {{ __('Unduh file contoh') }}
+                </a>
+                <form method="POST" action="{{ route('bisnis.import') }}" enctype="multipart/form-data" class="flex items-center gap-2">
+                    @csrf
+                    <input type="file" name="file" accept=".csv,.xlsx,text/csv" required
+                        class="flex-1 min-w-0 text-xs text-gray-500 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-gray-100 file:text-xs file:font-bold file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer">
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Impor') }}</button>
+                </form>
+                @error('file')
+                <p class="text-xs font-bold text-red-500 mt-2">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="border-t border-gray-50 pt-4">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{{ __('Ekspor') }}</p>
+                <a href="{{ route('bisnis.export') }}"
+                   class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:border-gray-400 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    {{ __('Unduh semua data (CSV)') }}
+                </a>
+            </div>
         </div>
     </div>
 </div>

@@ -94,8 +94,20 @@
         </div>
     </div>
 
+    {{-- ── Tab: Proposal & Klien / Template Pesan ── --}}
+    <div class="flex flex-wrap gap-2">
+        <button type="button" id="tabBtnDeals" onclick="switchWsTab('deals')"
+            class="text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-black text-white">
+            {{ __('Proposal & Klien') }} ({{ count($deals) }})
+        </button>
+        <button type="button" id="tabBtnTpl" onclick="switchWsTab('tpl')"
+            class="text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-white text-gray-500 border border-gray-200 hover:border-gray-300">
+            {{ __('Template Pesan') }} ({{ count($templates) }})
+        </button>
+    </div>
+
     {{-- ── Proposal / klien ── --}}
-    <div class="dash-card bg-white rounded-2xl md:rounded-3xl border border-gray-50 overflow-hidden">
+    <div id="panelDeals" class="dash-card bg-white rounded-2xl md:rounded-3xl border border-gray-50 overflow-hidden">
         <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-50">
             <div>
                 <h3 class="font-bold">{{ __('Proposal & Klien') }}</h3>
@@ -153,7 +165,7 @@
     </div>
 
     {{-- ── Template pesan ── --}}
-    <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 border border-gray-50">
+    <div id="panelTpl" class="hidden dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 border border-gray-50">
         <div class="flex items-center justify-between mb-5">
             <div>
                 <h3 class="font-bold">{{ __('Template Pesan') }}</h3>
@@ -319,6 +331,19 @@
 <script>
 function openModal(id){ document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; }
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
+
+/* ── Tab Proposal / Template (pilihan diingat per produk) ── */
+var WS_TAB_KEY = 'wsTab:{{ $product->id }}';
+function switchWsTab(tab){
+    var on  = 'text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-black text-white';
+    var off = 'text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-white text-gray-500 border border-gray-200 hover:border-gray-300';
+    document.getElementById('panelDeals').classList.toggle('hidden', tab !== 'deals');
+    document.getElementById('panelTpl').classList.toggle('hidden', tab !== 'tpl');
+    document.getElementById('tabBtnDeals').className = tab === 'deals' ? on : off;
+    document.getElementById('tabBtnTpl').className = tab === 'tpl' ? on : off;
+    try { localStorage.setItem(WS_TAB_KEY, tab); } catch(e) {}
+}
+try { if (localStorage.getItem(WS_TAB_KEY) === 'tpl') switchWsTab('tpl'); } catch(e) {}
 
 function openEditDeal(d){
     const f = document.getElementById('editDealForm');
