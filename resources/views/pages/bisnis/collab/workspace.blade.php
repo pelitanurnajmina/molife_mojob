@@ -166,47 +166,81 @@
         @endif
     </div>
 
-    {{-- ── Template pesan ── --}}
-    <div id="panelTpl" class="hidden dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 border border-gray-50">
-        <div class="flex items-center justify-between mb-5">
+    {{-- ── Template pesan (accordion, isi penuh saat diklik) ── --}}
+    <div id="panelTpl" class="hidden space-y-4">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
             <div>
                 <h3 class="font-bold">{{ __('Template Pesan') }}</h3>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Template email/WA/penawaran khusus proyek ini.') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Template email/WA/penawaran khusus proyek ini. Klik untuk lihat isi lengkap.') }}</p>
             </div>
             <button type="button" onclick="openTplModal()"
-                class="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">
-                + {{ __('Template') }}
+                class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                {{ __('Buat Template') }}
             </button>
         </div>
+
+        @php
+            $catMeta = [
+                'email'     => ['bg'=>'bg-blue-50','text'=>'text-blue-700'],
+                'penawaran' => ['bg'=>'bg-indigo-50','text'=>'text-indigo-700'],
+                'whatsapp'  => ['bg'=>'bg-green-50','text'=>'text-green-700'],
+                'followup'  => ['bg'=>'bg-amber-50','text'=>'text-amber-700'],
+                'lainnya'   => ['bg'=>'bg-gray-100','text'=>'text-gray-600'],
+            ];
+        @endphp
         @if(count($templates) === 0)
-        <p class="text-center text-gray-400 text-sm py-8">{{ __('Belum ada template untuk proyek ini.') }}</p>
+        <div class="bg-white rounded-2xl border border-gray-50 py-16 text-center text-gray-400">
+            <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <p class="font-bold text-sm">{{ __('Belum ada template untuk proyek ini.') }}</p>
+            <p class="text-xs mt-1">{{ __('Buat template email penawaran atau pesan WhatsApp') }}</p>
+        </div>
         @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="space-y-3">
             @foreach($templates as $t)
-            <div class="rounded-2xl border border-gray-100 p-4 hover:border-gray-300 transition-all flex flex-col">
-                <div class="flex items-start justify-between gap-2 mb-2">
+            @php $cm = $catMeta[$t['category']] ?? $catMeta['lainnya']; $catLabel = $tplCategories[$t['category']] ?? ($t['category'] ?: 'Lainnya'); @endphp
+            <div class="bg-white rounded-2xl border border-gray-50 overflow-hidden">
+                {{-- Header (clickable) --}}
+                <div class="flex items-start justify-between gap-3 px-5 py-4 cursor-pointer" onclick="toggleWsTpl('{{ $t['id'] }}')">
                     <div class="min-w-0">
-                        <p class="text-sm font-bold text-gray-800 truncate">{{ $t['title'] }}</p>
-                        <p class="text-[10px] text-gray-400">{{ $tplCategories[$t['category']] ?? __('Lainnya') }} · {{ __('diubah') }} {{ $t['updated_at'] }}</p>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="text-sm font-bold">{{ $t['title'] }}</p>
+                            <span class="text-[10px] font-bold {{ $cm['text'] }} {{ $cm['bg'] }} px-2 py-0.5 rounded-full">{{ $catLabel }}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ __('Diperbarui') }} {{ date('j M Y', strtotime($t['updated_at'])) }}</p>
                     </div>
                     <div class="flex items-center gap-1 flex-shrink-0">
-                        <button type="button" onclick='openTplModal(@json($t))' class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <button type="button" onclick='event.stopPropagation(); copyTpl(this, @json($t['content']))'
+                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-all" title="{{ __('Salin') }}">
+                            <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </button>
-                        <form method="POST" action="{{ route('kolaborasi.template.destroy', [$product->id, $t['id']]) }}" class="m-0">
+                        <button type="button" onclick='event.stopPropagation(); openTplModal(@json($t))'
+                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-all" title="{{ __('Edit') }}">
+                            <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>
+                        <form method="POST" action="{{ route('kolaborasi.template.destroy', [$product->id, $t['id']]) }}" class="contents">
                             @csrf @method('DELETE')
-                            <button type="button" onclick="askDelete(this, '{{ __('Hapus template ini?') }}')" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-all">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <button type="button" onclick="event.stopPropagation(); askDelete(this, '{{ __('Hapus template ini?') }}')"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-all" title="{{ __('Hapus') }}">
+                                <svg class="w-4 h-4 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                         </form>
+                        <svg id="ws-tpl-chevron-{{ $t['id'] }}" class="w-4 h-4 text-gray-400 transition-transform ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 leading-relaxed line-clamp-3 whitespace-pre-line flex-1">{{ \Illuminate\Support\Str::limit($t['content'], 180) }}</p>
-                <button type="button" onclick='copyTpl(this, @json($t['content']))'
-                    class="mt-3 self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-[11px] font-bold text-gray-500 hover:border-gray-400 hover:text-black transition-all">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    {{ __('Salin') }}
-                </button>
+                {{-- Body (collapsible) --}}
+                <div id="ws-tpl-body-{{ $t['id'] }}" class="hidden border-t border-gray-50">
+                    <div class="px-5 py-4">
+                        <pre class="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded-xl p-4">{{ $t['content'] }}</pre>
+                    </div>
+                    <div class="px-5 pb-4">
+                        <button type="button" onclick='copyTpl(this, @json($t['content']))'
+                            class="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            {{ __('Salin Teks') }}
+                        </button>
+                    </div>
+                </div>
             </div>
             @endforeach
         </div>
@@ -372,6 +406,13 @@ function openTplModal(t){
     cat.value = t?.category ?? 'whatsapp';
     if (cat._csRefresh) cat._csRefresh();
     openModal('modal-tpl');
+}
+
+function toggleWsTpl(id){
+    const body = document.getElementById('ws-tpl-body-' + id);
+    const chev = document.getElementById('ws-tpl-chevron-' + id);
+    const nowHidden = body.classList.toggle('hidden');
+    if (chev) chev.style.transform = nowHidden ? '' : 'rotate(180deg)';
 }
 
 function copyTpl(btn, text){
