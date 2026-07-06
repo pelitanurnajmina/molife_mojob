@@ -1,4 +1,4 @@
-{{-- Field proposal untuk workspace kolaborasi (produk sudah fix, tanpa select produk) --}}
+{{-- Field proposal untuk workspace kolaborasi (proyek sudah fix, tanpa select proyek) --}}
 <div class="space-y-3">
     <div>
         <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Nama Klien / Perusahaan') }} <span class="text-red-400">*</span></label>

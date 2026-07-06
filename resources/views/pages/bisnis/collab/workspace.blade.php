@@ -1,13 +1,13 @@
 @extends('layouts.app')
-@section('title', $product->name . ' · ' . ($isOwner ? 'Folder Produk' : 'Kolaborasi'))
+@section('title', $product->name . ' · ' . ($isOwner ? 'Folder Proyek' : 'Kolaborasi'))
 @section('page-title', $product->name)
-@section('breadcrumb', 'Bisnis › ' . ($isOwner ? 'Folder Produk' : 'Kolaborasi') . ' › ' . $product->name)
+@section('breadcrumb', 'Bisnis › ' . ($isOwner ? 'Folder Proyek' : 'Kolaborasi') . ' › ' . $product->name)
 
 @section('content')
 @php $rp = fn($n) => 'Rp ' . number_format((int) $n, 0, ',', '.'); @endphp
 <div class="space-y-4 md:space-y-6">
 
-    {{-- ── Header produk ── --}}
+    {{-- ── Header proyek ── --}}
     <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-50 flex flex-col sm:flex-row sm:items-center gap-4">
         <div class="flex items-center gap-4 flex-1 min-w-0">
             <div class="w-12 h-12 rounded-2xl bg-gray-900 text-white flex items-center justify-center flex-shrink-0 text-lg font-black">
@@ -39,7 +39,7 @@
         </div>
     </div>
 
-    {{-- ── Statistik produk ── --}}
+    {{-- ── Statistik proyek ── --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-50">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white flex items-center justify-center mb-3">
@@ -95,14 +95,16 @@
     </div>
 
     {{-- ── Tab: Proposal & Klien / Template Pesan ── --}}
-    <div class="flex flex-wrap gap-2">
+    <div class="flex gap-1 bg-gray-100 p-1 rounded-2xl w-fit">
         <button type="button" id="tabBtnDeals" onclick="switchWsTab('deals')"
-            class="text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-black text-white">
-            {{ __('Proposal & Klien') }} ({{ count($deals) }})
+            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            {{ __('Proposal & Klien') }}
+            <span class="text-[10px] font-bold opacity-50">{{ count($deals) }}</span>
         </button>
         <button type="button" id="tabBtnTpl" onclick="switchWsTab('tpl')"
-            class="text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-white text-gray-500 border border-gray-200 hover:border-gray-300">
-            {{ __('Template Pesan') }} ({{ count($templates) }})
+            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            {{ __('Template Pesan') }}
+            <span class="text-[10px] font-bold opacity-50">{{ count($templates) }}</span>
         </button>
     </div>
 
@@ -111,7 +113,7 @@
         <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-50">
             <div>
                 <h3 class="font-bold">{{ __('Proposal & Klien') }}</h3>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Semua proposal untuk produk ini. Kolaborator bisa menambah & mengubah.') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Semua proposal untuk proyek ini. Kolaborator bisa menambah & mengubah.') }}</p>
             </div>
             <button type="button" onclick="openModal('modal-add-deal')"
                 class="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">
@@ -119,7 +121,7 @@
             </button>
         </div>
         @if(count($deals) === 0)
-        <p class="text-center text-gray-400 text-sm py-10">{{ __('Belum ada proposal untuk produk ini.') }}</p>
+        <p class="text-center text-gray-400 text-sm py-10">{{ __('Belum ada proposal untuk proyek ini.') }}</p>
         @else
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -169,7 +171,7 @@
         <div class="flex items-center justify-between mb-5">
             <div>
                 <h3 class="font-bold">{{ __('Template Pesan') }}</h3>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Template email/WA/penawaran khusus produk ini.') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Template email/WA/penawaran khusus proyek ini.') }}</p>
             </div>
             <button type="button" onclick="openTplModal()"
                 class="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">
@@ -177,7 +179,7 @@
             </button>
         </div>
         @if(count($templates) === 0)
-        <p class="text-center text-gray-400 text-sm py-8">{{ __('Belum ada template untuk produk ini.') }}</p>
+        <p class="text-center text-gray-400 text-sm py-8">{{ __('Belum ada template untuk proyek ini.') }}</p>
         @else
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             @foreach($templates as $t)
@@ -220,7 +222,7 @@
         <div class="flex items-center justify-between p-6 border-b border-gray-50">
             <div>
                 <h2 class="font-bold text-lg">{{ __('Undang Partner') }} · {{ $product->name }}</h2>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Bisa kelola proposal & template produk ini, plus lihat statistiknya. Tanpa perlu langganan.') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Bisa kelola proposal & template proyek ini, plus lihat statistiknya. Tanpa perlu langganan.') }}</p>
             </div>
             <button type="button" onclick="closeModal('modal-invite')" class="text-gray-400 hover:text-black flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
@@ -239,7 +241,7 @@
                     </div>
                     <form method="POST" action="{{ route('bisnis.collab.remove', $c->id) }}" class="m-0">
                         @csrf @method('DELETE')
-                        <button type="button" onclick="askDelete(this, '{{ __('Hapus kolaborator ini? Dia langsung kehilangan akses ke produk ini.') }}')"
+                        <button type="button" onclick="askDelete(this, '{{ __('Hapus kolaborator ini? Dia langsung kehilangan akses ke proyek ini.') }}')"
                             class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -332,18 +334,17 @@
 function openModal(id){ document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; }
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
 
-/* ── Tab Proposal / Template (pilihan diingat per produk) ── */
+/* ── Tab Proposal / Template (pilihan diingat per proyek) ── */
 var WS_TAB_KEY = 'wsTab:{{ $product->id }}';
 function switchWsTab(tab){
-    var on  = 'text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-black text-white';
-    var off = 'text-xs font-bold px-3.5 py-2 rounded-xl transition-all bg-white text-gray-500 border border-gray-200 hover:border-gray-300';
     document.getElementById('panelDeals').classList.toggle('hidden', tab !== 'deals');
     document.getElementById('panelTpl').classList.toggle('hidden', tab !== 'tpl');
-    document.getElementById('tabBtnDeals').className = tab === 'deals' ? on : off;
-    document.getElementById('tabBtnTpl').className = tab === 'tpl' ? on : off;
+    document.querySelectorAll('.ws-tab-btn').forEach(b => { b.classList.remove('bg-white', 'shadow-sm', 'text-black'); b.classList.add('text-gray-500'); });
+    const btn = document.getElementById(tab === 'tpl' ? 'tabBtnTpl' : 'tabBtnDeals');
+    btn.classList.add('bg-white', 'shadow-sm', 'text-black'); btn.classList.remove('text-gray-500');
     try { localStorage.setItem(WS_TAB_KEY, tab); } catch(e) {}
 }
-try { if (localStorage.getItem(WS_TAB_KEY) === 'tpl') switchWsTab('tpl'); } catch(e) {}
+switchWsTab((() => { try { return localStorage.getItem(WS_TAB_KEY) === 'tpl' ? 'tpl' : 'deals'; } catch(e) { return 'deals'; } })());
 
 function openEditDeal(d){
     const f = document.getElementById('editDealForm');

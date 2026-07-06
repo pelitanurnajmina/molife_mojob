@@ -447,12 +447,12 @@
 {{-- Modal impor lamaran --}}
 <div id="modal-impor-lamaran" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-impor-lamaran')">
     <div class="bg-white rounded-3xl w-full max-w-md">
-        <div class="flex items-center justify-between p-6 border-b border-gray-50">
+        <div class="flex items-start justify-between gap-3 p-6 border-b border-gray-50">
             <div>
-                <h2 class="font-bold text-lg">{{ __('Impor Lamaran') }}</h2>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Pindahkan catatan lamaran lamamu ke molife dalam sekali unggah.') }}</p>
+                <h2 class="font-bold text-lg leading-tight">{{ __('Impor Lamaran') }}</h2>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Pindahkan catatan lamaran lamamu ke molife dalam sekali unggah.') }}</p>
             </div>
-            <button type="button" onclick="closeModal('modal-impor-lamaran')" class="text-gray-400 hover:text-black flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <button type="button" onclick="closeModal('modal-impor-lamaran')" class="w-8 h-8 -mr-1.5 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
         <div class="p-6">
             <p class="text-xs text-gray-400 mb-3">{{ __('Format CSV atau Excel (.xlsx), maksimal 500 baris. Kolom: Perusahaan, Posisi, Tipe, Channel, Lokasi, Gaji, Tanggal Melamar, Status, URL, Catatan. Status boleh ditulis bebas (Dilamar, Interview, Ditolak, dll).') }}</p>
@@ -460,11 +460,15 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 {{ __('Unduh file contoh') }}
             </a>
-            <form method="POST" action="{{ route('lamaran.import') }}" enctype="multipart/form-data" class="flex items-center gap-2">
+            <form method="POST" action="{{ route('lamaran.import') }}" enctype="multipart/form-data" class="space-y-2">
                 @csrf
-                <input type="file" name="file" accept=".csv,.xlsx,text/csv" required
-                    class="flex-1 min-w-0 text-xs text-gray-500 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-gray-100 file:text-xs file:font-bold file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer">
-                <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Impor') }}</button>
+                <label class="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 transition-all">
+                    <span class="px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-700 flex-shrink-0">{{ __('Pilih File') }}</span>
+                    <span class="fileName text-xs text-gray-400 truncate flex-1">{{ __('Belum ada file dipilih') }}</span>
+                    <input type="file" name="file" accept=".csv,.xlsx,text/csv" required class="hidden"
+                        onchange="this.closest('label').querySelector('.fileName').textContent = this.files[0] ? this.files[0].name : '{{ __('Belum ada file dipilih') }}'">
+                </label>
+                <button type="submit" class="w-full px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all">{{ __('Impor Sekarang') }}</button>
             </form>
             @error('file')
             <p class="text-xs font-bold text-red-500 mt-2">{{ $message }}</p>

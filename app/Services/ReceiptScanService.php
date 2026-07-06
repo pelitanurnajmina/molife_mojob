@@ -207,10 +207,46 @@ class ReceiptScanService
     /** Panggil Google Gemini Flash (free tier). Mengembalikan array hasil decode atau null. */
     private static function callGemini(string $imageBinary, string $mimeType): ?array
     {
-        $model = config('services.gemini.model', 'gemini-3.5-flash');
+        // Model utama + cadangan: free tier kadang penuh sesaat (429/503),
+        // coba model lain dulu sebelum menyerah.
+        $models = array_values(array_unique([
+            config('services.gemini.model', 'gemini-3.5-flash'),
+            'gemini-2.5-flash',
+            'gemini-2.5-flash-lite',
+        ]));
+
+        $response = null;
+        foreach ($models as $model) {
+            try {
+                $response = self::geminiRequest($model, $imageBinary, $mimeType);
+            } catch (\Illuminate\Http\Client\ConnectionException) {
+                $response = null; // timeout/koneksi → anggap model penuh, lanjut cadangan
+                continue;
+            }
+            if (!in_array($response->status(), [429, 503], true)) break;
+        }
+
+        if ($response === null || in_array($response->status(), [429, 503], true)) {
+            throw new \RuntimeException(__('Layanan scan sedang penuh. Tunggu sebentar lalu coba lagi.'));
+        }
+        if (!$response->successful()) {
+            \Illuminate\Support\Facades\Log::error('Gemini scan failed', [
+                'status' => $response->status(),
+                'body'   => mb_substr($response->body(), 0, 500),
+            ]);
+            throw new \RuntimeException(__('Struk tidak bisa diproses saat ini. Coba lagi sebentar.'));
+        }
+
+        $text = $response->json('candidates.0.content.parts.0.text', '');
+
+        return is_array($decoded = json_decode((string) $text, true)) ? $decoded : null;
+    }
+
+    private static function geminiRequest(string $model, string $imageBinary, string $mimeType): \Illuminate\Http\Client\Response
+    {
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':generateContent';
 
-        $response = \Illuminate\Support\Facades\Http::timeout(60)
+        return \Illuminate\Support\Facades\Http::timeout(60)
             ->withHeaders(['x-goog-api-key' => config('services.gemini.api_key')])
             ->post($url, [
                 'contents' => [[
@@ -237,21 +273,6 @@ class ReceiptScanService
                     ],
                 ],
             ]);
-
-        if ($response->status() === 429) {
-            throw new \RuntimeException(__('Layanan scan sedang penuh. Tunggu sebentar lalu coba lagi.'));
-        }
-        if (!$response->successful()) {
-            \Illuminate\Support\Facades\Log::error('Gemini scan failed', [
-                'status' => $response->status(),
-                'body'   => mb_substr($response->body(), 0, 500),
-            ]);
-            throw new \RuntimeException(__('Struk tidak bisa diproses saat ini. Coba lagi sebentar.'));
-        }
-
-        $text = $response->json('candidates.0.content.parts.0.text', '');
-
-        return is_array($decoded = json_decode((string) $text, true)) ? $decoded : null;
     }
 
     /** Downscale the image so the long edge is at most MAX_EDGE px (saves image tokens). */

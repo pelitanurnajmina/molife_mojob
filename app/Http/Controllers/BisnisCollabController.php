@@ -66,7 +66,7 @@ class BisnisCollabController extends Controller
     public function workspace(string $productId)
     {
         $product = CollabService::access(auth()->id(), (int) $productId);
-        abort_if(!$product, 403, 'Kamu tidak punya akses ke produk ini.');
+        abort_if(!$product, 403, 'Kamu tidak punya akses ke proyek ini.');
 
         $ownerId  = $product->user_id;
         $isOwner  = $ownerId === auth()->id();

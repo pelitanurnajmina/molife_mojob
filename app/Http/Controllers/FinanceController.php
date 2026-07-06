@@ -131,10 +131,12 @@ class FinanceController extends Controller
             ], 403);
         }
 
+        // heic/heif = format asli kamera iPhone; browser sudah mengonversi ke JPEG
+        // lebih dulu, ini jaring pengaman bila konversinya gagal (Gemini bisa baca HEIC).
         $request->validate([
-            'receipt' => 'required|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'receipt' => 'required|file|mimes:jpg,jpeg,png,webp,heic,heif|max:8192',
         ], [
-            'receipt.mimes' => __('Format harus JPG, PNG, atau WebP.'),
+            'receipt.mimes' => __('Format harus JPG, PNG, WebP, atau HEIC.'),
             'receipt.max'   => __('Ukuran maksimal 8 MB.'),
         ]);
 

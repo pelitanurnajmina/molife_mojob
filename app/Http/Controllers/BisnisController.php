@@ -88,13 +88,13 @@ class BisnisController extends Controller
     {
         $r = $request->validate(['name' => 'required|string|max:100']);
         BusinessProduct::firstOrCreate(['user_id' => auth()->id(), 'name' => trim($r['name'])]);
-        return redirect()->route('bisnis.deals')->with('toast', __('Produk ditambahkan.'));
+        return redirect()->route('bisnis.deals')->with('toast', __('Proyek ditambahkan.'));
     }
 
     public function destroyProduct(string $id)
     {
         BusinessProduct::where('user_id', auth()->id())->where('id', $id)->delete();
-        return redirect()->route('bisnis.deals')->with('toast', __('Produk dihapus.'));
+        return redirect()->route('bisnis.deals')->with('toast', __('Proyek dihapus.'));
     }
 
     public function update(Request $request, string $id)
@@ -106,7 +106,7 @@ class BisnisController extends Controller
 
     /* ── Ekspor / impor proposal & klien ── */
 
-    private const CSV_HEADERS = ['Nama Klien', 'Bidang', 'Alamat', 'Kontak', 'Produk', 'Nilai', 'Status', 'Tanggal Proposal', 'Catatan'];
+    private const CSV_HEADERS = ['Nama Klien', 'Bidang', 'Alamat', 'Kontak', 'Proyek', 'Nilai', 'Status', 'Tanggal Proposal', 'Catatan'];
 
     /** Label status Indonesia ↔ key internal (untuk impor yang toleran). */
     private static function statusFromLabel(string $value): string
@@ -175,7 +175,7 @@ class BisnisController extends Controller
             $client = \App\Support\SpreadsheetReader::pick($row, ['Nama Klien', 'Klien', 'Client', 'Perusahaan', 'Client Name', 'Nama']);
             if ($client === '') { $skipped++; continue; }
 
-            $product = mb_substr(\App\Support\SpreadsheetReader::pick($row, ['Produk', 'Product', 'Produk Kita']), 0, 255);
+            $product = mb_substr(\App\Support\SpreadsheetReader::pick($row, ['Proyek', 'Project', 'Produk', 'Product', 'Produk Kita']), 0, 255);
             if ($product !== '') {
                 BusinessProduct::firstOrCreate(['user_id' => $userId, 'name' => $product]);
             }

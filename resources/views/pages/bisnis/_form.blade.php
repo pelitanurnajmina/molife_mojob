@@ -9,15 +9,15 @@
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Produk Kita') }}</label>
+            <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Proyek Kita') }}</label>
             <select name="product" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
-                <option value="">{{ count($products) ? __('— Pilih produk —') : __('Belum ada produk') }}</option>
+                <option value="">{{ count($products) ? __('— Pilih proyek —') : __('Belum ada proyek') }}</option>
                 @foreach($products as $p)
                 <option value="{{ $p }}">{{ $p }}</option>
                 @endforeach
             </select>
             @if(!count($products))
-            <p class="text-[10px] text-gray-400 mt-1">{{ __('Tambah produk dulu lewat tombol "Kelola Produk".') }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">{{ __('Tambah proyek dulu lewat tombol "Kelola Proyek".') }}</p>
             @endif
         </div>
         <div>

@@ -12,13 +12,13 @@
         <form method="GET" action="{{ route('bisnis.deals') }}" class="flex items-center gap-2 flex-1">
             <input type="hidden" name="status" value="{{ $filterStatus }}">
             <div class="relative flex-1 max-w-xs">
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="{{ __('Cari klien / produk / bidang...') }}"
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="{{ __('Cari klien / proyek / bidang...') }}"
                     class="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
             <div class="w-44">
                 <select name="product" onchange="this.form.submit()" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
-                    <option value="all" {{ $filterProduct === 'all' ? 'selected' : '' }}>{{ __('Semua produk') }}</option>
+                    <option value="all" {{ $filterProduct === 'all' ? 'selected' : '' }}>{{ __('Semua proyek') }}</option>
                     @foreach($products as $p)
                     <option value="{{ $p }}" {{ $filterProduct === $p ? 'selected' : '' }}>{{ $p }}</option>
                     @endforeach
@@ -34,7 +34,7 @@
             <button type="button" onclick="openModal('modal-products')"
                 class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                {{ __('Kelola Produk') }}
+                {{ __('Kelola Proyek') }}
             </button>
             <button type="button" onclick="openModal('modal-add')"
                 class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all">
@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    {{-- ── Folder produk (kolaborasi per produk) ── --}}
+    {{-- ── Folder proyek (kolaborasi per proyek) ── --}}
     @if(count($productRows))
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         @foreach($productRows as $pr)
@@ -100,7 +100,7 @@
                 <thead>
                     <tr class="border-b border-gray-100">
                         <th class="w-full text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400">{{ __('Klien') }}</th>
-                        <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden md:table-cell whitespace-nowrap">{{ __('Produk') }}</th>
+                        <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden md:table-cell whitespace-nowrap">{{ __('Proyek') }}</th>
                         <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 hidden lg:table-cell whitespace-nowrap">{{ __('Bidang') }}</th>
                         <th class="text-right px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 whitespace-nowrap">{{ __('Nilai') }}</th>
                         <th class="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-bold text-gray-400 whitespace-nowrap">{{ __('Status') }}</th>
@@ -185,8 +185,8 @@
     <div class="bg-white rounded-3xl w-full max-w-md">
         <div class="flex items-center justify-between p-6 border-b border-gray-50">
             <div>
-                <h2 class="font-bold text-lg">{{ __('Kelola Produk') }}</h2>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Produk/jasa yang kamu tawarkan ke klien.') }}</p>
+                <h2 class="font-bold text-lg">{{ __('Kelola Proyek') }}</h2>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Proyek/jasa yang kamu tawarkan ke klien.') }}</p>
             </div>
             <button type="button" onclick="closeModal('modal-products')" class="text-gray-400 hover:text-black"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
@@ -196,19 +196,19 @@
                 <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
                     <div class="w-8 h-8 rounded-lg bg-white border border-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">{{ strtoupper(substr($pr->name, 0, 1)) }}</div>
                     <span class="flex-1 text-sm font-bold text-gray-800 truncate">{{ $pr->name }}</span>
-                    <a href="{{ route('kolaborasi.workspace', $pr->id) }}" title="{{ __('Buka folder produk (kolaborasi, template, statistik)') }}"
+                    <a href="{{ route('kolaborasi.workspace', $pr->id) }}" title="{{ __('Buka folder proyek (kolaborasi, template, statistik)') }}"
                         class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-black hover:bg-gray-200 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
                     </a>
                     <form method="POST" action="{{ route('bisnis.product.destroy', $pr->id) }}" class="m-0">
                         @csrf @method('DELETE')
-                        <button type="button" onclick="askDelete(this, '{{ __('Hapus produk ini? Proposal lama tidak terpengaruh.') }}')" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
+                        <button type="button" onclick="askDelete(this, '{{ __('Hapus proyek ini? Proposal lama tidak terpengaruh.') }}')" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </form>
                 </div>
                 @empty
-                <p class="text-center text-gray-400 text-sm py-4">{{ __('Belum ada produk.') }}</p>
+                <p class="text-center text-gray-400 text-sm py-4">{{ __('Belum ada proyek.') }}</p>
                 @endforelse
             </div>
             <form method="POST" action="{{ route('bisnis.product.store') }}" class="flex items-center gap-2 border-t border-gray-50 pt-4">
@@ -224,26 +224,30 @@
 {{-- Modal impor / ekspor --}}
 <div id="modal-impor" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-impor')">
     <div class="bg-white rounded-3xl w-full max-w-md">
-        <div class="flex items-center justify-between p-6 border-b border-gray-50">
+        <div class="flex items-start justify-between gap-3 p-6 border-b border-gray-50">
             <div>
-                <h2 class="font-bold text-lg">{{ __('Impor / Ekspor Data') }}</h2>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Pindahkan data proposal & klien lamamu ke molife, atau unduh datamu.') }}</p>
+                <h2 class="font-bold text-lg leading-tight">{{ __('Impor / Ekspor Data') }}</h2>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Pindahkan data proposal & klien lamamu ke molife, atau unduh datamu.') }}</p>
             </div>
-            <button type="button" onclick="closeModal('modal-impor')" class="text-gray-400 hover:text-black flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <button type="button" onclick="closeModal('modal-impor')" class="w-8 h-8 -mr-1.5 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
         <div class="p-6 space-y-5">
             <div>
                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{{ __('Impor dari file') }}</p>
-                <p class="text-xs text-gray-400 mb-3">{{ __('Format CSV atau Excel (.xlsx), maksimal 500 baris. Kolom: Nama Klien, Bidang, Alamat, Kontak, Produk, Nilai, Status, Tanggal Proposal, Catatan. Produk baru dibuat otomatis.') }}</p>
+                <p class="text-xs text-gray-400 mb-3">{{ __('Format CSV atau Excel (.xlsx), maksimal 500 baris. Kolom: Nama Klien, Bidang, Alamat, Kontak, Proyek, Nilai, Status, Tanggal Proposal, Catatan. Proyek baru dibuat otomatis.') }}</p>
                 <a href="{{ route('bisnis.import.template') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-all mb-3">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     {{ __('Unduh file contoh') }}
                 </a>
-                <form method="POST" action="{{ route('bisnis.import') }}" enctype="multipart/form-data" class="flex items-center gap-2">
+                <form method="POST" action="{{ route('bisnis.import') }}" enctype="multipart/form-data" class="space-y-2">
                     @csrf
-                    <input type="file" name="file" accept=".csv,.xlsx,text/csv" required
-                        class="flex-1 min-w-0 text-xs text-gray-500 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-gray-100 file:text-xs file:font-bold file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer">
-                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Impor') }}</button>
+                    <label class="flex items-center gap-3 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 transition-all">
+                        <span class="px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-700 flex-shrink-0">{{ __('Pilih File') }}</span>
+                        <span class="fileName text-xs text-gray-400 truncate flex-1">{{ __('Belum ada file dipilih') }}</span>
+                        <input type="file" name="file" accept=".csv,.xlsx,text/csv" required class="hidden"
+                            onchange="this.closest('label').querySelector('.fileName').textContent = this.files[0] ? this.files[0].name : '{{ __('Belum ada file dipilih') }}'">
+                    </label>
+                    <button type="submit" class="w-full px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all">{{ __('Impor Sekarang') }}</button>
                 </form>
                 @error('file')
                 <p class="text-xs font-bold text-red-500 mt-2">{{ $message }}</p>
@@ -261,14 +265,14 @@
     </div>
 </div>
 
-{{-- Modal kolaborator per produk --}}
+{{-- Modal kolaborator per proyek --}}
 @foreach($productRows as $pr)
 <div id="modal-collab-{{ $pr->id }}" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-collab-{{ $pr->id }}')">
     <div class="bg-white rounded-3xl w-full max-w-md">
         <div class="flex items-center justify-between p-6 border-b border-gray-50">
             <div>
                 <h2 class="font-bold text-lg">{{ __('Kolaborator') }} · {{ $pr->name }}</h2>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Bisa kelola proposal & template produk ini, plus lihat statistiknya. Tanpa perlu langganan.') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Bisa kelola proposal & template proyek ini, plus lihat statistiknya. Tanpa perlu langganan.') }}</p>
             </div>
             <button type="button" onclick="closeModal('modal-collab-{{ $pr->id }}')" class="text-gray-400 hover:text-black flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
@@ -287,7 +291,7 @@
                     </div>
                     <form method="POST" action="{{ route('bisnis.collab.remove', $c->id) }}" class="m-0">
                         @csrf @method('DELETE')
-                        <button type="button" onclick="askDelete(this, '{{ __('Hapus kolaborator ini? Dia langsung kehilangan akses ke produk ini.') }}')"
+                        <button type="button" onclick="askDelete(this, '{{ __('Hapus kolaborator ini? Dia langsung kehilangan akses ke proyek ini.') }}')"
                             class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-gray-200 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>

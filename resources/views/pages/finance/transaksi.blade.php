@@ -206,7 +206,7 @@
             @else
             {{-- Picker --}}
             <label id="scanDrop" class="block cursor-pointer">
-                <input type="file" id="scanFile" accept="image/jpeg,image/png,image/webp" capture="environment" class="hidden" onchange="scanPreview(this)">
+                <input type="file" id="scanFile" accept="image/*,.heic,.heif" capture="environment" class="hidden" onchange="scanPreview(this)">
                 <div id="scanDropInner" class="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center hover:border-violet-300 transition-all">
                     <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <p class="text-sm font-bold text-gray-600">{{ __('Pilih foto atau ambil dari kamera') }}</p>
@@ -266,16 +266,38 @@ function closeScanModal() {
     document.body.style.overflow = '';
 }
 
-function scanPreview(input) {
+async function scanPreview(input) {
     const file = input.files && input.files[0];
     if (!file) return;
-    scanSelectedFile = file;
+
+    // Konversi ke JPEG di browser: foto iPhone (HEIC) jadi terbaca di mana pun,
+    // dan file besar dikecilkan dulu supaya upload cepat & lolos batas 8 MB.
+    scanSelectedFile = await convertToJpeg(file);
+
     const img = document.getElementById('scanPreviewImg');
-    img.src = URL.createObjectURL(file);
+    img.src = URL.createObjectURL(scanSelectedFile);
     img.classList.remove('hidden');
     img.classList.add('mt-3');
     document.getElementById('scanBtn').disabled = false;
     document.getElementById('scanError').classList.add('hidden');
+}
+
+async function convertToJpeg(file, maxEdge = 1568) {
+    try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.85));
+        if (!blob) return file;
+        return new File([blob], (file.name.replace(/\.[^.]+$/, '') || 'struk') + '.jpg', { type: 'image/jpeg' });
+    } catch (e) {
+        // Browser tidak bisa decode format ini — kirim apa adanya, server yang menangani.
+        return file;
+    }
 }
 
 async function doScan() {
