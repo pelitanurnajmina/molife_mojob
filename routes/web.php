@@ -106,6 +106,18 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/tour/done', [DashboardController::class, 'completeTour'])->name('tour.done');
     Route::get('/today', fn() => redirect()->route('dashboard'))->name('today');
+    // Siklus haid (khusus akun perempuan; sinkron otomatis ke hari uzur sholat)
+    Route::get('/haid',            [\App\Http\Controllers\HaidController::class, 'index'])->name('haid');
+    Route::post('/haid',           [\App\Http\Controllers\HaidController::class, 'store'])->name('haid.store');
+    Route::post('/haid/selesai',   [\App\Http\Controllers\HaidController::class, 'finish'])->name('haid.finish');
+    Route::post('/haid/{id}',      [\App\Http\Controllers\HaidController::class, 'update'])->name('haid.update');
+    Route::delete('/haid/{id}',    [\App\Http\Controllers\HaidController::class, 'destroy'])->name('haid.destroy');
+
+    // Meditasi (timer + suara alam + riwayat)
+    Route::get('/meditasi',        [\App\Http\Controllers\MeditasiController::class, 'index'])->name('meditasi');
+    Route::post('/meditasi',       [\App\Http\Controllers\MeditasiController::class, 'store'])->name('meditasi.store');
+    Route::delete('/meditasi/{id}',[\App\Http\Controllers\MeditasiController::class, 'destroy'])->name('meditasi.destroy');
+
     Route::get('/mental', [MentalController::class, 'index'])->name('mental');
     Route::post('/mental/mood', [MentalController::class, 'storeMood'])->name('mental.mood');
     Route::delete('/mental/reflection', [MentalController::class, 'deleteReflection'])->name('mental.reflection.delete');

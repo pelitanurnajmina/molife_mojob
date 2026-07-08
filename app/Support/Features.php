@@ -18,10 +18,12 @@ class Features
             'racket'       => false,
             'custom_sport' => false,
             'intimasi'     => true,
+            'haid'         => true,  // hanya tampil untuk akun perempuan
             'porn'         => false,
             'sosmed'       => false,
             'motivasi'     => true,
             'pomodoro'     => true,
+            'meditasi'     => true,
             'journal'      => true,
             'tasks'        => true,
             'links'        => true,
