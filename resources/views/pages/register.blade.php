@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="{{ asset('images/icon.png') }}?v=2">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=6">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=8">
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style>
 </head>
 <body class="min-h-screen bg-white">
@@ -35,6 +35,13 @@
             <h2 class="text-3xl font-extrabold tracking-tight">{{ __('Buat Akun Baru') }}</h2>
             <p class="text-sm text-gray-500 mt-2">{{ __('Mulai track kehidupan & karirmu hari ini.') }}</p>
 
+            @if(session('collab_invite_info'))
+            <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 mt-6 text-sm font-medium flex items-start gap-2.5">
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>{{ session('collab_invite_info') }}</span>
+            </div>
+            @endif
+
             @if($errors->any() && !$errors->hasAny(['email','password','terms']))
             <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mt-6 text-sm font-medium">
                 {{ $errors->first() }}
@@ -46,7 +53,7 @@
 
                 <div>
                     <label class="text-sm font-bold text-gray-700 block mb-1.5">Email</label>
-                    <input type="email" name="email" value="{{ old('email') }}"
+                    <input type="email" name="email" value="{{ old('email', session('collab_invite_email')) }}"
                         placeholder="{{ __('you@example.com') }}"
                         class="w-full px-4 py-3 bg-gray-50 border {{ $errors->has('email') ? 'border-red-300' : 'border-gray-200' }} rounded-xl outline-none focus:border-black focus:bg-white transition-all"
                         autocomplete="email" autofocus required>

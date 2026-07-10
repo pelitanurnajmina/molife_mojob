@@ -96,6 +96,7 @@
               <div class="win-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M5 5l1.4 1.4M17.6 17.6L19 19M3 12h2M19 12h2"/></svg> Prayer</div>
               <div class="win-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg> Gym</div>
               <div class="win-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg> Pomodoro</div>
+              <div class="win-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg> Meditasi</div>
               <div class="win-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 14c.8 1 1.8 1.5 3 1.5s2.2-.5 3-1.5"/></svg> Mental</div>
               <div class="win-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg> Tasks &amp; Notes</div>
               <div class="win-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg> Statistik</div>
@@ -181,6 +182,20 @@
 
         <div class="mod" data-reveal>
           <span class="mod-tag tag-life">Life</span>
+          <h3>Siklus Haid</h3>
+          <p>Catat haid, lihat prediksi siklus &amp; masa subur dari rata-ratamu sendiri. Hari haid otomatis jadi hari uzur, streak sholat tak terputus.</p>
+          <div class="mod-viz"><div class="fin"><div class="c" style="background:var(--rose-soft)"><div class="l" style="color:var(--rose)">Siklus</div><div class="v" style="color:var(--rose)">28 hr</div></div><div class="c" style="background:#F1EDFD"><div class="l" style="color:var(--violet)">Haid</div><div class="v" style="color:var(--violet)">5 hr</div></div><div class="c" style="background:var(--ink);color:#fff"><div class="l">Berikutnya</div><div class="v">29 Jul</div></div></div></div>
+        </div>
+
+        <div class="mod" data-reveal>
+          <span class="mod-tag tag-life">Life</span>
+          <h3>Meditasi</h3>
+          <p>Timer meditasi layar penuh dengan panduan napas, suara hujan, ombak, atau angin, plus streak harian. 10 menit sehari, pikiran lebih tenang.</p>
+          <div class="mod-viz"><div class="pomo-wrap"><svg class="mini-pomo" viewBox="0 0 64 64"><circle class="tr" cx="32" cy="32" r="26"/><circle class="fl" cx="32" cy="32" r="26"/></svg><span class="t">10:00</span></div></div>
+        </div>
+
+        <div class="mod" data-reveal>
+          <span class="mod-tag tag-life">Life</span>
           <h3>Link Penting</h3>
           <p>Simpan semua link penting beserta fungsinya dalam satu tempat, dari dokumen kerja sampai akun langganan, biar tak perlu cari-cari lagi.</p>
           <div class="mod-viz"><div class="tpl">
@@ -212,6 +227,17 @@
         </div>
 
         <div class="mod" data-reveal>
+          <span class="mod-tag tag-core">Insight</span>
+          <h3>Impor &amp; Ekspor Data</h3>
+          <p>Sudah punya catatan lamaran atau data klien di Excel? Unggah sekali, semuanya langsung masuk. Datamu juga bisa diunduh kapan pun.</p>
+          <div class="mod-viz"><div class="tpl">
+            <div class="tpr"><span class="tn">data-klien-lama.xlsx</span><span class="tt b">34 masuk</span></div>
+            <div class="tpr"><span class="tn">lamaran-2026.csv</span><span class="tt v">12 masuk</span></div>
+            <div class="tpr"><span class="tn">molife-bisnis.csv</span><span class="tt n">Ekspor</span></div>
+          </div></div>
+        </div>
+
+        <div class="mod" data-reveal>
           <span class="mod-tag tag-karir">Karier</span>
           <h3>Career Hub</h3>
           <p>Tetapkan target role, gaji, dan perusahaan impian. Lihat response rate &amp; interview rate-mu naik.</p>
@@ -233,9 +259,20 @@
         </div>
 
         <div class="mod" data-reveal>
+          <span class="mod-tag tag-karir">Karier</span>
+          <h3>Lowongan Kerja</h3>
+          <p>Rekomendasi lowongan dari berbagai sumber dunia yang cocok dengan target role-mu, remote maupun lokal. Eksklusif paket 6 Bulan &amp; 1 Tahun.</p>
+          <div class="mod-viz"><div class="tpl">
+            <div class="tpr"><span class="tn">Product Designer · Tokopedia</span><span class="tt b">Full Time</span></div>
+            <div class="tpr"><span class="tn">Frontend Dev · Remotive</span><span class="tt v">Remote</span></div>
+            <div class="tpr"><span class="tn">Data Analyst · Arbeitnow</span><span class="tt n">Baru</span></div>
+          </div></div>
+        </div>
+
+        <div class="mod" data-reveal>
           <span class="mod-tag tag-bisnis">Bisnis</span>
           <h3>Proposal &amp; Klien</h3>
-          <p>Catat tiap proposal yang dikirim, data klien, produk yang ditawarkan, nilai, dan respon mereka dalam satu pipeline.</p>
+          <p>Catat tiap proposal yang dikirim, data klien, proyek yang ditawarkan, nilai, dan respon mereka dalam satu pipeline.</p>
           <div class="mod-viz"><div class="pipe"><div class="pipe-row"><span class="nm">Prospek</span><span class="tk"><i style="width:100%;background:#7C5CF0"></i></span><span class="ct">9</span></div><div class="pipe-row"><span class="nm">Terkirim</span><span class="tk"><i style="width:67%;background:#6B7280"></i></span><span class="ct">6</span></div><div class="pipe-row"><span class="nm">Negosiasi</span><span class="tk"><i style="width:44%;background:#F5871F"></i></span><span class="ct">4</span></div><div class="pipe-row"><span class="nm">Deal</span><span class="tk"><i style="width:22%;background:#16A34A"></i></span><span class="ct">2</span></div></div></div>
         </div>
 
@@ -244,6 +281,17 @@
           <h3>Analitik &amp; Dokumen Bisnis</h3>
           <p>Pantau win rate, nilai pipeline, dan bidang klien teratas. Simpan link, file, dan template penawaran di satu tempat.</p>
           <div class="mod-viz"><div class="fin"><div class="c" style="background:#E6F4F1"><div class="l" style="color:#0F766E">Win Rate</div><div class="v" style="color:#0F766E">38%</div></div><div class="c" style="background:var(--blue-soft)"><div class="l" style="color:var(--blue)">Pipeline</div><div class="v" style="color:var(--blue)">24jt</div></div><div class="c" style="background:var(--ink);color:#fff"><div class="l">Deal</div><div class="v">9jt</div></div></div></div>
+        </div>
+
+        <div class="mod" data-reveal>
+          <span class="mod-tag tag-bisnis">Bisnis</span>
+          <h3>Kolaborasi Tim per Proyek</h3>
+          <p>Undang partner lewat email untuk mengerjakan satu proyek bareng: proposal, template pesan, dan statistiknya. Kolaborator gratis, tanpa perlu langganan.</p>
+          <div class="mod-viz"><div class="tpl">
+            <div class="tpr"><span class="tn">Proyek Camemo</span><span class="tt b">2 kolaborator</span></div>
+            <div class="tpr"><span class="tn">pelita@gmail.com</span><span class="tt v">Aktif</span></div>
+            <div class="tpr"><span class="tn">riko@outlook.com</span><span class="tt n">Diundang</span></div>
+          </div></div>
         </div>
 
         <div class="mod" data-reveal>
@@ -265,6 +313,13 @@
           <h3>Tabungan &amp; Target</h3>
           <p>Kejar tujuan tabungan, dari dana darurat sampai beli kendaraan, dengan progres yang terlihat jelas.</p>
           <div class="mod-viz"><div class="savings"><div class="sv"><div class="sv-top"><span>Dana Darurat</span><b>65%</b></div><div class="sv-bar"><i style="width:65%;background:var(--green)"></i></div></div><div class="sv"><div class="sv-top"><span>Beli Motor</span><b>30%</b></div><div class="sv-bar"><i style="width:30%;background:var(--blue)"></i></div></div></div></div>
+        </div>
+
+        <div class="mod" data-reveal>
+          <span class="mod-tag tag-finance">Finance</span>
+          <h3>Scan Struk AI</h3>
+          <p>Foto struk belanjamu, AI membaca dan mengisi form transaksinya otomatis: nominal, kategori, tanggal. Eksklusif paket 6 Bulan &amp; 1 Tahun.</p>
+          <div class="mod-viz"><div class="tasklist"><div class="ti done"><span class="cb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span>Struk difoto</span></div><div class="ti done"><span class="cb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span>Rp 61.000 · Makanan terdeteksi</span></div><div class="ti done"><span class="cb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span>Form transaksi terisi otomatis</span></div></div></div>
         </div>
 
       </div>
@@ -290,6 +345,8 @@
         <div class="trow"><div class="meta"><b>Sholat</b><span>Tracker sholat wajib, rawatib &amp; sunnah</span></div><span class="sw on"></span></div>
         <div class="trow"><div class="meta"><b>Gym</b><span>Log sesi gym dan kalori terbakar</span></div><span class="sw on"></span></div>
         <div class="trow"><div class="meta"><b>Pomodoro</b><span>Timer fokus &amp; riwayat sesi produktif</span></div><span class="sw on"></span></div>
+        <div class="trow"><div class="meta"><b>Meditasi</b><span>Timer meditasi, suara alam &amp; streak harian</span></div><span class="sw on"></span></div>
+        <div class="trow"><div class="meta"><b>Siklus Haid</b><span>Prediksi siklus &amp; sinkron hari uzur sholat</span></div><span class="sw on"></span></div>
         <div class="trow"><div class="meta"><b>Lari</b><span>Tracker jarak, pace, dan sesi lari</span></div><span class="sw"></span></div>
         <div class="trow"><div class="meta"><b>Stop Porn</b><span>Streak bebas pornografi &amp; kontrol diri</span></div><span class="sw"></span></div>
         <div class="trow"><div class="meta"><b>Lamaran Kerja</b><span>Kelola lamaran dan status interview</span></div><span class="sw on"></span></div>
@@ -426,12 +483,12 @@
           <div class="amt"><span class="n" id="planPrice">Rp 29.000</span><span class="per" id="planPer">/ 3 bulan</span></div>
           <p class="desc" id="planDesc">Setara ± Rp 9.700/bulan. Cukup waktu untuk benar-benar membentuk kebiasaan.</p>
           <ul>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Semua tracker: sholat, olahraga, pomodoro, mood, tugas</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Semua tracker: sholat, olahraga, meditasi, siklus haid, mood, tugas</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Career Hub &amp; pelacak lamaran lengkap</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Bisnis: proposal, klien, dokumen &amp; analitik</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Bisnis: proposal, klien, dokumen, analitik &amp; kolaborasi tim per proyek</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Keuangan: pemasukan, pengeluaran, anggaran, tabungan</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Statistik 30 hari, insight, &amp; Life Score harian</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Export data ke CSV</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Impor &amp; ekspor data (Excel/CSV)</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Paket 6 Bulan &amp; 1 Tahun: fitur AI Scan Struk &amp; Lowongan Kerja dunia</li>
           </ul>
           <a class="btn btn-dark" href="{{ route('register') }}" id="planCta">Ambil Akses 3 Bulan</a>

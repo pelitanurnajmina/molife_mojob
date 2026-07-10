@@ -94,6 +94,25 @@ class DashboardController extends Controller
         $financeSummary  = $showFinance ? DashboardInsightService::financeSummary($userId)  : [];
         $financeInsights = $showFinance ? DashboardInsightService::financeInsights($userId) : [];
 
+        /* ── Ringkasan modul lain: bisnis, meditasi, siklus haid ── */
+        $showBisnis    = $features['bisnis'] ?? false;
+        $bisnisSummary = $showBisnis ? \App\Services\BusinessService::analytics($userId) : [];
+
+        $showMeditasi  = $features['meditasi'] ?? false;
+        $meditasiStats = $showMeditasi ? \App\Services\MeditationService::stats($userId) : [];
+
+        $showHaid  = ($features['haid'] ?? false) && Profile::isFemale($userId);
+        $haidBrief = null;
+        if ($showHaid) {
+            $h = \App\Services\HaidService::data($userId);
+            $haidBrief = [
+                'periodDay'  => $h['periodDay'],
+                'cycleDay'   => $h['cycleDay'],
+                'daysToNext' => $h['daysToNext'],
+                'nextStart'  => $h['nextStart'],
+            ];
+        }
+
         /* ── KPI hero metrics + deltas ── */
         $lifeYesterday = LifeScoreService::for($userId, date('Y-m-d', strtotime('-1 day')))['overall'];
         $lifeDelta     = $lifeScore['overall'] - $lifeYesterday;
@@ -119,8 +138,9 @@ class DashboardController extends Controller
             'energyAvg7', 'weekScores', 'sholatDaysMonth', 'intimacyMonthly',
             'weekDates', 'weekSpiritualData', 'weekFitnessData', 'weekRunData', 'weekMoodData',
             'gymWeekly', 'runWeeklyCount', 'runMonthlyDist', 'caloriesWeek', 'todayStats',
-            'showCareer', 'showFinance',
+            'showCareer', 'showFinance', 'showBisnis', 'showMeditasi', 'showHaid',
             'careerSummary', 'careerInsights', 'financeSummary', 'financeInsights',
+            'bisnisSummary', 'meditasiStats', 'haidBrief',
             'lifeDelta', 'scoreSpark', 'pomoToday', 'pomoWeek', 'showTour', 'subDaysLeft'
         ));
     }

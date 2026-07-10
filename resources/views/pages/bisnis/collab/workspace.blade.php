@@ -39,10 +39,34 @@
         </div>
     </div>
 
-    {{-- ── Statistik proyek ── --}}
+    {{-- ── Tab: Proposal & Klien / Template Pesan / Tugas / Statistik ── --}}
+    <div class="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-2xl w-fit">
+        <button type="button" id="tabBtnDeals" onclick="switchWsTab('deals')"
+            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            {{ __('Proposal & Klien') }}
+            <span class="text-[10px] font-bold opacity-50">{{ count($deals) }}</span>
+        </button>
+        <button type="button" id="tabBtnTpl" onclick="switchWsTab('tpl')"
+            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            {{ __('Template Pesan') }}
+            <span class="text-[10px] font-bold opacity-50">{{ count($templates) }}</span>
+        </button>
+        <button type="button" id="tabBtnTasks" onclick="switchWsTab('tasks')"
+            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            {{ __('Tugas') }}
+            <span class="text-[10px] font-bold opacity-50">{{ $tasks->flatten(1)->count() }}</span>
+        </button>
+        <button type="button" id="tabBtnStats" onclick="switchWsTab('stats')"
+            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            {{ __('Statistik') }}
+        </button>
+    </div>
+
+    {{-- ── Panel Statistik: kartu + pipeline ── --}}
+    <div id="panelStats" class="hidden space-y-4 md:space-y-6">
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-50">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white flex items-center justify-center mb-3">
+            <div class="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center mb-3">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
             <p class="text-2xl md:text-3xl font-black text-gray-900 leading-none">{{ $total }}</p>
@@ -50,7 +74,7 @@
             <p class="text-[10px] text-gray-400 mt-0.5">{{ $thisMonthCount }} {{ __('bulan ini') }}</p>
         </div>
         <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-50">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 text-white flex items-center justify-center mb-3">
+            <div class="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center mb-3">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p class="text-2xl md:text-3xl font-black text-gray-900 leading-none">{{ $winRate }}<span class="text-base text-gray-400">%</span></p>
@@ -58,7 +82,7 @@
             <p class="text-[10px] text-gray-400 mt-0.5">{{ $counts['won'] }} {{ __('deal dari') }} {{ $closed }} {{ __('closing') }}</p>
         </div>
         <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-50">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center mb-3">
+            <div class="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center mb-3">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
             <p class="text-base md:text-lg font-black text-gray-900 leading-tight truncate">{{ $rp($pipelineValue) }}</p>
@@ -66,7 +90,7 @@
             <p class="text-[10px] text-gray-400 mt-0.5">{{ $active }} {{ __('proposal aktif') }}</p>
         </div>
         <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-50">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 text-white flex items-center justify-center mb-3">
+            <div class="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center mb-3">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <p class="text-base md:text-lg font-black text-gray-900 leading-tight truncate">{{ $rp($wonValue) }}</p>
@@ -93,20 +117,7 @@
             @endforeach
         </div>
     </div>
-
-    {{-- ── Tab: Proposal & Klien / Template Pesan ── --}}
-    <div class="flex gap-1 bg-gray-100 p-1 rounded-2xl w-fit">
-        <button type="button" id="tabBtnDeals" onclick="switchWsTab('deals')"
-            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-            {{ __('Proposal & Klien') }}
-            <span class="text-[10px] font-bold opacity-50">{{ count($deals) }}</span>
-        </button>
-        <button type="button" id="tabBtnTpl" onclick="switchWsTab('tpl')"
-            class="ws-tab-btn px-5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-            {{ __('Template Pesan') }}
-            <span class="text-[10px] font-bold opacity-50">{{ count($templates) }}</span>
-        </button>
-    </div>
+    </div>{{-- /panelStats --}}
 
     {{-- ── Proposal / klien ── --}}
     <div id="panelDeals" class="dash-card bg-white rounded-2xl md:rounded-3xl border border-gray-50 overflow-hidden">
@@ -247,6 +258,73 @@
         @endif
     </div>
 
+    {{-- ── Papan tugas (kanban) ── --}}
+    <div id="panelTasks" class="hidden space-y-4">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+                <h3 class="font-bold">{{ __('Papan Tugas') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Seret kartu antar kolom untuk mengubah status. Klik kartu untuk edit & assign ke partner.') }}</p>
+            </div>
+            <button type="button" onclick="openTaskModal()"
+                class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                {{ __('Buat Tugas') }}
+            </button>
+        </div>
+
+        @php
+            $taskCols = [
+                'todo'     => ['label' => __('To-do'),      'dot' => 'bg-gray-300'],
+                'progress' => ['label' => __('Dikerjakan'), 'dot' => 'bg-amber-400'],
+                'review'   => ['label' => __('Review'),     'dot' => 'bg-violet-400'],
+                'done'     => ['label' => __('Selesai'),    'dot' => 'bg-emerald-500'],
+            ];
+        @endphp
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            @foreach($taskCols as $st => $meta)
+            <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100 transition-all"
+                 ondragover="taskDragOver(event, this)"
+                 ondragleave="this.classList.remove('ring-2','ring-gray-300')"
+                 ondrop="dropTask(event, '{{ $st }}', this)">
+                <div class="flex items-center justify-between px-1 mb-2.5">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                        <span class="w-2 h-2 rounded-full {{ $meta['dot'] }}"></span>{{ $meta['label'] }}
+                    </span>
+                    <span id="cnt-{{ $st }}" class="text-[10px] font-bold text-gray-400">{{ count($tasks[$st] ?? []) }}</span>
+                </div>
+                <div id="col-{{ $st }}" class="space-y-2 min-h-[70px]">
+                    @foreach($tasks[$st] ?? [] as $t)
+                    <div id="task-{{ $t['id'] }}" draggable="true"
+                         ondragstart="taskDragStart(event, {{ $t['id'] }})" ondragend="taskDragEnd()"
+                         onclick='openTaskModal(@json($t))'
+                         class="task-card bg-white rounded-xl border border-gray-100 p-3 cursor-grab active:cursor-grabbing hover:border-gray-300 hover:shadow-sm transition-all">
+                        <p class="text-sm font-bold text-gray-800 leading-snug">{{ $t['title'] }}</p>
+                        @if($t['note'])
+                        <p class="text-[11px] text-gray-400 mt-1 leading-relaxed line-clamp-2">{{ $t['note'] }}</p>
+                        @endif
+                        <div class="mt-2.5 flex items-center justify-between">
+                            @if($t['assignee'])
+                            <span class="inline-flex items-center gap-1.5 min-w-0">
+                                <span class="w-5 h-5 rounded-full bg-gray-900 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">{{ strtoupper(substr($t['assignee'], 0, 1)) }}</span>
+                                <span class="text-[11px] font-bold text-gray-500 truncate">{{ $t['assignee'] }}</span>
+                            </span>
+                            @else
+                            <span class="text-[10px] font-bold text-gray-300">{{ __('Belum di-assign') }}</span>
+                            @endif
+                            <svg class="w-3.5 h-3.5 text-gray-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9h8M8 13h5"/></svg>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                <button type="button" onclick="openTaskModal(null, '{{ $st }}')"
+                    class="w-full mt-2 py-2 rounded-xl border border-dashed border-gray-200 text-[11px] font-bold text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-all">
+                    + {{ __('Tambah') }}
+                </button>
+            </div>
+            @endforeach
+        </div>
+    </div>
+
 </div>
 
 {{-- ── Modal undang partner (khusus owner) ── --}}
@@ -300,6 +378,60 @@
 </div>
 @endif
 
+{{-- ── Modal tugas (buat/edit) ── --}}
+<div id="modal-task" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-task')">
+    <div class="bg-white rounded-3xl w-full max-w-md">
+        <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-gray-50">
+            <div>
+                <h2 class="font-bold text-lg leading-tight" id="taskModalTitle">{{ __('Buat Tugas') }}</h2>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Tugas terlihat oleh semua anggota proyek ini.') }}</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-task')" class="w-8 h-8 -mr-1.5 -mt-1 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <form method="POST" action="" id="taskForm" class="px-6 pt-5 pb-6">
+            @csrf
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Judul Tugas') }} <span class="text-red-400">*</span></label>
+                    <input type="text" name="title" maxlength="200" required placeholder="{{ __('cth: Kirim proposal ke PT Maju Jaya') }}"
+                        class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Catatan') }}</label>
+                    <textarea name="note" rows="2" maxlength="500" placeholder="{{ __('Detail singkat (opsional)') }}"
+                        class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm leading-relaxed outline-none focus:border-black focus:bg-white resize-none transition-all"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Status') }}</label>
+                        <select name="status" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                            <option value="todo">{{ __('To-do') }}</option>
+                            <option value="progress">{{ __('Dikerjakan') }}</option>
+                            <option value="review">{{ __('Review') }}</option>
+                            <option value="done">{{ __('Selesai') }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Assign ke') }}</label>
+                        <select name="assignee_id" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                            <option value="">{{ __('Tidak di-assign') }}</option>
+                            @foreach($assignees as $uid => $name)
+                            <option value="{{ $uid }}">{{ $name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="w-full mt-6 py-3 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all" id="taskSubmit">{{ __('Simpan') }}</button>
+        </form>
+        <form method="POST" action="" id="taskDeleteForm" class="hidden px-6 pb-5 -mt-2 text-center">
+            @csrf @method('DELETE')
+            <button type="button" onclick="askDelete(this, '{{ __('Hapus tugas ini?') }}')"
+                class="text-[11px] font-bold text-gray-400 hover:text-red-500 transition-all">{{ __('Hapus tugas ini') }}</button>
+        </form>
+    </div>
+</div>
+
 {{-- ── Modal tambah proposal ── --}}
 <div id="modal-add-deal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this)closeModal('modal-add-deal')">
     <div class="bg-white rounded-3xl w-full max-w-md my-8">
@@ -324,7 +456,7 @@
         </div>
         <form method="POST" action="" id="editDealForm" class="p-6">
             @csrf
-            @include('pages.bisnis.collab._deal_fields', ['statuses' => $statuses])
+            @include('pages.bisnis.collab._deal_fields', ['statuses' => $statuses, 'edit' => true])
             <button type="submit" class="w-full mt-2 py-3 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all">{{ __('Perbarui') }}</button>
         </form>
     </div>
@@ -370,15 +502,98 @@ function closeModal(id){ document.getElementById(id).classList.add('hidden'); do
 
 /* ── Tab Proposal / Template (pilihan diingat per proyek) ── */
 var WS_TAB_KEY = 'wsTab:{{ $product->id }}';
+var WS_TABS = { deals: ['panelDeals', 'tabBtnDeals'], tpl: ['panelTpl', 'tabBtnTpl'], tasks: ['panelTasks', 'tabBtnTasks'], stats: ['panelStats', 'tabBtnStats'] };
 function switchWsTab(tab){
-    document.getElementById('panelDeals').classList.toggle('hidden', tab !== 'deals');
-    document.getElementById('panelTpl').classList.toggle('hidden', tab !== 'tpl');
-    document.querySelectorAll('.ws-tab-btn').forEach(b => { b.classList.remove('bg-white', 'shadow-sm', 'text-black'); b.classList.add('text-gray-500'); });
-    const btn = document.getElementById(tab === 'tpl' ? 'tabBtnTpl' : 'tabBtnDeals');
-    btn.classList.add('bg-white', 'shadow-sm', 'text-black'); btn.classList.remove('text-gray-500');
+    if (!WS_TABS[tab]) tab = 'deals';
+    Object.keys(WS_TABS).forEach(key => {
+        document.getElementById(WS_TABS[key][0]).classList.toggle('hidden', key !== tab);
+        const btn = document.getElementById(WS_TABS[key][1]);
+        btn.classList.toggle('bg-white', key === tab);
+        btn.classList.toggle('shadow-sm', key === tab);
+        btn.classList.toggle('text-black', key === tab);
+        btn.classList.toggle('text-gray-500', key !== tab);
+    });
     try { localStorage.setItem(WS_TAB_KEY, tab); } catch(e) {}
 }
-switchWsTab((() => { try { return localStorage.getItem(WS_TAB_KEY) === 'tpl' ? 'tpl' : 'deals'; } catch(e) { return 'deals'; } })());
+switchWsTab((() => { try { return localStorage.getItem(WS_TAB_KEY) || 'deals'; } catch(e) { return 'deals'; } })());
+
+/* ── Papan tugas: drag & drop antar kolom ── */
+var TASK_URL = '{{ url('kolaborasi/' . $product->id . '/tugas') }}';
+var TASK_CSRF = document.querySelector('meta[name="csrf-token"]').content;
+var dragTaskId = null, justDragged = false;
+
+function taskDragStart(e, id){
+    dragTaskId = id; justDragged = true;
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', String(id)); } catch(err) {}
+}
+function taskDragEnd(){ setTimeout(() => { justDragged = false; }, 150); }
+function taskDragOver(e, col){ e.preventDefault(); col.classList.add('ring-2', 'ring-gray-300'); }
+
+async function dropTask(e, status, col){
+    e.preventDefault();
+    col.classList.remove('ring-2', 'ring-gray-300');
+    if (!dragTaskId) return;
+
+    const card = document.getElementById('task-' + dragTaskId);
+    const from = card.parentElement;
+    const id = dragTaskId; dragTaskId = null;
+    if (from.id === 'col-' + status) return;
+
+    // Pindahkan dulu (optimis), simpan di belakang layar; gagal = kembalikan.
+    document.getElementById('col-' + status).appendChild(card);
+    refreshTaskCounts();
+    try {
+        const r = await fetch(TASK_URL + '/' + id + '/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': TASK_CSRF },
+            body: JSON.stringify({ status }),
+        });
+        if (!r.ok) throw 0;
+    } catch(err) {
+        from.appendChild(card);
+        refreshTaskCounts();
+        if (window.showMojobToast) showMojobToast('{{ __('Gagal menyimpan status. Coba lagi.') }}');
+    }
+}
+
+function refreshTaskCounts(){
+    ['todo', 'progress', 'review', 'done'].forEach(s => {
+        document.getElementById('cnt-' + s).textContent = document.getElementById('col-' + s).querySelectorAll('.task-card').length;
+    });
+}
+
+/* ── Modal tugas (buat/edit) ── */
+function openTaskModal(t, presetStatus){
+    if (justDragged) return; // klik sisa dari gerakan drag
+
+    const f = document.getElementById('taskForm');
+    const del = document.getElementById('taskDeleteForm');
+    const isEdit = !!t;
+
+    // Status terkini kartu mengikuti kolom tempatnya berada (bisa berubah karena drag).
+    if (isEdit) {
+        const col = document.getElementById('task-' + t.id)?.parentElement?.id;
+        if (col) t.status = col.replace('col-', '');
+    }
+
+    document.getElementById('taskModalTitle').textContent = isEdit ? '{{ __('Ubah Tugas') }}' : '{{ __('Buat Tugas') }}';
+    document.getElementById('taskSubmit').textContent = isEdit ? '{{ __('Perbarui') }}' : '{{ __('Simpan') }}';
+    f.action = isEdit ? TASK_URL + '/' + t.id : TASK_URL;
+    f.querySelector('[name="title"]').value = t?.title ?? '';
+    f.querySelector('[name="note"]').value = t?.note ?? '';
+    const st = f.querySelector('[name="status"]');
+    st.value = t?.status ?? presetStatus ?? 'todo';
+    if (st._csRefresh) st._csRefresh();
+    const as = f.querySelector('[name="assignee_id"]');
+    as.value = t?.assignee_id ?? '';
+    if (as._csRefresh) as._csRefresh();
+
+    del.classList.toggle('hidden', !isEdit);
+    if (isEdit) del.action = TASK_URL + '/' + t.id;
+
+    openModal('modal-task');
+}
 
 function openEditDeal(d){
     const f = document.getElementById('editDealForm');
@@ -386,7 +601,9 @@ function openEditDeal(d){
     ['client_name','industry','address','contact','notes'].forEach(k => f.querySelector('[name="'+k+'"]').value = d[k] ?? '');
     f.querySelector('[name="value"]').value = d.value || '';
     f.querySelector('[name="status"]').value = d.status ?? 'lead';
-    f.querySelector('[name="proposal_date"]').value = d.proposal_date ?? '';
+    // Kolom tanggal dikelola flatpickr: set lewat instance-nya agar tampilan ikut terisi.
+    const pd = f.querySelector('[name="proposal_date"]');
+    if (pd._flatpickr) pd._flatpickr.setDate(d.proposal_date || null, false); else pd.value = d.proposal_date ?? '';
     const st = f.querySelector('[name="status"]');
     if (st._csRefresh) st._csRefresh();
     openModal('modal-edit-deal');

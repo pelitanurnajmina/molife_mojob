@@ -87,64 +87,57 @@
             [
                 'label' => __('Life Score'), 'value' => $lifeScore['overall'], 'suffix' => '%',
                 'icon'  => 'M13 10V3L4 14h7v7l9-11h-7z',
-                'grad'  => 'from-emerald-500 to-teal-500', 'tint' => 'bg-emerald-50', 'text' => 'text-emerald-600',
                 'delta' => ($up ? '+' : '') . $lifeDelta, 'deltaUp' => $up, 'sub' => __('vs kemarin'),
-                'spark' => true,
+                'spark' => true, 'dark' => true,
             ],
             [
                 'label' => __('Streak Sholat'), 'value' => $streak, 'suffix' => ' ' . __('hari'),
                 'icon'  => 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z',
-                'grad'  => 'from-orange-500 to-amber-500', 'tint' => 'bg-orange-50', 'text' => 'text-orange-600',
                 'sub'   => __('berturut-turut'),
             ],
             [
                 'label' => __('Fokus Minggu Ini'), 'value' => $pomoWeek, 'suffix' => ' ' . __('sesi'),
                 'icon'  => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-                'grad'  => 'from-rose-500 to-pink-500', 'tint' => 'bg-rose-50', 'text' => 'text-rose-600',
                 'sub'   => $pomoToday . ' ' . __('hari ini'),
             ],
             $showFinance ? [
                 'label' => __('Saldo Bulan Ini'), 'value' => 'Rp ' . number_format(($financeSummary['balance'] ?? 0), 0, ',', '.'), 'suffix' => '',
                 'icon'  => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-                'grad'  => 'from-sky-500 to-indigo-500', 'tint' => 'bg-sky-50', 'text' => 'text-sky-600',
                 'sub'   => ($financeSummary['balance'] ?? 0) >= 0 ? __('positif') : __('defisit'),
                 'small' => true,
             ] : [
                 'label' => __('Mood 7 Hari'), 'value' => $moodAvg7 > 0 ? $moodAvg7 : '—', 'suffix' => $moodAvg7 > 0 ? '/5' : '',
                 'icon'  => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-                'grad'  => 'from-violet-500 to-purple-500', 'tint' => 'bg-violet-50', 'text' => 'text-violet-600',
                 'sub'   => __('rata-rata'),
             ],
         ];
     @endphp
     <div id="dashKpis" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         @foreach($kpis as $idx => $k)
-        <div class="dash-card kpi-anim relative overflow-hidden bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-50" style="animation-delay: {{ $idx * 70 }}ms">
-            <div class="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-gradient-to-br {{ $k['grad'] }} opacity-10"></div>
-            <div class="relative">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br {{ $k['grad'] }} text-white flex items-center justify-center shadow-sm">
-                        <svg class="w-4.5 h-4.5" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $k['icon'] }}"/></svg>
-                    </div>
-                    @if(!empty($k['delta']))
-                    <span class="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $k['deltaUp'] ? 'text-emerald-600 bg-emerald-50' : 'text-red-500 bg-red-50' }}">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="{{ $k['deltaUp'] ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}"/></svg>
-                        {{ $k['delta'] }}
-                    </span>
-                    @endif
+        @php $dark = !empty($k['dark']); @endphp
+        <div class="dash-card kpi-anim {{ $dark ? 'bg-gray-900 text-white' : 'bg-white border border-gray-100' }} rounded-2xl md:rounded-3xl p-4 md:p-5" style="animation-delay: {{ $idx * 70 }}ms">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-9 h-9 rounded-xl {{ $dark ? 'bg-white/10 text-white' : 'bg-gray-50 border border-gray-100 text-gray-500' }} flex items-center justify-center">
+                    <svg style="width:17px;height:17px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="{{ $k['icon'] }}"/></svg>
                 </div>
-                <p class="{{ !empty($k['small']) ? 'text-lg md:text-xl' : 'text-2xl md:text-3xl' }} font-black text-gray-900 leading-none">
-                    {{ $k['value'] }}<span class="text-sm font-bold text-gray-400">{{ $k['suffix'] }}</span>
-                </p>
-                <p class="text-[11px] font-bold text-gray-500 mt-1.5">{{ $k['label'] }}</p>
-                @if(!empty($k['spark']) && $sn > 1)
-                <svg class="w-full h-7 mt-2" viewBox="0 0 80 28" preserveAspectRatio="none">
-                    <polyline points="{{ trim($pts) }}" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                @else
-                <p class="text-[10px] text-gray-400 mt-1.5">{{ $k['sub'] }}</p>
+                @if(!empty($k['delta']))
+                <span class="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $k['deltaUp'] ? 'text-emerald-300 bg-white/10' : 'text-red-300 bg-white/10' }}">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="{{ $k['deltaUp'] ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}"/></svg>
+                    {{ $k['delta'] }}
+                </span>
                 @endif
             </div>
+            <p class="{{ !empty($k['small']) ? 'text-lg md:text-xl' : 'text-2xl md:text-3xl' }} font-black {{ $dark ? 'text-white' : 'text-gray-900' }} leading-none">
+                {{ $k['value'] }}<span class="text-sm font-bold {{ $dark ? 'text-white/40' : 'text-gray-400' }}">{{ $k['suffix'] }}</span>
+            </p>
+            <p class="text-[11px] font-bold {{ $dark ? 'text-white/50' : 'text-gray-500' }} mt-1.5">{{ $k['label'] }}</p>
+            @if(!empty($k['spark']) && $sn > 1)
+            <svg class="w-full h-7 mt-2" viewBox="0 0 80 28" preserveAspectRatio="none">
+                <polyline points="{{ trim($pts) }}" fill="none" stroke="{{ $dark ? 'rgba(255,255,255,.55)' : '#111827' }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            @else
+            <p class="text-[10px] {{ $dark ? 'text-white/40' : 'text-gray-400' }} mt-1.5">{{ $k['sub'] }}</p>
+            @endif
         </div>
         @endforeach
     </div>
@@ -159,19 +152,21 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             @foreach($allInsights as $ins)
             @php
-                $insightBg = match($ins['type']) {
-                    'success' => 'bg-green-50 border-green-100',
-                    'warning' => 'bg-yellow-50 border-yellow-100',
-                    default   => 'bg-gray-50 border-gray-100',
+                // Warna hanya sebagai titik status kecil; kartu tetap netral.
+                $dot = match($ins['type']) {
+                    'success' => 'bg-emerald-500',
+                    'warning' => 'bg-amber-400',
+                    default   => 'bg-gray-300',
                 };
                 $ic = $insightIconMap[$ins['icon']] ?? $insightIconMap['intro'];
             @endphp
-            <div class="flex items-center gap-3 p-3 rounded-xl border {{ $insightBg }}">
-                <div class="w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center {{ $ic['cls'] }}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $ic['path'] }}"/></svg>
+            <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white">
+                <div class="w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center bg-gray-50 border border-gray-100 text-gray-500 relative">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="{{ $ic['path'] }}"/></svg>
+                    <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full {{ $dot }}"></span>
                 </div>
                 <p class="flex-1 text-sm text-gray-700 leading-snug">{{ $ins['text'] }}</p>
-                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 {{ $domainPill[$ins['domain']] ?? 'bg-gray-100 text-gray-400' }}">{{ $ins['domain'] }}</span>
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-50 border border-gray-100 text-gray-400">{{ $ins['domain'] }}</span>
             </div>
             @endforeach
         </div>
@@ -190,47 +185,44 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
             @php
                 $dims = [
-                    ['label' => __('Spiritual'),     'val' => $lifeScore['spiritual'],    'color' => 'text-green-600',  'bg' => 'bg-green-500',  'light' => 'bg-green-50',  'svgPath' => 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
-                    ['label' => __('Kesehatan'),     'val' => $lifeScore['health'],       'color' => 'text-blue-600',   'bg' => 'bg-blue-500',   'light' => 'bg-blue-50',   'svgPath' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                    ['label' => __('Mental'),        'val' => $lifeScore['mental'],       'color' => 'text-violet-600', 'bg' => 'bg-violet-500', 'light' => 'bg-violet-50', 'svgPath' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'empty' => !$lifeScore['hasMood']],
-                    ['label' => __('Produktivitas'), 'val' => $lifeScore['productivity'], 'color' => 'text-orange-600', 'bg' => 'bg-orange-400', 'light' => 'bg-orange-50', 'svgPath' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'empty' => !$lifeScore['hasTasks']],
+                    ['label' => __('Spiritual'),     'val' => $lifeScore['spiritual'],    'svgPath' => 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
+                    ['label' => __('Kesehatan'),     'val' => $lifeScore['health'],       'svgPath' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                    ['label' => __('Mental'),        'val' => $lifeScore['mental'],       'svgPath' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'empty' => !$lifeScore['hasMood']],
+                    ['label' => __('Produktivitas'), 'val' => $lifeScore['productivity'], 'svgPath' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'empty' => !$lifeScore['hasTasks']],
                 ];
             @endphp
             @foreach($dims as $dim)
-            <div class="text-center p-4 {{ $dim['light'] }} rounded-2xl">
+            <div class="text-center p-4 bg-white border border-gray-100 rounded-2xl">
                 <div class="relative w-16 h-16 mx-auto mb-2">
                     <svg class="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="white" stroke-width="3.5"/>
-                        <circle cx="18" cy="18" r="15.9155" fill="none"
-                            stroke="{{ ['bg-green-500'=>'#10b981','bg-blue-500'=>'#3b82f6','bg-violet-500'=>'#8b5cf6','bg-orange-400'=>'#fb923c'][$dim['bg']] }}"
-                            stroke-width="3.5"
+                        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f3f4f6" stroke-width="3"/>
+                        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#111827" stroke-width="3"
                             stroke-dasharray="{{ ($dim['empty'] ?? false) ? 0 : $dim['val'] }} 100"
                             stroke-linecap="round"/>
                     </svg>
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <svg class="w-5 h-5 {{ $dim['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $dim['svgPath'] }}"/></svg>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $dim['svgPath'] }}"/></svg>
                     </div>
                 </div>
-                <p class="text-xl font-bold {{ $dim['color'] }}">{{ ($dim['empty'] ?? false) ? '—' : $dim['val'] }}</p>
-                <p class="text-[10px] font-bold text-gray-500">{{ $dim['label'] }}</p>
+                <p class="text-xl font-bold text-gray-900">{{ ($dim['empty'] ?? false) ? '—' : $dim['val'] }}</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{{ $dim['label'] }}</p>
             </div>
             @endforeach
         </div>
 
-        <div class="mt-6 p-4 md:p-5 bg-gradient-to-br from-gray-900 via-gray-900 to-emerald-900 text-white rounded-2xl flex items-center justify-between relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-emerald-500/10"></div>
-            <div class="relative">
+        <div class="mt-4 md:mt-5 p-4 md:p-5 bg-gray-900 text-white rounded-2xl flex items-center justify-between">
+            <div>
                 <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">{{ __('Overall Life Score') }}</p>
                 <p class="text-4xl font-black mt-1">{{ $lifeScore['overall'] }}<span class="text-lg text-gray-500">%</span></p>
+                <p class="text-[11px] text-gray-500 mt-1">{{ $lifeDelta >= 0 ? '+' : '' }}{{ $lifeDelta }} {{ __('vs kemarin') }}</p>
             </div>
             <div class="relative">
                 <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
-                    <circle cx="18" cy="18" r="15.9155" fill="none"
-                        stroke="{{ $lifeScore['overall'] >= 80 ? '#10b981' : ($lifeScore['overall'] >= 50 ? '#f59e0b' : '#ef4444') }}"
+                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3"/>
+                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#fff"
                         stroke-width="3" stroke-dasharray="{{ $lifeScore['overall'] }} 100" stroke-linecap="round"/>
                 </svg>
                 <div class="absolute inset-0 flex items-center justify-center text-white font-bold text-lg">{{ $lifeScore['overall'] }}%</div>
@@ -238,50 +230,103 @@
         </div>
     </div>
 
-    {{-- ── Karir & Finance overview ── --}}
-    @if($showCareer || $showFinance)
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+    {{-- ── Ringkasan semua modul ── --}}
+    @if($showCareer || $showFinance || $showBisnis || $showMeditasi || $showHaid)
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+
         @if($showCareer)
-        <a href="{{ route('karir') }}" class="block bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 hover:shadow-sm transition-all border border-gray-50">
+        <a href="{{ route('karir') }}" class="dash-card block bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span>
+                <h3 class="text-sm font-bold flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span>
                     {{ __('Karir') }}
                 </h3>
                 <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
             <div class="grid grid-cols-3 gap-3 text-center">
-                <div><p class="text-2xl font-bold text-gray-800">{{ $careerSummary['active'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Lamaran Aktif') }}</p></div>
-                <div><p class="text-2xl font-bold text-violet-600">{{ $careerSummary['interview'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Interview') }}</p></div>
-                <div><p class="text-2xl font-bold text-green-600">{{ $careerSummary['offer'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Offer/Diterima') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">{{ $careerSummary['active'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Lamaran Aktif') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">{{ $careerSummary['interview'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Interview') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">{{ $careerSummary['offer'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Offer/Diterima') }}</p></div>
             </div>
         </a>
         @endif
 
         @if($showFinance)
-        <a href="{{ route('finance.index') }}" class="block bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 hover:shadow-sm transition-all border border-gray-50">
+        <a href="{{ route('finance.index') }}" class="dash-card block bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
-                    {{ __('Finance') }} · {{ $monthLabel }}
+                <h3 class="text-sm font-bold flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                    {{ __('Finance') }}
                 </h3>
                 <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
             <div class="grid grid-cols-3 gap-3 text-center">
-                <div><p class="text-base md:text-lg font-bold text-green-600 truncate">{{ $rp($financeSummary['income'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pemasukan') }}</p></div>
-                <div><p class="text-base md:text-lg font-bold text-red-500 truncate">{{ $rp($financeSummary['expense'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pengeluaran') }}</p></div>
-                <div><p class="text-base md:text-lg font-bold {{ ($financeSummary['balance'] ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600' }} truncate">{{ $rp($financeSummary['balance'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Saldo') }}</p></div>
+                <div><p class="text-sm font-bold text-gray-900 truncate">{{ $rp($financeSummary['income'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pemasukan') }}</p></div>
+                <div><p class="text-sm font-bold text-gray-900 truncate">{{ $rp($financeSummary['expense'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pengeluaran') }}</p></div>
+                <div><p class="text-sm font-bold {{ ($financeSummary['balance'] ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-500' }} truncate">{{ $rp($financeSummary['balance'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Saldo') }}</p></div>
             </div>
-            @if(($financeSummary['goalCount'] ?? 0) > 0)
-            <div class="mt-4 pt-3 border-t border-gray-50">
-                <div class="flex justify-between text-[11px] font-bold text-gray-400 mb-1">
-                    <span>{{ __('Tabungan') }}</span><span>{{ $financeSummary['goalPct'] }}%</span>
-                </div>
-                <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden"><div class="bg-teal-500 h-full rounded-full" style="width:{{ $financeSummary['goalPct'] }}%"></div></div>
+        </a>
+        @endif
+
+        @if($showBisnis)
+        <a href="{{ route('bisnis.index') }}" class="dash-card block bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></span>
+                    {{ __('Bisnis') }}
+                </h3>
+                <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div><p class="text-xl font-bold text-gray-900">{{ $bisnisSummary['active'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Proposal Aktif') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">{{ $bisnisSummary['winRate'] ?? 0 }}%</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Win Rate') }}</p></div>
+                <div><p class="text-sm font-bold text-gray-900 truncate">{{ $rp($bisnisSummary['pipelineValue'] ?? 0) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Pipeline') }}</p></div>
+            </div>
+        </a>
+        @endif
+
+        @if($showMeditasi)
+        <a href="{{ route('meditasi') }}" class="dash-card block bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></span>
+                    {{ __('Meditasi') }}
+                </h3>
+                <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div><p class="text-xl font-bold text-gray-900">{{ $meditasiStats['streak'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Hari Streak') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">{{ $meditasiStats['todayMinutes'] ?? 0 }}<span class="text-xs text-gray-400">/{{ $meditasiStats['goal'] ?? 10 }}</span></p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Menit Hari Ini') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">{{ $meditasiStats['weekMinutes'] ?? 0 }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Menit Minggu Ini') }}</p></div>
+            </div>
+        </a>
+        @endif
+
+        @if($showHaid && $haidBrief)
+        <a href="{{ route('haid') }}" class="dash-card block bg-white rounded-2xl md:rounded-3xl p-4 md:p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 3c0 0-6 6.9-6 11a6 6 0 0012 0c0-4.1-6-11-6-11z"/></svg></span>
+                    {{ __('Siklus Haid') }}
+                </h3>
+                <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+            @if($haidBrief['periodDay'])
+            <div class="grid grid-cols-2 gap-3 text-center">
+                <div><p class="text-xl font-bold text-gray-900">{{ __('Hari ke-:n', ['n' => $haidBrief['periodDay']]) }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Sedang Haid') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">-</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Semoga Lekas Nyaman') }}</p></div>
+            </div>
+            @elseif($haidBrief['cycleDay'])
+            <div class="grid grid-cols-2 gap-3 text-center">
+                <div><p class="text-xl font-bold text-gray-900">{{ $haidBrief['cycleDay'] }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Hari Siklus') }}</p></div>
+                <div><p class="text-xl font-bold text-gray-900">{{ $haidBrief['daysToNext'] }}</p><p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Hari Menuju Haid') }}</p></div>
+            </div>
+            @else
+            <p class="text-xs text-gray-400 text-center py-2">{{ __('Belum ada catatan. Mulai catat siklusmu.') }}</p>
             @endif
         </a>
         @endif
+
     </div>
     @endif
 
@@ -295,37 +340,24 @@
     <div class="dash-card bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <h3 class="font-bold mb-1">{{ __('Ringkasan Bulan Ini') }}</h3>
         <p class="text-xs text-gray-400 mb-4">{{ $monthLabel }}</p>
+        @php
+            $monthTiles = [
+                ['val' => $sholatDaysMonth, 'label' => __('hari sholat penuh'), 'sub' => $todayStats['takbir'] . '/5 ' . \App\Support\Profile::prayerQuality()['short'] . ' ' . __('hari ini')],
+                ['val' => $gymMonthly, 'label' => __('sesi gym'), 'sub' => $caloriesWeek . ' cal ' . __('minggu ini')],
+                ['val' => number_format($runMonthlyDist, 1), 'label' => 'km ' . __('lari'), 'sub' => $runWeeklyCount . 'x ' . __('minggu ini')],
+                ['val' => $moodAvg30 > 0 ? $moodAvg30 : '—', 'label' => __('avg mood'), 'sub' => __('30 hari terakhir')],
+                ['val' => $streak, 'label' => __('hari streak sholat'), 'sub' => __('berturut-turut')],
+                ['val' => $intimacyMonthly, 'label' => __('intimasi'), 'sub' => __('bulan ini')],
+            ];
+        @endphp
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div class="p-4 bg-green-50 rounded-2xl">
-                <p class="text-2xl font-bold text-green-700">{{ $sholatDaysMonth }}</p>
-                <p class="text-xs text-green-600 font-bold mt-1">{{ __('hari sholat penuh') }}</p>
-                <p class="text-[10px] text-green-500 mt-0.5">{{ $todayStats['takbir'] }}/5 {{ \App\Support\Profile::prayerQuality()['short'] }} {{ __('hari ini') }}</p>
+            @foreach($monthTiles as $tile)
+            <div class="p-4 bg-white border border-gray-100 rounded-2xl">
+                <p class="text-2xl font-bold text-gray-900">{{ $tile['val'] }}</p>
+                <p class="text-xs text-gray-500 font-bold mt-1">{{ $tile['label'] }}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">{{ $tile['sub'] }}</p>
             </div>
-            <div class="p-4 bg-blue-50 rounded-2xl">
-                <p class="text-2xl font-bold text-blue-700">{{ $gymMonthly }}</p>
-                <p class="text-xs text-blue-600 font-bold mt-1">{{ __('sesi gym') }}</p>
-                <p class="text-[10px] text-blue-500 mt-0.5">{{ $caloriesWeek }} cal {{ __('minggu ini') }}</p>
-            </div>
-            <div class="p-4 bg-emerald-50 rounded-2xl">
-                <p class="text-2xl font-bold text-emerald-700">{{ number_format($runMonthlyDist, 1) }}</p>
-                <p class="text-xs text-emerald-600 font-bold mt-1">km {{ __('lari') }}</p>
-                <p class="text-[10px] text-emerald-500 mt-0.5">{{ $runWeeklyCount }}× {{ __('minggu ini') }}</p>
-            </div>
-            <div class="p-4 bg-violet-50 rounded-2xl">
-                <p class="text-2xl font-bold text-violet-700">{{ $moodAvg30 > 0 ? $moodAvg30 : '—' }}</p>
-                <p class="text-xs text-violet-600 font-bold mt-1">{{ __('avg mood') }}</p>
-                <p class="text-[10px] text-violet-500 mt-0.5">{{ __('30 hari terakhir') }}</p>
-            </div>
-            <div class="p-4 bg-orange-50 rounded-2xl">
-                <p class="text-2xl font-bold text-orange-700">{{ $streak }}</p>
-                <p class="text-xs text-orange-600 font-bold mt-1">{{ __('hari streak') }}</p>
-                <p class="text-[10px] text-orange-500 mt-0.5">{{ __('berturut-turut') }}</p>
-            </div>
-            <div class="p-4 bg-pink-50 rounded-2xl">
-                <p class="text-2xl font-bold text-pink-700">{{ $intimacyMonthly }}</p>
-                <p class="text-xs text-pink-600 font-bold mt-1">{{ __('intimasi') }}</p>
-                <p class="text-[10px] text-pink-500 mt-0.5">{{ __('bulan ini') }}</p>
-            </div>
+            @endforeach
         </div>
     </div>
 

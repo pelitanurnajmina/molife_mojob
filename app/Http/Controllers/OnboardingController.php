@@ -55,6 +55,17 @@ class OnboardingController extends Controller
             Features::set($userId, $feat, in_array($feat, $features));
         }
 
+        // User baru yang datang dari link undangan kolaborasi: terima undangannya
+        // dan antar langsung ke workspace proyek (tanpa mampir halaman langganan).
+        if ($token = session('collab_invite_token')) {
+            [$collab, $error] = \App\Services\CollabService::acceptByToken($token, auth()->user());
+            session()->forget(['collab_invite_token', 'collab_invite_email', 'collab_invite_info', 'url.intended']);
+            if ($collab) {
+                return redirect()->route('kolaborasi.workspace', $collab->business_product_id)
+                    ->with('toast', __('Selamat datang, :name! Kamu resmi jadi kolaborator proyek ini.', ['name' => $request->display_name]));
+            }
+        }
+
         return redirect()->route('dashboard')
             ->with('toast', __('Selamat datang, :name! Profile kamu sudah siap.', ['name' => $request->display_name]));
     }

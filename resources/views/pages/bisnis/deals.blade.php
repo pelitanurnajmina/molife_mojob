@@ -329,7 +329,9 @@ function openEdit(d){
     f.querySelector('[name="contact"]').value = d.contact ?? '';
     f.querySelector('[name="value"]').value = d.value || '';
     f.querySelector('[name="status"]').value = d.status ?? 'lead';
-    f.querySelector('[name="proposal_date"]').value = d.proposal_date ?? '';
+    // Kolom tanggal dikelola flatpickr: set lewat instance-nya agar tampilan ikut terisi.
+    const pd = f.querySelector('[name="proposal_date"]');
+    if (pd._flatpickr) pd._flatpickr.setDate(d.proposal_date || null, false); else pd.value = d.proposal_date ?? '';
     f.querySelector('[name="notes"]').value = d.notes ?? '';
     // product: ensure the saved value exists as an option even if deleted later
     const ps = f.querySelector('[name="product"]');

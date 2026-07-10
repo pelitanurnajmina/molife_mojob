@@ -35,15 +35,36 @@ class BisnisCollabController extends Controller
 
     /* ═══════════ Sisi kolaborator (di luar paywall) ═══════════ */
 
-    /** Terima undangan via link email. Boleh diakses guest: diarahkan login dulu. */
+    /**
+     * Terima undangan via link email.
+     * Guest → diarahkan ke halaman daftar (email terisi otomatis); token disimpan
+     * di session dan otomatis diterima setelah selesai onboarding, sehingga user
+     * baru langsung mendarat di workspace kolaborasi (tanpa lewat halaman harga).
+     */
     public function accept(Request $request, string $token)
     {
         if (!auth()->check()) {
-            session(['url.intended' => $request->fullUrl()]);
-            return redirect()->route('login')->with('status', __('Masuk atau daftar dulu dengan email yang diundang, lalu undangan otomatis diterima.'));
+            $collab = BusinessCollaborator::with(['product', 'owner'])->where('token', $token)->first();
+            if (!$collab || !$collab->product) {
+                return redirect()->route('login')->with('status', __('Undangan tidak ditemukan atau sudah dicabut.'));
+            }
+
+            session([
+                'url.intended'        => $request->fullUrl(), // jalur "sudah punya akun" → login → auto-terima
+                'collab_invite_token' => $token,              // jalur daftar baru → auto-terima setelah onboarding
+                'collab_invite_email' => $collab->email,
+                'collab_invite_info'  => __(':owner mengundangmu berkolaborasi di proyek ":product". Daftar untuk langsung bergabung, gratis.', [
+                    'owner'   => $collab->owner?->username ?: __('Rekanmu'),
+                    'product' => $collab->product->name,
+                ]),
+            ]);
+
+            return redirect()->route('register');
         }
 
         [$collab, $error] = CollabService::acceptByToken($token, auth()->user());
+        session()->forget(['collab_invite_token', 'collab_invite_email', 'collab_invite_info']);
+
         if ($error) {
             return redirect()->route('kolaborasi.index')->with('toast', $error);
         }
@@ -96,11 +117,26 @@ class BisnisCollabController extends Controller
             ? $product->collaborators()->latest('id')->get()
             : collect();
 
+        // Papan tugas: dikelompokkan per status + daftar orang yang bisa di-assign.
+        $assignees = $this->assignees($product);
+        $tasks     = \App\Models\CollabTask::where('business_product_id', $product->id)
+            ->orderBy('created_at')->get()
+            ->map(fn($t) => [
+                'id'          => $t->id,
+                'title'       => $t->title,
+                'note'        => $t->note,
+                'status'      => in_array($t->status, \App\Models\CollabTask::STATUSES, true) ? $t->status : 'todo',
+                'assignee_id' => $t->assignee_id,
+                'assignee'    => $t->assignee_id ? ($assignees[$t->assignee_id] ?? null) : null,
+            ])
+            ->groupBy('status');
+
         $ownerName     = $product->user?->username ?: 'Pemilik';
         $tplCategories = BisnisDocController::TPL_CATEGORIES;
 
         return view('pages.bisnis.collab.workspace', array_merge($a, compact(
-            'product', 'isOwner', 'statuses', 'deals', 'templates', 'members', 'collabRows', 'ownerName', 'tplCategories'
+            'product', 'isOwner', 'statuses', 'deals', 'templates', 'members', 'collabRows',
+            'ownerName', 'tplCategories', 'tasks', 'assignees'
         )));
     }
 
@@ -149,6 +185,75 @@ class BisnisCollabController extends Controller
         BusinessDeal::where('user_id', $product->user_id)->where('product', $product->name)->findOrFail($id)->delete();
 
         return redirect()->route('kolaborasi.workspace', $product->id)->with('toast', __('Data dihapus.'));
+    }
+
+    /* ── Papan tugas kanban (scoped ke proyek) ── */
+
+    /** Peta user yang bisa di-assign: owner + kolaborator aktif. [user_id => nama tampil] */
+    private function assignees(BusinessProduct $product): array
+    {
+        $list = [$product->user_id => $product->user?->username ?: __('Pemilik')];
+        foreach ($product->collaborators()->where('status', 'active')->whereNotNull('user_id')->with('user')->get() as $c) {
+            $list[$c->user_id] = $c->user?->username ?: $c->email;
+        }
+        return $list;
+    }
+
+    private function taskRules(BusinessProduct $product): array
+    {
+        return [
+            'title'       => 'required|string|max:200',
+            'note'        => 'nullable|string|max:500',
+            'status'      => 'required|in:' . implode(',', \App\Models\CollabTask::STATUSES),
+            'assignee_id' => 'nullable|integer|in:' . implode(',', array_keys($this->assignees($product))),
+        ];
+    }
+
+    public function storeTask(Request $request, string $productId)
+    {
+        $product = CollabService::access(auth()->id(), (int) $productId);
+        abort_if(!$product, 403);
+
+        \App\Models\CollabTask::create($request->validate($this->taskRules($product)) + [
+            'business_product_id' => $product->id,
+            'created_by'          => auth()->id(),
+        ]);
+
+        return redirect()->route('kolaborasi.workspace', $product->id)->with('toast', __('Tugas ditambahkan.'));
+    }
+
+    public function updateTask(Request $request, string $productId, string $id)
+    {
+        $product = CollabService::access(auth()->id(), (int) $productId);
+        abort_if(!$product, 403);
+
+        \App\Models\CollabTask::where('business_product_id', $product->id)->findOrFail($id)
+            ->update($request->validate($this->taskRules($product)));
+
+        return redirect()->route('kolaborasi.workspace', $product->id)->with('toast', __('Tugas diperbarui.'));
+    }
+
+    /** Dipanggil via fetch saat kartu digeser antar kolom (tanpa reload). */
+    public function moveTask(Request $request, string $productId, string $id)
+    {
+        $product = CollabService::access(auth()->id(), (int) $productId);
+        abort_if(!$product, 403);
+
+        $v = $request->validate(['status' => 'required|in:' . implode(',', \App\Models\CollabTask::STATUSES)]);
+        \App\Models\CollabTask::where('business_product_id', $product->id)->findOrFail($id)
+            ->update(['status' => $v['status']]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function destroyTask(string $productId, string $id)
+    {
+        $product = CollabService::access(auth()->id(), (int) $productId);
+        abort_if(!$product, 403);
+
+        \App\Models\CollabTask::where('business_product_id', $product->id)->findOrFail($id)->delete();
+
+        return redirect()->route('kolaborasi.workspace', $product->id)->with('toast', __('Tugas dihapus.'));
     }
 
     /* ── Template pesan (scoped ke produk) ── */

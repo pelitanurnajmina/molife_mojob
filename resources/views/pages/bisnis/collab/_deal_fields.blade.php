@@ -32,8 +32,12 @@
         </div>
         <div>
             <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Tanggal Proposal') }}</label>
-            <input type="date" name="proposal_date" max="{{ date('Y-m-d') }}"
-                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+            {{-- Form tambah: default hari ini (tetap bisa diganti mundur); form edit diisi via JS. --}}
+            <div class="relative">
+                <input type="date" name="proposal_date" max="{{ date('Y-m-d') }}" value="{{ !empty($edit) ? '' : date('Y-m-d') }}"
+                    class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
         </div>
     </div>
 

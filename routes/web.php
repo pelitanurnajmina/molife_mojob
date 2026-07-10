@@ -100,6 +100,10 @@ Route::middleware(['auth.simple', 'require.onboarding'])->prefix('kolaborasi')->
     Route::post('/{productId}/template',          [\App\Http\Controllers\BisnisCollabController::class, 'storeTemplate'])->name('template.store');
     Route::post('/{productId}/template/{id}',     [\App\Http\Controllers\BisnisCollabController::class, 'updateTemplate'])->name('template.update');
     Route::delete('/{productId}/template/{id}',   [\App\Http\Controllers\BisnisCollabController::class, 'destroyTemplate'])->name('template.destroy');
+    Route::post('/{productId}/tugas',             [\App\Http\Controllers\BisnisCollabController::class, 'storeTask'])->name('task.store');
+    Route::post('/{productId}/tugas/{id}',        [\App\Http\Controllers\BisnisCollabController::class, 'updateTask'])->name('task.update');
+    Route::post('/{productId}/tugas/{id}/status', [\App\Http\Controllers\BisnisCollabController::class, 'moveTask'])->name('task.move');
+    Route::delete('/{productId}/tugas/{id}',      [\App\Http\Controllers\BisnisCollabController::class, 'destroyTask'])->name('task.destroy');
 });
 
 Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])->group(function () {

@@ -23,7 +23,7 @@
                         </td></tr>
                     </table>
                     <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#9ca3af;">
-                        Belum punya akun molife? Daftar dulu di <a href="{{ route('register') }}" style="color:#111827;">{{ route('register') }}</a> memakai email ini, lalu klik lagi tombol di atas.
+                        Belum punya akun molife? Tidak masalah. Klik tombol yang sama, kamu akan diarahkan mendaftar (gratis untuk kolaborator) dan otomatis langsung tergabung ke proyek.
                     </p>
                     <p style="margin:0;font-size:12px;line-height:1.6;color:#9ca3af;">
                         Kalau kamu tidak merasa diundang, abaikan saja email ini.

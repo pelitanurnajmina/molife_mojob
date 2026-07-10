@@ -55,18 +55,23 @@ class CollabService
         return [true, $existing ? __('Undangan dikirim ulang.') : __('Undangan terkirim ke :email.', ['email' => $email])];
     }
 
-    /** Terima undangan via token untuk user yang sedang login. Mengembalikan [collab|null, pesanError]. */
+    /**
+     * Terima undangan via token untuk user yang sedang login.
+     * Token adalah otorisasi (link hanya dikirim ke email yang diundang), jadi
+     * akun ber-email lain pun boleh menerima — asal undangan belum dipakai akun lain.
+     * Mengembalikan [collab|null, pesanError].
+     */
     public static function acceptByToken(string $token, User $user): array
     {
         $collab = BusinessCollaborator::where('token', $token)->first();
         if (!$collab) {
             return [null, __('Undangan tidak ditemukan atau sudah dicabut.')];
         }
-        if ($collab->status === 'active' && $collab->user_id && $collab->user_id !== $user->id) {
+        if ($collab->user_id && $collab->user_id !== $user->id) {
             return [null, __('Undangan ini sudah dipakai akun lain.')];
         }
-        if (strtolower((string) $user->email) !== strtolower($collab->email)) {
-            return [null, __('Undangan ini untuk :email. Masuk dengan akun email tersebut.', ['email' => $collab->email])];
+        if ($collab->owner_id === $user->id) {
+            return [null, __('Kamu pemilik proyek ini, tidak perlu menerima undangan sendiri.')];
         }
 
         $collab->forceFill([
