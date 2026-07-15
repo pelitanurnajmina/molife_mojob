@@ -72,17 +72,27 @@ class AuthController extends Controller
         auth()->login($user);
         $request->session()->regenerate();
 
+        // Daftar lewat link referral? Catat pengundangnya (komisi cair saat dia bayar pertama).
+        \App\Services\ReferralService::attachReferrer($user->id, $request->input('ref'));
+
         // New user → middleware mengarahkan ke /onboarding lalu paywall langganan.
         return redirect()->route('dashboard');
     }
 
     /* ── Login with Google (Socialite) ── */
-    public function redirectToGoogle()
+    public function redirectToGoogle(Request $request)
     {
         if (!config('services.google.client_id')) {
             return redirect()->route('login')
                 ->withErrors(['username' => __('Login Google belum dikonfigurasi.')]);
         }
+
+        // Kode referral tidak bisa menumpang alur OAuth, titipkan di session
+        // dan diambil lagi di callback saat akun baru dibuat.
+        if ($ref = $request->query('ref')) {
+            session(['google_ref' => $ref]);
+        }
+
         return \Laravel\Socialite\Facades\Socialite::driver('google')->redirect();
     }
 
@@ -117,8 +127,13 @@ class AuthController extends Controller
                 'username'  => $this->uniqueUsername($gUser),
                 'password'  => null,
             ]);
+
+            // Hanya AKUN BARU yang diatribusikan ke pengundang (user lama yang
+            // sekadar login Google tidak boleh tersenggol referral nyasar).
+            \App\Services\ReferralService::attachReferrer($user->id, session('google_ref'));
         }
 
+        session()->forget('google_ref');
         auth()->login($user, true);
         $request->session()->regenerate();
         return redirect()->intended(route('dashboard'));

@@ -81,7 +81,8 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
             @foreach($plans as $key => $p)
             @php
-                $pop       = $key === '3';
+                // Kunci array numerik di-cast PHP jadi int, samakan tipe dulu.
+                $pop       = (string) $key === '3';
                 $isCurrent = $active && (string) $active->plan === (string) $key;
             @endphp
             <div class="relative p-4 md:p-5 rounded-2xl border-2 flex flex-col {{ $isCurrent ? 'border-gray-900 bg-gray-50/60' : ($pop ? 'border-gray-900 bg-gray-50/60' : 'border-gray-100 bg-white') }}">
@@ -93,7 +94,7 @@
                 <p class="text-sm font-bold text-gray-700 mt-1">{{ $p['label'] }}</p>
                 <p class="text-2xl md:text-[26px] font-black text-gray-900 leading-none mt-2">{{ $rp($p['price']) }}</p>
                 <p class="text-[10px] text-gray-400 mt-1">{{ $perMonth[$key] ?? '' }}</p>
-                @if(in_array($key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
+                @if(in_array((string) $key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
                 <p class="text-[10px] font-bold text-violet-600 mt-1.5 inline-flex items-center gap-1">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                     {{ __('Termasuk Fitur AI') }}

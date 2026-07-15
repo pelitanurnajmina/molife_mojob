@@ -156,6 +156,9 @@ class SubscriptionController extends Controller
             $p = Profile::model($sub->user_id);
             $p->plan = 'pro';
             $p->save();
+
+            // Komisi referral 20% untuk pengundang, hanya pada pembayaran pertama user ini.
+            \App\Services\ReferralService::creditConversion($sub->user_id, (int) $sub->price);
         } elseif (in_array($txStatus, ['cancel', 'deny', 'expire'], true)) {
             $sub->update(['status' => 'cancelled']);
         }

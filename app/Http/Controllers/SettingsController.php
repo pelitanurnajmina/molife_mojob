@@ -54,12 +54,13 @@ class SettingsController extends Controller
         $payouts   = ReferralPayout::where('user_id', auth()->id())
             ->latest()->get()
             ->map(fn($p) => [
-                'amount'  => $p->amount,
-                'method'  => $p->method,
-                'account' => $p->account,
-                'name'    => $p->name,
-                'status'  => $p->status,
-                'date'    => $p->created_at->format('Y-m-d H:i'),
+                'amount'   => $p->amount,
+                'method'   => $p->method,
+                'provider' => $p->provider,
+                'account'  => $p->account,
+                'name'     => $p->name,
+                'status'   => $p->status,
+                'date'     => $p->created_at->format('Y-m-d H:i'),
             ])->toArray();
 
         return view('pages.settings.referral', compact('code', 'stats', 'link', 'payoutMin', 'payouts'));
@@ -68,9 +69,12 @@ class SettingsController extends Controller
     public function requestPayout(Request $request)
     {
         $r = $request->validate([
-            'method'  => 'required|in:bank,ewallet',
-            'account' => 'required|string|max:100',
-            'name'    => 'required|string|max:100',
+            'method'   => 'required|in:bank,ewallet',
+            'provider' => 'required|string|max:30',
+            'account'  => 'required|string|max:100',
+            'name'     => 'required|string|max:100',
+        ], [
+            'provider.required' => __('Pilih bank atau e-wallet tujuan dulu.'),
         ]);
 
         $userId  = auth()->id();
@@ -83,20 +87,22 @@ class SettingsController extends Controller
         $amount = (int) $profile->ref_earnings;
 
         ReferralPayout::create([
-            'user_id' => $userId,
-            'amount'  => $amount,
-            'method'  => $r['method'],
-            'account' => $r['account'],
-            'name'    => $r['name'],
-            'status'  => 'pending',
+            'user_id'  => $userId,
+            'amount'   => $amount,
+            'method'   => $r['method'],
+            'provider' => $r['provider'],
+            'account'  => $r['account'],
+            'name'     => $r['name'],
+            'status'   => 'pending',
         ]);
 
-        // Move earnings → pending
-        $profile->ref_pending  += $amount;
-        $profile->ref_earnings  = 0;
+        // Saldo dinolkan; nilai "sedang diproses" dihitung dari baris payout
+        // berstatus pending (bukan kolom ref_pending), jadi update status manual
+        // via phpMyAdmin langsung tercermin di halaman.
+        $profile->ref_earnings = 0;
         $profile->save();
 
-        return back()->with('toast', __('Permintaan pencairan dikirim! Diproses dalam 3 hari kerja.'));
+        return back()->with('toast', __('Permintaan pencairan dikirim! Diproses dalam 1-3 hari kerja.'));
     }
 
     public function updateProfile(Request $request)

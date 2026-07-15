@@ -22,6 +22,13 @@ class MidtransService
         Config::$isProduction = (bool) config('services.midtrans.is_production');
         Config::$isSanitized  = true;
         Config::$is3ds        = true;
+
+        // Akun Midtrans dipakai bersama aplikasi lain (Notification URL akunnya
+        // menunjuk ke aplikasi itu). Header ini menimpa URL notifikasi KHUSUS
+        // transaksi yang dibuat Molife, jadi webhook tiap aplikasi tetap terpisah.
+        if ($url = config('services.midtrans.notification_url')) {
+            Config::$overrideNotifUrl = $url;
+        }
     }
 
     /**

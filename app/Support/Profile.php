@@ -141,7 +141,10 @@ class Profile
             'invited'   => (int) $p->ref_invited,
             'converted' => (int) $p->ref_converted,
             'earnings'  => (int) $p->ref_earnings,
-            'pending'   => (int) $p->ref_pending,
+            // Dihitung langsung dari tabel payout: begitu admin mengubah status
+            // pending → paid (via phpMyAdmin), angka ini otomatis ikut turun.
+            'pending'   => (int) \App\Models\ReferralPayout::where('user_id', $p->user_id)
+                ->where('status', 'pending')->sum('amount'),
         ];
     }
 }

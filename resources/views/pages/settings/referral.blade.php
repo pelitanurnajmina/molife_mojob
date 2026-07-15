@@ -14,7 +14,7 @@
         <div class="relative">
             <span class="inline-block text-[10px] font-bold bg-white/20 px-2.5 py-1 rounded-full mb-3">{{ __('Program Referral') }}</span>
             <h2 class="text-2xl md:text-3xl font-bold mb-1">{{ __('Ajak teman, dapat 20% komisi') }}</h2>
-            <p class="text-sm text-white/80 max-w-lg">{{ __('Setiap teman yang kamu undang dan berlangganan, kamu dapat 20% dari pembayaran mereka — terus berulang selama mereka aktif.') }}</p>
+            <p class="text-sm text-white/80 max-w-lg">{{ __('Setiap teman yang kamu undang dan berlangganan, kamu dapat komisi 20% dari pembayaran pertama mereka. Makin panjang paket yang mereka ambil, makin besar komisimu.') }}</p>
         </div>
     </div>
 
@@ -64,7 +64,7 @@
         </div>
         <div class="flex-1">
             <p class="text-sm font-bold text-orange-800">{{ $rp($stats['pending']) }} {{ __('sedang diproses') }}</p>
-            <p class="text-xs text-orange-600">{{ __('Pencairan diproses dalam 3 hari kerja.') }}</p>
+            <p class="text-xs text-orange-600">{{ __('Pencairan diproses dalam 1-3 hari kerja.') }}</p>
         </div>
     </div>
     @endif
@@ -132,7 +132,7 @@
             $steps = [
                 ['n'=>'1', 'title'=>__('Bagikan link'),     'desc'=>__('Kirim link atau kode referral ke teman, keluarga, atau followers kamu.'), 'icon'=>'M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z'],
                 ['n'=>'2', 'title'=>__('Teman berlangganan'),'desc'=>__('Mereka daftar lewat link kamu lalu upgrade ke Plus atau Pro.'),                'icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ['n'=>'3', 'title'=>__('Kamu dapat 20%'),    'desc'=>__('Komisi 20% masuk ke saldo kamu setiap mereka membayar — berulang.'),        'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['n'=>'3', 'title'=>__('Kamu dapat 20%'),    'desc'=>__('Komisi 20% dari pembayaran pertama mereka langsung masuk ke saldomu.'),        'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
             ];
             @endphp
             @foreach($steps as $s)
@@ -157,32 +157,48 @@
         </div>
         <div>
             <p class="text-sm font-bold text-gray-800">{{ __('Tentang Pencairan') }}</p>
-            <p class="text-xs text-gray-500 leading-relaxed mt-0.5">{{ __('Komisi bisa dicairkan setelah mencapai minimal Rp 50.000 via transfer bank atau e-wallet. Pencairan diproses dalam 3 hari kerja.') }}</p>
+            <p class="text-xs text-gray-500 leading-relaxed mt-0.5">{{ __('Komisi bisa dicairkan setelah mencapai minimal Rp 50.000 via transfer bank atau e-wallet. Pencairan diproses dalam 1-3 hari kerja.') }}</p>
         </div>
     </div>
 
     {{-- ── Riwayat pencairan ── --}}
-    @if(count($payouts) > 0)
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
-        <h3 class="font-bold mb-4">{{ __('Riwayat Pencairan') }}</h3>
+        <h3 class="font-bold mb-1">{{ __('Riwayat Pencairan') }}</h3>
+        <p class="text-xs text-gray-400 mb-4">{{ __('Semua permintaan pencairan komisimu dan statusnya.') }}</p>
+
+        @if(count($payouts) === 0)
+        <div class="text-center py-8">
+            <div class="w-12 h-12 rounded-2xl bg-gray-50 text-gray-300 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            <p class="text-sm text-gray-400">{{ __('Belum ada pencairan. Kumpulkan komisi minimal Rp 50.000 untuk mencairkan.') }}</p>
+        </div>
+        @else
         <div class="space-y-2">
             @foreach($payouts as $p)
+            @php
+                // Status diubah manual oleh admin lewat database:
+                // pending = menunggu ditransfer, paid = sudah ditransfer, rejected = ditolak.
+                [$icon, $iconCls, $badgeCls, $badgeLabel] = match($p['status']) {
+                    'paid', 'done' => ['M5 13l4 4L19 7', 'bg-green-100 text-green-600', 'bg-green-50 text-green-600', __('Sudah Ditransfer')],
+                    'rejected'     => ['M6 18L18 6M6 6l12 12', 'bg-red-100 text-red-500', 'bg-red-50 text-red-500', __('Ditolak')],
+                    default        => ['M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'bg-orange-100 text-orange-500', 'bg-orange-50 text-orange-600', __('Diproses')],
+                };
+            @endphp
             <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 {{ $p['status'] === 'done' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500' }}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $p['status'] === 'done' ? 'M5 13l4 4L19 7' : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }}"/></svg>
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 {{ $iconCls }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $icon }}"/></svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-gray-800">{{ $rp($p['amount']) }}</p>
-                    <p class="text-[10px] text-gray-400">{{ strtoupper($p['method']) }} · {{ $p['account'] }} · {{ $p['date'] }}</p>
+                    <p class="text-sm font-bold text-gray-800">{{ $rp($p['amount']) }} <span class="font-normal text-gray-400">· a.n. {{ $p['name'] }}</span></p>
+                    <p class="text-[10px] text-gray-400">{{ $p['provider'] ?: strtoupper($p['method']) }} · {{ $p['account'] }} · {{ $p['date'] }}</p>
                 </div>
-                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 {{ $p['status'] === 'done' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600' }}">
-                    {{ $p['status'] === 'done' ? __('Selesai') : __('Diproses') }}
-                </span>
+                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 {{ $badgeCls }}">{{ $badgeLabel }}</span>
             </div>
             @endforeach
         </div>
+        @endif
     </div>
-    @endif
 
 </div>
 
@@ -198,24 +214,60 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <form method="POST" action="{{ route('settings.referral.payout') }}" class="p-6 space-y-4">
+        <form method="POST" action="{{ route('settings.referral.payout') }}" class="pb-6 px-6 pt-0 space-y-4">
             @csrf
             <div>
                 <label class="block text-xs font-bold text-gray-500 mb-2">{{ __('Metode Pencairan') }}</label>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="flex items-center gap-2 p-3 rounded-xl border-2 border-gray-100 cursor-pointer has-[:checked]:border-green-500 has-[:checked]:bg-green-50/50 transition-all">
-                        <input type="radio" name="method" value="bank" checked class="accent-green-500">
+                        <input type="radio" name="method" value="bank" checked class="accent-green-500" onchange="switchPayoutMethod('bank')">
                         <span class="text-sm font-bold">{{ __('Transfer Bank') }}</span>
                     </label>
                     <label class="flex items-center gap-2 p-3 rounded-xl border-2 border-gray-100 cursor-pointer has-[:checked]:border-green-500 has-[:checked]:bg-green-50/50 transition-all">
-                        <input type="radio" name="method" value="ewallet" class="accent-green-500">
+                        <input type="radio" name="method" value="ewallet" class="accent-green-500" onchange="switchPayoutMethod('ewallet')">
                         <span class="text-sm font-bold">E-Wallet</span>
                     </label>
                 </div>
             </div>
+
+            {{-- Pilihan bank / e-wallet (badge brand berwarna) --}}
+            @php
+                $bankOptions = [
+                    ['BCA', '#0060AF'], ['BRI', '#00529C'], ['BNI', '#F15A23'],
+                    ['Mandiri', '#003D79'], ['BSI', '#00A39D'], ['Lainnya', '#6B7280'],
+                ];
+                $ewalletOptions = [
+                    ['DANA', '#108EE9'], ['OVO', '#4C3494'], ['GoPay', '#00AED6'],
+                    ['ShopeePay', '#EE4D2D'], ['LinkAja', '#E82529'], ['Lainnya', '#6B7280'],
+                ];
+            @endphp
+            <input type="hidden" name="provider" id="payoutProvider" value="">
             <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Nomor Rekening / E-Wallet') }}</label>
-                <input type="text" name="account" required placeholder="{{ __('cth: 1234567890 (BCA) atau 0812xxxx (GoPay)') }}"
+                <label class="block text-xs font-bold text-gray-500 mb-2" id="providerLabel">{{ __('Pilih Bank') }}</label>
+                <div id="grid-bank" class="grid grid-cols-3 gap-2">
+                    @foreach($bankOptions as [$nama, $warna])
+                    <button type="button" onclick="pickProvider(this, '{{ $nama }}')"
+                        class="prov-btn flex items-center gap-2 p-2.5 rounded-xl border-2 border-gray-100 hover:border-gray-300 transition-all">
+                        <span class="w-7 h-5 rounded flex items-center justify-center text-[8px] font-black text-white flex-shrink-0" style="background:{{ $warna }}">{{ strtoupper(substr($nama, 0, 3)) }}</span>
+                        <span class="text-[11px] font-bold text-gray-700 truncate">{{ $nama }}</span>
+                    </button>
+                    @endforeach
+                </div>
+                <div id="grid-ewallet" class="hidden grid grid-cols-3 gap-2">
+                    @foreach($ewalletOptions as [$nama, $warna])
+                    <button type="button" onclick="pickProvider(this, '{{ $nama }}')"
+                        class="prov-btn flex items-center gap-2 p-2.5 rounded-xl border-2 border-gray-100 hover:border-gray-300 transition-all">
+                        <span class="w-7 h-5 rounded flex items-center justify-center text-[8px] font-black text-white flex-shrink-0" style="background:{{ $warna }}">{{ strtoupper(substr($nama, 0, 3)) }}</span>
+                        <span class="text-[11px] font-bold text-gray-700 truncate">{{ $nama }}</span>
+                    </button>
+                    @endforeach
+                </div>
+                @error('provider')<p class="text-xs font-bold text-red-500 mt-1.5">{{ $message }}</p>@enderror
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-1.5" id="accountLabel">{{ __('Nomor Rekening') }}</label>
+                <input type="text" name="account" required placeholder="{{ __('cth: 1234567890') }}" id="accountInput"
                     class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
             </div>
             <div>
@@ -225,7 +277,7 @@
             </div>
             <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-500">
                 {{ __('Jumlah dicairkan:') }} <span class="font-bold text-gray-800">{{ $rp($stats['earnings']) }}</span><br>
-                {{ __('Diproses dalam 3 hari kerja.') }}
+                {{ __('Diproses dalam 1-3 hari kerja.') }}
             </div>
             <div class="flex gap-3 pt-1">
                 <button type="button" onclick="closeModal('modal-payout')" class="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-bold hover:bg-gray-50 transition-all">{{ __('Batal') }}</button>
@@ -237,6 +289,28 @@
 
 @push('scripts')
 <script>
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); document.body.style.overflow = ''; }
+
+/* ── Pilihan bank / e-wallet di modal pencairan ── */
+function switchPayoutMethod(method){
+    document.getElementById('grid-bank').classList.toggle('hidden', method !== 'bank');
+    document.getElementById('grid-ewallet').classList.toggle('hidden', method !== 'ewallet');
+    document.getElementById('providerLabel').textContent = method === 'bank' ? '{{ __('Pilih Bank') }}' : '{{ __('Pilih E-Wallet') }}';
+    document.getElementById('accountLabel').textContent = method === 'bank' ? '{{ __('Nomor Rekening') }}' : '{{ __('Nomor E-Wallet / HP') }}';
+    document.getElementById('accountInput').placeholder = method === 'bank' ? '{{ __('cth: 1234567890') }}' : '{{ __('cth: 081234567890') }}';
+    // Ganti metode = pilihan sebelumnya tidak relevan lagi.
+    document.getElementById('payoutProvider').value = '';
+    document.querySelectorAll('.prov-btn').forEach(b => { b.classList.remove('border-green-500', 'bg-green-50'); b.classList.add('border-gray-100'); });
+}
+
+function pickProvider(btn, nama){
+    document.getElementById('payoutProvider').value = nama;
+    document.querySelectorAll('.prov-btn').forEach(b => { b.classList.remove('border-green-500', 'bg-green-50'); b.classList.add('border-gray-100'); });
+    btn.classList.add('border-green-500', 'bg-green-50');
+    btn.classList.remove('border-gray-100');
+}
+
 function copyRef(text, btn) {
     navigator.clipboard.writeText(text).then(function() {
         var original = btn.innerHTML;

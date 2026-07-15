@@ -51,7 +51,8 @@
 
         <div class="grid grid-cols-2 gap-3.5 mt-7">
             @foreach($plans as $key => $p)
-            @php $pop = $key === '3'; @endphp
+            {{-- Kunci array numerik di-cast PHP jadi int, samakan tipe dulu. --}}
+            @php $pop = (string) $key === '3'; @endphp
             <button type="button" id="card-{{ $key }}"
                 onclick="choosePlan('{{ $key }}', {{ $p['price'] }}, '{{ $p['label'] }}')"
                 class="plan-card relative text-left p-4 rounded-2xl border-2 transition-all {{ $pop ? 'border-gray-900' : 'border-gray-100 hover:border-gray-300' }}">
@@ -61,7 +62,7 @@
                 <p class="text-[11px] font-bold text-gray-500">{{ $p['label'] }}</p>
                 <p class="text-xl font-black text-gray-900 leading-tight mt-2">{{ $rp($p['price']) }}</p>
                 <p class="text-[10px] text-gray-400 mt-1.5">{{ $perMonth[$key] ?? '' }}</p>
-                @if(in_array($key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
+                @if(in_array((string) $key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
                 <p class="text-[9px] font-bold text-violet-600 mt-1">+ {{ __('Fitur AI') }}</p>
                 @endif
             </button>
