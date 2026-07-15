@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @include('partials.pwa-head')
 <title>molife · Satu aplikasi. Seluruh kehidupanmu.</title>
 <meta name="description" content="Sholat, olahraga, mood, tugas, karier, dan keuangan dalam satu dasbor yang tenang. molife merangkum seluruh hidupmu jadi satu Life Score yang jujur." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
