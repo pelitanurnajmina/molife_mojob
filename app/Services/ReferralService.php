@@ -23,6 +23,22 @@ class ReferralService
     /** Komisi pengundang dari pembayaran pertama user bawaannya. */
     public const RATE = 0.20;
 
+    /** Diskon untuk user yang daftar lewat referral, hanya pembayaran pertama. */
+    public const DISCOUNT_RATE = 0.10;
+
+    /** Apakah user ini berhak diskon referral? (dibawa referral & belum pernah bayar) */
+    public static function discountEligible(int $userId): bool
+    {
+        $p = Profile::model($userId);
+        return (bool) $p->referred_by && !$p->ref_credited;
+    }
+
+    /** Harga setelah diskon referral. */
+    public static function discountedPrice(int $price): int
+    {
+        return (int) round($price * (1 - self::DISCOUNT_RATE));
+    }
+
     /** Hubungkan user baru dengan pengundangnya berdasarkan kode referral. */
     public static function attachReferrer(int $newUserId, ?string $code): void
     {

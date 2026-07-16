@@ -14,7 +14,7 @@
         <div class="relative">
             <span class="inline-block text-[10px] font-bold bg-white/20 px-2.5 py-1 rounded-full mb-3">{{ __('Program Referral') }}</span>
             <h2 class="text-2xl md:text-3xl font-bold mb-1">{{ __('Ajak teman, dapat 20% komisi') }}</h2>
-            <p class="text-sm text-white/80 max-w-lg">{{ __('Setiap teman yang kamu undang dan berlangganan, kamu dapat komisi 20% dari pembayaran pertama mereka. Makin panjang paket yang mereka ambil, makin besar komisimu.') }}</p>
+            <p class="text-sm text-white/80 max-w-lg">{{ __('Temanmu dapat diskon 10% untuk pembayaran pertamanya, dan kamu dapat komisi 20% dari pembayaran itu. Makin panjang paket yang mereka ambil, makin besar komisimu.') }}</p>
         </div>
     </div>
 
@@ -131,7 +131,7 @@
             @php
             $steps = [
                 ['n'=>'1', 'title'=>__('Bagikan link'),     'desc'=>__('Kirim link atau kode referral ke teman, keluarga, atau followers kamu.'), 'icon'=>'M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z'],
-                ['n'=>'2', 'title'=>__('Teman berlangganan'),'desc'=>__('Mereka daftar lewat link kamu lalu upgrade ke Plus atau Pro.'),                'icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['n'=>'2', 'title'=>__('Teman berlangganan'),'desc'=>__('Mereka daftar lewat link kamu dan dapat diskon 10% untuk pembayaran pertamanya.'),  'icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['n'=>'3', 'title'=>__('Kamu dapat 20%'),    'desc'=>__('Komisi 20% dari pembayaran pertama mereka langsung masuk ke saldomu.'),        'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
             ];
             @endphp

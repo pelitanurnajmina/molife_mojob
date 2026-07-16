@@ -10,5 +10,8 @@ class CollabTask extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = ['due_date' => 'date'];
+
     public function assignee() { return $this->belongsTo(User::class, 'assignee_id'); }
+    public function product()  { return $this->belongsTo(BusinessProduct::class, 'business_product_id'); }
 }

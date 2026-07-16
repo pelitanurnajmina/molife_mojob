@@ -240,6 +240,12 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
         Route::get('/ekspor',        [BisnisController::class, 'export'])->name('export');
         Route::get('/impor/contoh',  [BisnisController::class, 'importTemplate'])->name('import.template');
         Route::post('/impor',        [BisnisController::class, 'import'])->name('import');
+        // Papan tugas lintas-bisnis (semua proyek + tugas umum)
+        Route::get('/tugas',              [BisnisController::class, 'tasksBoard'])->name('tugas');
+        Route::post('/tugas',             [BisnisController::class, 'storeTask'])->name('tugas.store');
+        Route::post('/tugas/{id}',        [BisnisController::class, 'updateTask'])->name('tugas.update');
+        Route::post('/tugas/{id}/status', [BisnisController::class, 'moveTask'])->name('tugas.move');
+        Route::delete('/tugas/{id}',      [BisnisController::class, 'destroyTask'])->name('tugas.destroy');
         Route::post('/proposal/{id}',[BisnisController::class, 'update'])->name('update');
         Route::delete('/proposal/{id}', [BisnisController::class, 'destroy'])->name('destroy');
         // Products

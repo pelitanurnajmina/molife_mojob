@@ -6,6 +6,18 @@ use App\Models\BusinessDeal;
 
 class BusinessService
 {
+    /** Awal komunikasi dengan klien: key => label. */
+    public const CHANNELS = [
+        'email'       => 'Email',
+        'whatsapp'    => 'WhatsApp',
+        'sosmed'      => 'Media Sosial',
+        'rekomendasi' => 'Rekomendasi / Partner',
+        'telepon'     => 'Telepon',
+        'website'     => 'Website',
+        'event'       => 'Event / Offline',
+        'lainnya'     => 'Lainnya',
+    ];
+
     /** key => [label, tw (tailwind color), hex (for charts)] */
     public static function statuses(): array
     {

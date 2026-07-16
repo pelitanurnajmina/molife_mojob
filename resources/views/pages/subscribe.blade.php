@@ -8,7 +8,7 @@
     <title>Molife — {{ __('Aktifkan Langganan') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/icon.png') }}?v=2">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=8">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=9">
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style>
 </head>
 @php
@@ -50,18 +50,33 @@
         <h1 class="text-2xl md:text-3xl font-black mt-2 tracking-tight">{{ __('Pilih paketmu') }}</h1>
         <p class="text-sm text-gray-500 mt-1.5 leading-relaxed">{{ __('Bayar sekali, akses penuh semua modul. Makin panjang durasi, makin hemat.') }}</p>
 
+        @if($refDiscount)
+        <div class="mt-5 rounded-2xl bg-green-50 border border-green-200 p-3.5 flex items-start gap-2.5">
+            <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            <p class="text-[11px] text-green-800 leading-relaxed"><b>{{ __('Diskon referral 10% aktif!') }}</b> {{ __('Karena kamu daftar lewat undangan teman, pembayaran pertamamu otomatis lebih murah 10%.') }}</p>
+        </div>
+        @endif
+
         <div class="grid grid-cols-2 gap-3.5 mt-7">
             @foreach($plans as $key => $p)
             {{-- Kunci array numerik di-cast PHP jadi int, samakan tipe dulu. --}}
-            @php $pop = (string) $key === '3'; @endphp
+            @php
+                $pop = (string) $key === '3';
+                $finalPrice = $refDiscount ? \App\Services\ReferralService::discountedPrice($p['price']) : $p['price'];
+            @endphp
             <button type="button" id="card-{{ $key }}"
-                onclick="choosePlan('{{ $key }}', {{ $p['price'] }}, '{{ $p['label'] }}')"
+                onclick="choosePlan('{{ $key }}', {{ $finalPrice }}, '{{ $p['label'] }}')"
                 class="plan-card relative text-left p-4 rounded-2xl border-2 transition-all {{ $pop ? 'border-gray-900' : 'border-gray-100 hover:border-gray-300' }}">
                 @if(!empty($badge[$key]))
                 <span class="absolute -top-2.5 left-4 whitespace-nowrap text-[8px] font-bold bg-gray-900 text-white px-2 py-0.5 rounded-full">{{ $badge[$key] }}</span>
                 @endif
                 <p class="text-[11px] font-bold text-gray-500">{{ $p['label'] }}</p>
+                @if($refDiscount)
+                <p class="text-[10px] text-gray-400 line-through mt-2">{{ $rp($p['price']) }}</p>
+                <p class="text-xl font-black text-green-600 leading-tight">{{ $rp($finalPrice) }}</p>
+                @else
                 <p class="text-xl font-black text-gray-900 leading-tight mt-2">{{ $rp($p['price']) }}</p>
+                @endif
                 <p class="text-[10px] text-gray-400 mt-1.5">{{ $perMonth[$key] ?? '' }}</p>
                 @if(in_array((string) $key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
                 <p class="text-[9px] font-bold text-violet-600 mt-1">+ {{ __('Fitur AI') }}</p>
@@ -152,7 +167,7 @@ const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 const PENDING    = @json($pendingCharge ?? null); // QR pending yang masih berlaku (dipakai ulang)
 
 /* ── Step 1: pilih paket dulu ── */
-let selectedPlan = { key: '3', price: {{ $plans['3']['price'] ?? 29000 }}, label: '3 Bulan' };
+let selectedPlan = { key: '3', price: {{ $refDiscount ? \App\Services\ReferralService::discountedPrice($plans['3']['price'] ?? 29000) : ($plans['3']['price'] ?? 29000) }}, label: '3 Bulan' };
 
 function choosePlan(key, price, label) {
     selectedPlan = { key, price, label };

@@ -52,6 +52,18 @@
                 class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
         </div>
         <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Awal Komunikasi') }}</label>
+            <select name="channel" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                <option value="">{{ __('— Pilih channel —') }}</option>
+                @foreach(\App\Services\BusinessService::CHANNELS as $ck => $cl)
+                <option value="{{ $ck }}">{{ $cl }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+        <div>
             <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Tanggal Proposal') }}</label>
             {{-- Form tambah: default hari ini (tetap bisa diganti mundur); form edit diisi via JS. --}}
             <div class="relative">
@@ -60,13 +72,12 @@
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
         </div>
-    </div>
-
-    <div>
-        <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Alamat Klien') }}</label>
-        <input type="text" name="address" maxlength="255"
-            placeholder="{{ __('cth: Jl. Sudirman No. 1, Jakarta') }}"
-            class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+        <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Alamat Klien') }}</label>
+            <input type="text" name="address" maxlength="255"
+                placeholder="{{ __('cth: Jakarta') }}"
+                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+        </div>
     </div>
 
     <div class="mb-4">

@@ -49,11 +49,21 @@
                 class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
         </div>
         <div>
-            <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Alamat Klien') }}</label>
-            <input type="text" name="address" maxlength="255"
-                placeholder="{{ __('cth: Jakarta') }}"
-                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+            <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Awal Komunikasi') }}</label>
+            <select name="channel" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                <option value="">{{ __('— Pilih channel —') }}</option>
+                @foreach(\App\Services\BusinessService::CHANNELS as $ck => $cl)
+                <option value="{{ $ck }}">{{ $cl }}</option>
+                @endforeach
+            </select>
         </div>
+    </div>
+
+    <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Alamat Klien') }}</label>
+        <input type="text" name="address" maxlength="255"
+            placeholder="{{ __('cth: Jakarta') }}"
+            class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
     </div>
 
     <div class="mb-4">

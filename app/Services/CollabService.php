@@ -113,6 +113,16 @@ class CollabService
         return $ok ? $product : null;
     }
 
+    /** Peta user yang bisa di-assign tugas proyek: owner + kolaborator aktif. [user_id => nama] */
+    public static function assignees(BusinessProduct $product): array
+    {
+        $list = [$product->user_id => $product->user?->username ?: __('Pemilik')];
+        foreach ($product->collaborators()->where('status', 'active')->whereNotNull('user_id')->with('user')->get() as $c) {
+            $list[$c->user_id] = $c->user?->username ?: $c->email;
+        }
+        return $list;
+    }
+
     /** Apakah user punya kolaborasi aktif / undangan pending (untuk nav & paywall). */
     public static function hasAny(int $userId): bool
     {

@@ -159,6 +159,9 @@
                         </td>
                         <td class="px-5 py-3.5 hidden md:table-cell text-gray-500 whitespace-nowrap">{{ $d['proposal_date'] ?: '-' }}</td>
                         <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                            <button type="button" onclick='openViewDeal(@json($d))' title="{{ __('Lihat detail') }}" class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
                             <button type="button" onclick='openEditDeal(@json($d))' class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
@@ -298,6 +301,12 @@
                          ondragstart="taskDragStart(event, {{ $t['id'] }})" ondragend="taskDragEnd()"
                          onclick='openTaskModal(@json($t))'
                          class="task-card bg-white rounded-xl border border-gray-100 p-3 cursor-grab active:cursor-grabbing hover:border-gray-300 hover:shadow-sm transition-all">
+                        @if($t['due_label'])
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 mb-1.5 {{ $t['overdue'] ? 'bg-red-50 text-red-500' : 'bg-gray-50 border border-gray-100 text-gray-400' }}">
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            {{ $t['due_label'] }}
+                        </span>
+                        @endif
                         <p class="text-sm font-bold text-gray-800 leading-snug">{{ $t['title'] }}</p>
                         @if($t['note'])
                         <p class="text-[11px] text-gray-400 mt-1 leading-relaxed line-clamp-2">{{ $t['note'] }}</p>
@@ -421,6 +430,14 @@
                         </select>
                     </div>
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Tenggat') }}</label>
+                    <div class="relative">
+                        <input type="date" name="due_date" placeholder="{{ __('Pilih tanggal') }}"
+                            class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+                        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                </div>
             </div>
             <button type="submit" class="w-full mt-6 py-3 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all" id="taskSubmit">{{ __('Simpan') }}</button>
         </form>
@@ -429,6 +446,57 @@
             <button type="button" onclick="askDelete(this, '{{ __('Hapus tugas ini?') }}')"
                 class="text-[11px] font-bold text-gray-400 hover:text-red-500 transition-all">{{ __('Hapus tugas ini') }}</button>
         </form>
+    </div>
+</div>
+
+{{-- ── Modal lihat detail proposal (read-only) ── --}}
+<div id="modal-view-deal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this)closeModal('modal-view-deal')">
+    <div class="bg-white rounded-3xl w-full max-w-md my-8">
+        <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-gray-50">
+            <div>
+                <h2 class="font-bold text-lg leading-tight" id="vdClient">—</h2>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Detail proposal') }} · {{ $product->name }}</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-view-deal')" class="w-8 h-8 -mr-1.5 -mt-1 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="px-6 pt-5 pb-6">
+            <div class="grid grid-cols-2 gap-x-4 gap-y-4">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Status') }}</p>
+                    <span id="vdStatus" class="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">—</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Nilai Proposal') }}</p>
+                    <p id="vdValue" class="text-sm font-bold text-gray-800">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Bidang Klien') }}</p>
+                    <p id="vdIndustry" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Awal Komunikasi') }}</p>
+                    <p id="vdChannel" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Tanggal Proposal') }}</p>
+                    <p id="vdDate" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Narahubung') }}</p>
+                    <p id="vdContact" class="text-sm font-medium text-gray-700 break-words">—</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Alamat Klien') }}</p>
+                    <p id="vdAddress" class="text-sm font-medium text-gray-700 break-words">—</p>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-50">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Respon Klien / Catatan') }}</p>
+                <p id="vdNotes" class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">—</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-view-deal'); openEditDeal(vdCurrent)"
+                class="w-full mt-6 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-bold text-gray-700 hover:border-gray-400 transition-all">{{ __('Edit Data Ini') }}</button>
+        </div>
     </div>
 </div>
 
@@ -588,6 +656,8 @@ function openTaskModal(t, presetStatus){
     const as = f.querySelector('[name="assignee_id"]');
     as.value = t?.assignee_id ?? '';
     if (as._csRefresh) as._csRefresh();
+    const dd = f.querySelector('[name="due_date"]');
+    if (dd._flatpickr) dd._flatpickr.setDate(t?.due_date || null, false); else dd.value = t?.due_date ?? '';
 
     del.classList.toggle('hidden', !isEdit);
     if (isEdit) del.action = TASK_URL + '/' + t.id;
@@ -601,12 +671,42 @@ function openEditDeal(d){
     ['client_name','industry','address','contact','notes'].forEach(k => f.querySelector('[name="'+k+'"]').value = d[k] ?? '');
     f.querySelector('[name="value"]').value = d.value || '';
     f.querySelector('[name="status"]').value = d.status ?? 'lead';
+    const ch = f.querySelector('[name="channel"]');
+    ch.value = d.channel ?? '';
+    if (ch._csRefresh) ch._csRefresh();
     // Kolom tanggal dikelola flatpickr: set lewat instance-nya agar tampilan ikut terisi.
     const pd = f.querySelector('[name="proposal_date"]');
     if (pd._flatpickr) pd._flatpickr.setDate(d.proposal_date || null, false); else pd.value = d.proposal_date ?? '';
     const st = f.querySelector('[name="status"]');
     if (st._csRefresh) st._csRefresh();
     openModal('modal-edit-deal');
+}
+
+/* ── Mode lihat proposal (read-only) ── */
+var DEAL_STATUSES = @json($statuses);
+var DEAL_CHANNELS = @json(\App\Services\BusinessService::CHANNELS);
+var vdCurrent = null;
+
+function openViewDeal(d){
+    vdCurrent = d;
+    const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+    const set = (id, v) => document.getElementById(id).textContent = (v === null || v === undefined || String(v).trim() === '') ? '—' : v;
+
+    set('vdClient', d.client_name);
+    set('vdValue', d.value > 0 ? rp(d.value) : null);
+    set('vdIndustry', d.industry);
+    set('vdChannel', d.channel ? (DEAL_CHANNELS[d.channel] ?? d.channel) : null);
+    set('vdDate', d.proposal_date ? new Date(d.proposal_date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : null);
+    set('vdContact', d.contact);
+    set('vdAddress', d.address);
+    set('vdNotes', d.notes);
+
+    const m = DEAL_STATUSES[d.status] || { label: d.status, tw: 'gray' };
+    const badge = document.getElementById('vdStatus');
+    badge.textContent = m.label;
+    badge.className = 'inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-' + m.tw + '-100 text-' + m.tw + '-700';
+
+    openModal('modal-view-deal');
 }
 
 function openTplModal(t){

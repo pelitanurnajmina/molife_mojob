@@ -10,7 +10,7 @@
     <link rel="shortcut icon" href="{{ asset('images/icon.png') }}?v=2">
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=8">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=9">
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style>
 </head>
 <body class="min-h-screen bg-white">
@@ -34,6 +34,13 @@
 
             <h2 class="text-3xl font-extrabold tracking-tight">{{ __('Buat Akun Baru') }}</h2>
             <p class="text-sm text-gray-500 mt-2">{{ __('Mulai track kehidupan & karirmu hari ini.') }}</p>
+
+            @if(request('ref') && !session('collab_invite_info'))
+            <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 mt-6 text-sm font-medium flex items-start gap-2.5">
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                <span>{{ __('Kamu diundang teman! Daftar sekarang dan dapatkan diskon 10% untuk pembayaran pertamamu.') }}</span>
+            </div>
+            @endif
 
             @if(session('collab_invite_info'))
             <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 mt-6 text-sm font-medium flex items-start gap-2.5">

@@ -326,6 +326,9 @@ async function openPay(key) {
         qr.onload = () => { qr.classList.remove('opacity-0'); document.getElementById('payQrLoading').classList.add('hidden'); };
         qr.src = d.qr_url;
 
+        // Nominal final dari server (bisa berbeda bila ada diskon referral).
+        if (d.amount) document.getElementById('payAmount').textContent = 'Rp ' + d.amount.toLocaleString('id-ID');
+
         // Masa berlaku QR (server pakai ulang QR pending yang sama selama belum kedaluwarsa).
         if (d.expires_at) {
             const exp = document.getElementById('payExpiry');

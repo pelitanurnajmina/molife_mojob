@@ -97,7 +97,7 @@ class BisnisCollabController extends Controller
         $deals = BusinessDeal::where('user_id', $ownerId)->where('product', $product->name)
             ->orderByDesc('proposal_date')->orderByDesc('id')->get()->map(fn($d) => [
                 'id' => $d->id, 'client_name' => $d->client_name, 'industry' => $d->industry,
-                'address' => $d->address, 'contact' => $d->contact,
+                'address' => $d->address, 'contact' => $d->contact, 'channel' => $d->channel,
                 'value' => (int) $d->value, 'status' => $d->status,
                 'proposal_date' => optional($d->proposal_date)->format('Y-m-d'), 'notes' => $d->notes,
             ])->toArray();
@@ -128,6 +128,9 @@ class BisnisCollabController extends Controller
                 'status'      => in_array($t->status, \App\Models\CollabTask::STATUSES, true) ? $t->status : 'todo',
                 'assignee_id' => $t->assignee_id,
                 'assignee'    => $t->assignee_id ? ($assignees[$t->assignee_id] ?? null) : null,
+                'due_date'    => $t->due_date?->toDateString(),
+                'due_label'   => $t->due_date?->translatedFormat('j M'),
+                'overdue'     => $t->due_date && $t->due_date->isPast() && !$t->due_date->isToday() && $t->status !== 'done',
             ])
             ->groupBy('status');
 
@@ -147,6 +150,7 @@ class BisnisCollabController extends Controller
         'industry'      => 'nullable|string|max:120',
         'address'       => 'nullable|string|max:255',
         'contact'       => 'nullable|string|max:255',
+        'channel'       => 'nullable|in:email,whatsapp,sosmed,rekomendasi,telepon,website,event,lainnya',
         'value'         => 'nullable|integer|min:0',
         'status'        => 'required|in:lead,sent,negotiation,won,lost',
         'proposal_date' => 'nullable|date',
@@ -192,11 +196,7 @@ class BisnisCollabController extends Controller
     /** Peta user yang bisa di-assign: owner + kolaborator aktif. [user_id => nama tampil] */
     private function assignees(BusinessProduct $product): array
     {
-        $list = [$product->user_id => $product->user?->username ?: __('Pemilik')];
-        foreach ($product->collaborators()->where('status', 'active')->whereNotNull('user_id')->with('user')->get() as $c) {
-            $list[$c->user_id] = $c->user?->username ?: $c->email;
-        }
-        return $list;
+        return CollabService::assignees($product);
     }
 
     private function taskRules(BusinessProduct $product): array
@@ -206,6 +206,7 @@ class BisnisCollabController extends Controller
             'note'        => 'nullable|string|max:500',
             'status'      => 'required|in:' . implode(',', \App\Models\CollabTask::STATUSES),
             'assignee_id' => 'nullable|integer|in:' . implode(',', array_keys($this->assignees($product))),
+            'due_date'    => 'nullable|date',
         ];
     }
 

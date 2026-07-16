@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=8">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=9">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -343,6 +343,7 @@
             $businessNav = [
                 ['route'=>'bisnis.index', 'feat'=>'bisnis', 'match'=>'bisnis.index', 'label'=>__('Overview'),        'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
                 ['route'=>'bisnis.deals', 'feat'=>'bisnis', 'match'=>'bisnis.deals', 'label'=>__('Proposal & Klien'), 'icon'=>'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                ['route'=>'bisnis.tugas', 'feat'=>'bisnis', 'match'=>'bisnis.tugas', 'label'=>__('Tugas'), 'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
                 ['route'=>'bisnis.docs',  'feat'=>'bisnis', 'match'=>'bisnis.docs',  'label'=>__('Dokumen & File'),  'icon'=>'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z'],
             ];
             // Kolaborasi: tampil bila user diundang ke produk orang lain (tanpa perlu fitur bisnis aktif).

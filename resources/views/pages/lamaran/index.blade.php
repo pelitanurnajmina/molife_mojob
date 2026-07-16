@@ -207,6 +207,12 @@
                                 </a>
                                 @endif
                                 <button type="button"
+                                        onclick="openView({{ json_encode($app) }})"
+                                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
+                                        title="{{ __('Lihat detail') }}">
+                                    <svg class="w-3.5 h-3.5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                                <button type="button"
                                         onclick="openEdit('{{ $app['id'] }}', {{ json_encode($app) }})"
                                         class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
                                         title="Edit">
@@ -444,6 +450,57 @@
     </div>
 </div>
 
+{{-- Modal lihat detail (read-only) --}}
+<div id="modal-view" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this)closeModal('modal-view')">
+    <div class="bg-white rounded-3xl w-full max-w-md my-8">
+        <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-gray-50">
+            <div>
+                <h2 class="font-bold text-lg leading-tight" id="viewCompany">—</h2>
+                <p class="text-xs text-gray-400 mt-1" id="viewPosition">—</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-view')" class="w-8 h-8 -mr-1.5 -mt-1 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="px-6 pt-5 pb-6">
+            <div class="grid grid-cols-2 gap-x-4 gap-y-4">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">Status</p>
+                    <span id="viewStatus" class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold pill-applied">—</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Tipe Pekerjaan') }}</p>
+                    <p id="viewJobType" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Channel') }}</p>
+                    <p id="viewChannel" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Tanggal Melamar') }}</p>
+                    <p id="viewDate" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Lokasi') }}</p>
+                    <p id="viewLocation" class="text-sm font-medium text-gray-700 break-words">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Rentang Gaji') }}</p>
+                    <p id="viewSalary" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('URL Lowongan') }}</p>
+                    <a id="viewUrl" href="#" target="_blank" class="text-sm font-medium text-gray-700 break-all hover:underline">—</a>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-50">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Catatan') }}</p>
+                <p id="viewNotes" class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">—</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-view'); openEdit(viewCurrent.id, viewCurrent)"
+                class="w-full mt-6 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-bold text-gray-700 hover:border-gray-400 transition-all">{{ __('Edit Data Ini') }}</button>
+        </div>
+    </div>
+</div>
+
 {{-- Modal impor lamaran --}}
 <div id="modal-impor-lamaran" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-impor-lamaran')">
     <div class="bg-white rounded-3xl w-full max-w-md">
@@ -493,7 +550,9 @@ function openEdit(id, data) {
     document.getElementById('edit-position').value     = data.position ?? '';
     document.getElementById('edit-location').value     = data.location ?? '';
     document.getElementById('edit-salary').value       = data.salary ?? '';
-    document.getElementById('edit-applied_date').value = data.applied_date ?? '';
+    // Kolom tanggal dikelola flatpickr: set lewat instance-nya agar tampilan ikut terisi.
+    const ad = document.getElementById('edit-applied_date');
+    if (ad._flatpickr) ad._flatpickr.setDate(data.applied_date || null, false); else ad.value = data.applied_date ?? '';
     document.getElementById('edit-job_url').value      = data.job_url ?? '';
     document.getElementById('edit-notes').value        = data.notes ?? '';
     document.getElementById('edit-status').value   = data.status   ?? 'applied';
@@ -501,10 +560,41 @@ function openEdit(id, data) {
     document.getElementById('edit-channel').value  = data.channel  ?? '';
     openModal('modal-edit');
 }
+/* ── Mode lihat (read-only) ── */
+var VIEW_STATUS = { wishlist: 'Wishlist', applied: '{{ __('Dikirim') }}', review: 'Review', interview: 'Interview', offer: '{{ __('Tawaran') }}', hired: '{{ __('Diterima') }}', rejected: '{{ __('Ditolak') }}' };
+var VIEW_TYPES = { fulltime: '{{ __('Full-time') }}', parttime: '{{ __('Part-time') }}', internship: '{{ __('Internship') }}', freelance: '{{ __('Freelance') }}', contract: '{{ __('Kontrak') }}' };
+var VIEW_CHANNELS = { linkedin: 'LinkedIn', jobstreet: 'Jobstreet', glints: 'Glints', upwork: 'Upwork', fiverr: 'Fiverr', kontrakhub: 'Kontrakhub', email: '{{ __('Email Langsung') }}', referral: '{{ __('Kenalan / Referral') }}', website: '{{ __('Website Perusahaan') }}', other: '{{ __('Lainnya') }}' };
+var viewCurrent = null;
+
+function openView(data){
+    viewCurrent = data;
+    const set = (id, v) => document.getElementById(id).textContent = (v === null || v === undefined || String(v).trim() === '') ? '—' : v;
+
+    set('viewCompany', data.company);
+    set('viewPosition', data.position);
+    set('viewJobType', data.job_type ? (VIEW_TYPES[data.job_type] ?? data.job_type) : null);
+    set('viewChannel', data.channel ? (VIEW_CHANNELS[data.channel] ?? data.channel) : null);
+    set('viewDate', data.applied_date ? new Date(data.applied_date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : null);
+    set('viewLocation', data.location);
+    set('viewSalary', data.salary);
+    set('viewNotes', data.notes);
+
+    const badge = document.getElementById('viewStatus');
+    badge.textContent = VIEW_STATUS[data.status] ?? data.status ?? '—';
+    badge.className = 'inline-block px-2.5 py-1 rounded-full text-[11px] font-bold pill-' + (data.status || 'applied');
+
+    const link = document.getElementById('viewUrl');
+    if (data.job_url) { link.textContent = data.job_url; link.href = data.job_url; }
+    else { link.textContent = '—'; link.removeAttribute('href'); }
+
+    openModal('modal-view');
+}
+
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         closeModal('modal-add');
         closeModal('modal-edit');
+        closeModal('modal-view');
     }
 });
 </script>

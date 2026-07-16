@@ -129,6 +129,10 @@
                         <td class="px-5 py-4 hidden xl:table-cell text-gray-500 whitespace-nowrap">{{ $d['proposal_date'] ? date('j M Y', strtotime($d['proposal_date'])) : '—' }}</td>
                         <td class="px-5 py-4">
                             <div class="flex items-center justify-end gap-1">
+                                <button type="button" onclick='openView(@json($d))' title="{{ __('Lihat detail') }}"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
                                 <button type="button" onclick='openEdit(@json($d))'
                                     class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -234,7 +238,7 @@
         <div class="p-6 space-y-5">
             <div>
                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{{ __('Impor dari file') }}</p>
-                <p class="text-xs text-gray-400 mb-3">{{ __('Format CSV atau Excel (.xlsx), maksimal 500 baris. Kolom: Nama Klien, Bidang, Alamat, Kontak, Proyek, Nilai, Status, Tanggal Proposal, Catatan. Proyek baru dibuat otomatis.') }}</p>
+                <p class="text-xs text-gray-400 mb-3">{{ __('Format CSV atau Excel (.xlsx), maksimal 500 baris. Kolom: Nama Klien, Bidang, Alamat, Kontak, Channel, Proyek, Nilai, Status, Tanggal Proposal, Catatan. Proyek baru dibuat otomatis.') }}</p>
                 <a href="{{ route('bisnis.import.template') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-all mb-3">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     {{ __('Unduh file contoh') }}
@@ -261,6 +265,61 @@
                     {{ __('Unduh semua data (CSV)') }}
                 </a>
             </div>
+        </div>
+    </div>
+</div>
+
+{{-- ── Modal lihat detail (read-only) ── --}}
+<div id="modal-view" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this)closeModal('modal-view')">
+    <div class="bg-white rounded-3xl w-full max-w-md my-8">
+        <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-gray-50">
+            <div>
+                <h2 class="font-bold text-lg leading-tight" id="viewClient">—</h2>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Detail proposal & klien') }}</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-view')" class="w-8 h-8 -mr-1.5 -mt-1 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-all flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="px-6 pt-5 pb-6">
+            <div class="grid grid-cols-2 gap-x-4 gap-y-4">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Status') }}</p>
+                    <span id="viewStatus" class="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">—</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Nilai Proposal') }}</p>
+                    <p id="viewValue" class="text-sm font-bold text-gray-800">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Proyek Kita') }}</p>
+                    <p id="viewProduct" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Bidang Klien') }}</p>
+                    <p id="viewIndustry" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Awal Komunikasi') }}</p>
+                    <p id="viewChannel" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Tanggal Proposal') }}</p>
+                    <p id="viewDate" class="text-sm font-medium text-gray-700">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Narahubung') }}</p>
+                    <p id="viewContact" class="text-sm font-medium text-gray-700 break-words">—</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Alamat Klien') }}</p>
+                    <p id="viewAddress" class="text-sm font-medium text-gray-700 break-words">—</p>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-50">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">{{ __('Respon Klien / Catatan') }}</p>
+                <p id="viewNotes" class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">—</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-view'); openEdit(viewCurrent)"
+                class="w-full mt-6 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-bold text-gray-700 hover:border-gray-400 transition-all">{{ __('Edit Data Ini') }}</button>
         </div>
     </div>
 </div>
@@ -333,6 +392,9 @@ function openEdit(d){
     const pd = f.querySelector('[name="proposal_date"]');
     if (pd._flatpickr) pd._flatpickr.setDate(d.proposal_date || null, false); else pd.value = d.proposal_date ?? '';
     f.querySelector('[name="notes"]').value = d.notes ?? '';
+    const ch = f.querySelector('[name="channel"]');
+    ch.value = d.channel ?? '';
+    if (ch._csRefresh) ch._csRefresh();
     // product: ensure the saved value exists as an option even if deleted later
     const ps = f.querySelector('[name="product"]');
     if (d.product && ![...ps.options].some(o => o.value === d.product)) {
@@ -342,6 +404,34 @@ function openEdit(d){
     if (f.querySelector('[name="status"]')._csRefresh) f.querySelector('[name="status"]')._csRefresh();
     if (ps._csRefresh) ps._csRefresh();
     openModal('modal-edit');
+}
+
+/* ── Mode lihat (read-only) ── */
+var DEAL_STATUSES = @json($statuses);
+var DEAL_CHANNELS = @json(\App\Services\BusinessService::CHANNELS);
+var viewCurrent = null;
+
+function openView(d){
+    viewCurrent = d;
+    const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+    const set = (id, v) => document.getElementById(id).textContent = (v === null || v === undefined || String(v).trim() === '') ? '—' : v;
+
+    set('viewClient', d.client_name);
+    set('viewValue', d.value > 0 ? rp(d.value) : null);
+    set('viewProduct', d.product);
+    set('viewIndustry', d.industry);
+    set('viewChannel', d.channel ? (DEAL_CHANNELS[d.channel] ?? d.channel) : null);
+    set('viewDate', d.proposal_date ? new Date(d.proposal_date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : null);
+    set('viewContact', d.contact);
+    set('viewAddress', d.address);
+    set('viewNotes', d.notes);
+
+    const m = DEAL_STATUSES[d.status] || { label: d.status, tw: 'gray' };
+    const badge = document.getElementById('viewStatus');
+    badge.textContent = m.label;
+    badge.className = 'inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-' + m.tw + '-100 text-' + m.tw + '-700';
+
+    openModal('modal-view');
 }
 
 </script>

@@ -14,6 +14,7 @@ class BisnisController extends Controller
         'industry'      => 'nullable|string|max:120',
         'address'       => 'nullable|string|max:255',
         'contact'       => 'nullable|string|max:255',
+        'channel'       => 'nullable|in:email,whatsapp,sosmed,rekomendasi,telepon,website,event,lainnya',
         'product'       => 'nullable|string|max:255',
         'value'         => 'nullable|integer|min:0',
         'status'        => 'required|in:lead,sent,negotiation,won,lost',
@@ -55,7 +56,7 @@ class BisnisController extends Controller
 
         $deals = $query->orderByDesc('proposal_date')->orderByDesc('id')->get()->map(fn($d) => [
             'id' => $d->id, 'client_name' => $d->client_name, 'industry' => $d->industry,
-            'address' => $d->address, 'contact' => $d->contact, 'product' => $d->product,
+            'address' => $d->address, 'contact' => $d->contact, 'channel' => $d->channel, 'product' => $d->product,
             'value' => (int) $d->value, 'status' => $d->status,
             'proposal_date' => optional($d->proposal_date)->format('Y-m-d'), 'notes' => $d->notes,
         ])->toArray();
@@ -104,9 +105,124 @@ class BisnisController extends Controller
         return redirect()->route('bisnis.deals')->with('toast', __('Data diperbarui.'));
     }
 
+    /* ── Papan tugas lintas-bisnis (POV owner atas semua proyek + tugas umum) ── */
+
+    /** Query tugas yang boleh diakses user: tugas proyek miliknya + tugas umum buatannya. */
+    private function taskScope(int $userId)
+    {
+        $ownedIds = BusinessProduct::where('user_id', $userId)->pluck('id');
+        return \App\Models\CollabTask::where(function ($q) use ($ownedIds, $userId) {
+            $q->whereIn('business_product_id', $ownedIds)
+              ->orWhere(fn($w) => $w->whereNull('business_product_id')->where('created_by', $userId));
+        });
+    }
+
+    public function tasksBoard()
+    {
+        $userId   = auth()->id();
+        $products = BusinessProduct::where('user_id', $userId)->orderBy('name')->get();
+
+        // Peta assignee per proyek ('' = tugas umum, hanya owner).
+        $me = auth()->user()->username ?: __('Saya');
+        $assigneesByProject = ['' => [$userId => $me]];
+        $productNames = [];
+        foreach ($products as $p) {
+            $assigneesByProject[(string) $p->id] = \App\Services\CollabService::assignees($p);
+            $productNames[$p->id] = $p->name;
+        }
+
+        $tasks = $this->taskScope($userId)->with('product')->orderBy('created_at')->get()
+            ->map(fn($t) => [
+                'id'          => $t->id,
+                'title'       => $t->title,
+                'note'        => $t->note,
+                'status'      => in_array($t->status, \App\Models\CollabTask::STATUSES, true) ? $t->status : 'todo',
+                'assignee_id' => $t->assignee_id,
+                'assignee'    => $t->assignee_id ? ($assigneesByProject[(string) ($t->business_product_id ?? '')][$t->assignee_id] ?? null) : null,
+                'project_id'  => $t->business_product_id,
+                'project'     => $t->product?->name,
+                'due_date'    => $t->due_date?->toDateString(),
+                'due_label'   => $t->due_date?->translatedFormat('j M'),
+                'overdue'     => $t->due_date && $t->due_date->isPast() && !$t->due_date->isToday() && $t->status !== 'done',
+            ])
+            ->groupBy('status');
+
+        return view('pages.bisnis.tugas', compact('tasks', 'products', 'assigneesByProject', 'productNames'));
+    }
+
+    /** Validasi tugas lintas-bisnis (proyek opsional; assignee harus anggota proyek terpilih). */
+    private function validateBoardTask(Request $request, int $userId): array
+    {
+        $ownedIds = BusinessProduct::where('user_id', $userId)->pluck('id')->all();
+
+        $v = $request->validate([
+            'title'               => 'required|string|max:200',
+            'note'                => 'nullable|string|max:500',
+            'status'              => 'required|in:' . implode(',', \App\Models\CollabTask::STATUSES),
+            'due_date'            => 'nullable|date',
+            'business_product_id' => ['nullable', 'integer', \Illuminate\Validation\Rule::in($ownedIds)],
+            'assignee_id'         => 'nullable|integer',
+        ]);
+
+        // Assignee sah = anggota proyek terpilih; tugas umum hanya bisa ke diri sendiri.
+        if (!empty($v['assignee_id'])) {
+            $valid = empty($v['business_product_id'])
+                ? [$userId]
+                : array_keys(\App\Services\CollabService::assignees(BusinessProduct::find($v['business_product_id'])));
+            if (!in_array((int) $v['assignee_id'], $valid, true)) $v['assignee_id'] = null;
+        }
+
+        return $v;
+    }
+
+    public function storeTask(Request $request)
+    {
+        $userId = auth()->id();
+        \App\Models\CollabTask::create($this->validateBoardTask($request, $userId) + ['created_by' => $userId]);
+        return redirect()->route('bisnis.tugas')->with('toast', __('Tugas ditambahkan.'));
+    }
+
+    public function updateTask(Request $request, string $id)
+    {
+        $userId = auth()->id();
+        $this->taskScope($userId)->findOrFail($id)->update($this->validateBoardTask($request, $userId));
+        return redirect()->route('bisnis.tugas')->with('toast', __('Tugas diperbarui.'));
+    }
+
+    /** Dipanggil via fetch saat kartu digeser antar kolom. */
+    public function moveTask(Request $request, string $id)
+    {
+        $v = $request->validate(['status' => 'required|in:' . implode(',', \App\Models\CollabTask::STATUSES)]);
+        $this->taskScope(auth()->id())->findOrFail($id)->update(['status' => $v['status']]);
+        return response()->json(['ok' => true]);
+    }
+
+    public function destroyTask(string $id)
+    {
+        $this->taskScope(auth()->id())->findOrFail($id)->delete();
+        return redirect()->route('bisnis.tugas')->with('toast', __('Tugas dihapus.'));
+    }
+
     /* ── Ekspor / impor proposal & klien ── */
 
-    private const CSV_HEADERS = ['Nama Klien', 'Bidang', 'Alamat', 'Kontak', 'Proyek', 'Nilai', 'Status', 'Tanggal Proposal', 'Catatan'];
+    private const CSV_HEADERS = ['Nama Klien', 'Bidang', 'Alamat', 'Kontak', 'Channel', 'Proyek', 'Nilai', 'Status', 'Tanggal Proposal', 'Catatan'];
+
+    /** Label channel ↔ key internal (untuk impor yang toleran). */
+    private static function channelFromLabel(string $value): ?string
+    {
+        $v = preg_replace('/[^a-z]/', '', strtolower($value));
+        if ($v === '') return null;
+        return match (true) {
+            str_contains($v, 'email')                                  => 'email',
+            str_contains($v, 'whatsapp') || str_contains($v, 'wa')     => 'whatsapp',
+            str_contains($v, 'sosmed') || str_contains($v, 'sosial') || str_contains($v, 'instagram') || str_contains($v, 'tiktok') || str_contains($v, 'facebook') => 'sosmed',
+            str_contains($v, 'rekomendasi') || str_contains($v, 'referral') || str_contains($v, 'partner') => 'rekomendasi',
+            str_contains($v, 'telepon') || str_contains($v, 'telp') || str_contains($v, 'phone') => 'telepon',
+            str_contains($v, 'website') || str_contains($v, 'web')     => 'website',
+            str_contains($v, 'event') || str_contains($v, 'offline')   => 'event',
+            default                                                    => 'lainnya',
+        };
+    }
 
     /** Label status Indonesia ↔ key internal (untuk impor yang toleran). */
     private static function statusFromLabel(string $value): string
@@ -131,7 +247,9 @@ class BisnisController extends Controller
         $csv = "\xEF\xBB\xBF" . implode(',', self::CSV_HEADERS) . "\n";
         foreach ($deals as $d) {
             $csv .= implode(',', [
-                $q($d->client_name), $q($d->industry), $q($d->address), $q($d->contact), $q($d->product),
+                $q($d->client_name), $q($d->industry), $q($d->address), $q($d->contact),
+                $q(BusinessService::CHANNELS[$d->channel] ?? $d->channel),
+                $q($d->product),
                 (int) $d->value,
                 $q($statuses[$d->status]['label'] ?? $d->status),
                 optional($d->proposal_date)->format('Y-m-d') ?? '',
@@ -148,8 +266,8 @@ class BisnisController extends Controller
     public function importTemplate()
     {
         $csv = "\xEF\xBB\xBF" . implode(',', self::CSV_HEADERS) . "\n"
-            . '"PT Maju Jaya","F&B","Jl. Sudirman No. 1, Jakarta","08123456789","Produk A",5000000,"Deal",2026-06-15,"Klien pertama, bayar lunas"' . "\n"
-            . '"CV Sinar Abadi","Retail","","budi@sinarabadi.co.id","Produk A",3500000,"Negosiasi",2026-07-01,"Minta revisi harga"' . "\n";
+            . '"PT Maju Jaya","F&B","Jl. Sudirman No. 1, Jakarta","08123456789","WhatsApp","Produk A",5000000,"Deal",2026-06-15,"Klien pertama, bayar lunas"' . "\n"
+            . '"CV Sinar Abadi","Retail","","budi@sinarabadi.co.id","Email","Produk A",3500000,"Negosiasi",2026-07-01,"Minta revisi harga"' . "\n";
 
         return response($csv)
             ->header('Content-Type', 'text/csv; charset=UTF-8')
@@ -189,7 +307,8 @@ class BisnisController extends Controller
                 'client_name'   => mb_substr($client, 0, 255),
                 'industry'      => mb_substr(\App\Support\SpreadsheetReader::pick($row, ['Bidang', 'Industri', 'Industry', 'Bidang Klien']), 0, 120) ?: null,
                 'address'       => mb_substr(\App\Support\SpreadsheetReader::pick($row, ['Alamat', 'Address']), 0, 255) ?: null,
-                'contact'       => mb_substr(\App\Support\SpreadsheetReader::pick($row, ['Kontak', 'Contact', 'Narahubung', 'Telepon', 'Email']), 0, 255) ?: null,
+                'contact'       => mb_substr(\App\Support\SpreadsheetReader::pick($row, ['Kontak', 'Contact', 'Narahubung']), 0, 255) ?: null,
+                'channel'       => self::channelFromLabel(\App\Support\SpreadsheetReader::pick($row, ['Channel', 'Sumber', 'Via', 'Awal Komunikasi'])),
                 'product'       => $product ?: null,
                 'value'         => \App\Support\SpreadsheetReader::normalizeAmount(\App\Support\SpreadsheetReader::pick($row, ['Nilai', 'Value', 'Nilai Proposal', 'Harga'])),
                 'status'        => self::statusFromLabel(\App\Support\SpreadsheetReader::pick($row, ['Status'])),

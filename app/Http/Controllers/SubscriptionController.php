@@ -24,11 +24,14 @@ class SubscriptionController extends Controller
         }
         $plans = SubscriptionService::PLANS;
 
+        // Diskon referral 10% pembayaran pertama untuk user bawaan referral.
+        $refDiscount = \App\Services\ReferralService::discountEligible(auth()->id());
+
         // Ada QR pending yang masih berlaku? Langsung tampilkan lagi (tanpa charge baru).
         $pendingSub    = SubscriptionService::reusablePending(auth()->id());
         $pendingCharge = $pendingSub ? SubscriptionService::pendingChargeData($pendingSub) : null;
 
-        return view('pages.subscribe', compact('plans', 'pendingCharge'));
+        return view('pages.subscribe', compact('plans', 'pendingCharge', 'refDiscount'));
     }
 
     /** Polled by the subscribe/langganan page to detect activation or renewal (e.g. after gateway webhook). */
@@ -58,6 +61,12 @@ class SubscriptionController extends Controller
         $userId = auth()->id();
         $plan   = SubscriptionService::plan($request->plan);
 
+        // Diskon referral 10%: hanya untuk user bawaan referral yang belum pernah bayar.
+        $price = (int) $plan['price'];
+        if (\App\Services\ReferralService::discountEligible($userId)) {
+            $price = \App\Services\ReferralService::discountedPrice($price);
+        }
+
         // Pakai ulang QR pending paket yang sama selama masih berlaku — tanpa hit Midtrans.
         if ($existing = SubscriptionService::reusablePending($userId, $request->plan)) {
             return $this->chargeResponse($existing);
@@ -79,7 +88,7 @@ class SubscriptionController extends Controller
             'user_id'   => $userId,
             'plan'      => $request->plan,
             'months'    => $plan['months'],
-            'price'     => $plan['price'],
+            'price'     => $price,
             'status'    => 'pending',
             'ref'       => $orderId,
             'starts_at' => $start->toDateString(),
@@ -88,7 +97,7 @@ class SubscriptionController extends Controller
         ]);
 
         try {
-            $charge = MidtransService::chargeQris($orderId, (int) $plan['price']);
+            $charge = MidtransService::chargeQris($orderId, $price);
         } catch (\Throwable $e) {
             $sub->update(['status' => 'failed']);
             Log::error('Midtrans charge failed', ['order_id' => $orderId, 'error' => $e->getMessage()]);
