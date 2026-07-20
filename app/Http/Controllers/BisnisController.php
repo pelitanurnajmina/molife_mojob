@@ -137,6 +137,7 @@ class BisnisController extends Controller
                 'title'       => $t->title,
                 'note'        => $t->note,
                 'status'      => in_array($t->status, \App\Models\CollabTask::STATUSES, true) ? $t->status : 'todo',
+                'priority'    => in_array($t->priority, \App\Models\CollabTask::PRIORITIES, true) ? $t->priority : 'normal',
                 'assignee_id' => $t->assignee_id,
                 'assignee'    => $t->assignee_id ? ($assigneesByProject[(string) ($t->business_product_id ?? '')][$t->assignee_id] ?? null) : null,
                 'project_id'  => $t->business_product_id,
@@ -159,6 +160,7 @@ class BisnisController extends Controller
             'title'               => 'required|string|max:200',
             'note'                => 'nullable|string|max:500',
             'status'              => 'required|in:' . implode(',', \App\Models\CollabTask::STATUSES),
+            'priority'            => 'required|in:' . implode(',', \App\Models\CollabTask::PRIORITIES),
             'due_date'            => 'nullable|date',
             'business_product_id' => ['nullable', 'integer', \Illuminate\Validation\Rule::in($ownedIds)],
             'assignee_id'         => 'nullable|integer',
@@ -215,7 +217,7 @@ class BisnisController extends Controller
         return match (true) {
             str_contains($v, 'email')                                  => 'email',
             str_contains($v, 'whatsapp') || str_contains($v, 'wa')     => 'whatsapp',
-            str_contains($v, 'sosmed') || str_contains($v, 'sosial') || str_contains($v, 'instagram') || str_contains($v, 'tiktok') || str_contains($v, 'facebook') => 'sosmed',
+            str_contains($v, 'sosmed') || str_contains($v, 'sosial') || str_contains($v, 'social') || str_contains($v, 'instagram') || str_contains($v, 'tiktok') || str_contains($v, 'facebook') => 'sosmed',
             str_contains($v, 'rekomendasi') || str_contains($v, 'referral') || str_contains($v, 'partner') => 'rekomendasi',
             str_contains($v, 'telepon') || str_contains($v, 'telp') || str_contains($v, 'phone') => 'telepon',
             str_contains($v, 'website') || str_contains($v, 'web')     => 'website',
@@ -248,7 +250,7 @@ class BisnisController extends Controller
         foreach ($deals as $d) {
             $csv .= implode(',', [
                 $q($d->client_name), $q($d->industry), $q($d->address), $q($d->contact),
-                $q(BusinessService::CHANNELS[$d->channel] ?? $d->channel),
+                $q(__(BusinessService::CHANNELS[$d->channel] ?? $d->channel)),
                 $q($d->product),
                 (int) $d->value,
                 $q($statuses[$d->status]['label'] ?? $d->status),

@@ -9,7 +9,8 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next)
     {
-        app()->setLocale(session('locale', 'id'));
+        // Default bahasa aplikasi: Inggris; user bisa ganti ke Indonesia lewat switcher.
+        app()->setLocale(session('locale', 'en'));
         return $next($request);
     }
 }

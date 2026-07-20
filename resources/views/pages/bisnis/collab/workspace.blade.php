@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title', $product->name . ' · ' . ($isOwner ? 'Folder Proyek' : 'Kolaborasi'))
+@section('title', $product->name . ' · ' . ($isOwner ? __('Folder Proyek') : __('Kolaborasi')))
 @section('page-title', $product->name)
-@section('breadcrumb', 'Bisnis › ' . ($isOwner ? 'Folder Proyek' : 'Kolaborasi') . ' › ' . $product->name)
+@section('breadcrumb', __('Bisnis') . ' › ' . ($isOwner ? __('Folder Proyek') : __('Kolaborasi')) . ' › ' . $product->name)
 
 @section('content')
 @php $rp = fn($n) => 'Rp ' . number_format((int) $n, 0, ',', '.'); @endphp
@@ -301,12 +301,15 @@
                          ondragstart="taskDragStart(event, {{ $t['id'] }})" ondragend="taskDragEnd()"
                          onclick='openTaskModal(@json($t))'
                          class="task-card bg-white rounded-xl border border-gray-100 p-3 cursor-grab active:cursor-grabbing hover:border-gray-300 hover:shadow-sm transition-all">
-                        @if($t['due_label'])
-                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 mb-1.5 {{ $t['overdue'] ? 'bg-red-50 text-red-500' : 'bg-gray-50 border border-gray-100 text-gray-400' }}">
-                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            {{ $t['due_label'] }}
-                        </span>
-                        @endif
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            @include('pages.bisnis.collab._priority_chip', ['p' => $t['priority']])
+                            @if($t['due_label'])
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 {{ $t['overdue'] ? 'bg-red-50 text-red-500' : 'bg-gray-50 border border-gray-100 text-gray-400' }}">
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                {{ $t['due_label'] }}
+                            </span>
+                            @endif
+                        </div>
                         <p class="text-sm font-bold text-gray-800 leading-snug">{{ $t['title'] }}</p>
                         @if($t['note'])
                         <p class="text-[11px] text-gray-400 mt-1 leading-relaxed line-clamp-2">{{ $t['note'] }}</p>
@@ -421,6 +424,17 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Prioritas') }}</label>
+                        <select name="priority" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                            <option value="low">{{ __('Rendah') }}</option>
+                            <option value="normal" selected>{{ __('Normal') }}</option>
+                            <option value="high">{{ __('Tinggi') }}</option>
+                            <option value="urgent">{{ __('Urgent') }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Assign ke') }}</label>
                         <select name="assignee_id" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
                             <option value="">{{ __('Tidak di-assign') }}</option>
@@ -429,13 +443,13 @@
                             @endforeach
                         </select>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Tenggat') }}</label>
-                    <div class="relative">
-                        <input type="date" name="due_date" placeholder="{{ __('Pilih tanggal') }}"
-                            class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
-                        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Tenggat') }}</label>
+                        <div class="relative">
+                            <input type="date" name="due_date" placeholder="{{ __('Pilih tanggal') }}"
+                                class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -656,6 +670,9 @@ function openTaskModal(t, presetStatus){
     const as = f.querySelector('[name="assignee_id"]');
     as.value = t?.assignee_id ?? '';
     if (as._csRefresh) as._csRefresh();
+    const pri = f.querySelector('[name="priority"]');
+    pri.value = t?.priority ?? 'normal';
+    if (pri._csRefresh) pri._csRefresh();
     const dd = f.querySelector('[name="due_date"]');
     if (dd._flatpickr) dd._flatpickr.setDate(t?.due_date || null, false); else dd.value = t?.due_date ?? '';
 
@@ -684,7 +701,7 @@ function openEditDeal(d){
 
 /* ── Mode lihat proposal (read-only) ── */
 var DEAL_STATUSES = @json($statuses);
-var DEAL_CHANNELS = @json(\App\Services\BusinessService::CHANNELS);
+var DEAL_CHANNELS = @json(array_map(fn($l) => __($l), \App\Services\BusinessService::CHANNELS));
 var vdCurrent = null;
 
 function openViewDeal(d){

@@ -1,7 +1,7 @@
 @extends('layouts.app')
-@section('title', 'Tugas Bisnis')
+@section('title', __('Tugas Bisnis'))
 @section('page-title', __('Tugas Bisnis'))
-@section('breadcrumb', 'Bisnis › Tugas')
+@section('breadcrumb', __('Bisnis') . ' › ' . __('Tugas'))
 
 @section('content')
 <div class="space-y-4 md:space-y-6">
@@ -45,6 +45,7 @@
                      onclick='openTaskModal(@json($t))'
                      class="task-card bg-white rounded-xl border border-gray-100 p-3 cursor-grab active:cursor-grabbing hover:border-gray-300 hover:shadow-sm transition-all">
                     <div class="flex items-center gap-1.5 mb-1.5">
+                        @include('pages.bisnis.collab._priority_chip', ['p' => $t['priority']])
                         <span class="text-[9px] font-bold px-2 py-0.5 rounded-full {{ $t['project'] ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500' }}">{{ $t['project'] ?? __('Umum') }}</span>
                         @if($t['due_label'])
                         <span class="text-[9px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 {{ $t['overdue'] ? 'bg-red-50 text-red-500' : 'bg-gray-50 border border-gray-100 text-gray-400' }}">
@@ -127,12 +128,23 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Prioritas') }}</label>
+                        <select name="priority" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
+                            <option value="low">{{ __('Rendah') }}</option>
+                            <option value="normal" selected>{{ __('Normal') }}</option>
+                            <option value="high">{{ __('Tinggi') }}</option>
+                            <option value="urgent">{{ __('Urgent') }}</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Assign ke') }}</label>
                         <select name="assignee_id" id="taskAssignee"
                             class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
                             <option value="">{{ __('Tidak di-assign') }}</option>
                         </select>
                     </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Tenggat') }}</label>
                         <div class="relative">
@@ -246,6 +258,10 @@ function openTaskModal(t, presetStatus){
     const st = f.querySelector('[name="status"]');
     st.value = t?.status ?? presetStatus ?? 'todo';
     if (st._csRefresh) st._csRefresh();
+
+    const pri = f.querySelector('[name="priority"]');
+    pri.value = t?.priority ?? 'normal';
+    if (pri._csRefresh) pri._csRefresh();
 
     const dd = f.querySelector('[name="due_date"]');
     if (dd._flatpickr) dd._flatpickr.setDate(t?.due_date || null, false); else dd.value = t?.due_date ?? '';

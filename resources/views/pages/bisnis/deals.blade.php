@@ -408,7 +408,7 @@ function openEdit(d){
 
 /* ── Mode lihat (read-only) ── */
 var DEAL_STATUSES = @json($statuses);
-var DEAL_CHANNELS = @json(\App\Services\BusinessService::CHANNELS);
+var DEAL_CHANNELS = @json(array_map(fn($l) => __($l), \App\Services\BusinessService::CHANNELS));
 var viewCurrent = null;
 
 function openView(d){

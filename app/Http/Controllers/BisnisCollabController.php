@@ -126,6 +126,7 @@ class BisnisCollabController extends Controller
                 'title'       => $t->title,
                 'note'        => $t->note,
                 'status'      => in_array($t->status, \App\Models\CollabTask::STATUSES, true) ? $t->status : 'todo',
+                'priority'    => in_array($t->priority, \App\Models\CollabTask::PRIORITIES, true) ? $t->priority : 'normal',
                 'assignee_id' => $t->assignee_id,
                 'assignee'    => $t->assignee_id ? ($assignees[$t->assignee_id] ?? null) : null,
                 'due_date'    => $t->due_date?->toDateString(),
@@ -205,6 +206,7 @@ class BisnisCollabController extends Controller
             'title'       => 'required|string|max:200',
             'note'        => 'nullable|string|max:500',
             'status'      => 'required|in:' . implode(',', \App\Models\CollabTask::STATUSES),
+            'priority'    => 'required|in:' . implode(',', \App\Models\CollabTask::PRIORITIES),
             'assignee_id' => 'nullable|integer|in:' . implode(',', array_keys($this->assignees($product))),
             'due_date'    => 'nullable|date',
         ];

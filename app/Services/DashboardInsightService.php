@@ -33,17 +33,17 @@ class DashboardInsightService
         $s = self::careerSummary($userId);
         $out = [];
         if ($s['total'] === 0) {
-            $out[] = ['type'=>'info','icon'=>'career','text'=>'Belum ada lamaran. Mulai catat lamaran kerjamu di menu Karir.'];
+            $out[] = ['type'=>'info','icon'=>'career','text'=>__('Belum ada lamaran. Mulai catat lamaran kerjamu di menu Karir.')];
             return $out;
         }
         if ($s['active'] > 0) {
-            $out[] = ['type'=>'info','icon'=>'career','text'=>"{$s['active']} lamaran aktif sedang menunggu respon."];
+            $out[] = ['type'=>'info','icon'=>'career','text'=>__(':n lamaran aktif sedang menunggu respon.', ['n' => $s['active']])];
         }
         if ($s['interview'] > 0) {
-            $out[] = ['type'=>'success','icon'=>'interview','text'=>"{$s['interview']} lamaran sampai tahap interview!"];
+            $out[] = ['type'=>'success','icon'=>'interview','text'=>__(':n lamaran sampai tahap interview!', ['n' => $s['interview']])];
         }
         if ($s['offer'] > 0) {
-            $out[] = ['type'=>'success','icon'=>'career','text'=>"{$s['offer']} tawaran/diterima. Selamat! 🎉"];
+            $out[] = ['type'=>'success','icon'=>'career','text'=>__(':n tawaran/diterima. Selamat! 🎉', ['n' => $s['offer']])];
         }
         return $out;
     }
@@ -80,14 +80,14 @@ class DashboardInsightService
         $out = [];
 
         if ($s['income'] === 0 && $s['expense'] === 0) {
-            $out[] = ['type'=>'info','icon'=>'finance','text'=>'Belum ada transaksi bulan ini. Catat pemasukan & pengeluaranmu.'];
+            $out[] = ['type'=>'info','icon'=>'finance','text'=>__('Belum ada transaksi bulan ini. Catat pemasukan & pengeluaranmu.')];
             return $out;
         }
 
         if ($s['balance'] >= 0) {
-            $out[] = ['type'=>'success','icon'=>'finance','text'=>'Saldo bulan ini positif. Keuangan terjaga!'];
+            $out[] = ['type'=>'success','icon'=>'finance','text'=>__('Saldo bulan ini positif. Keuangan terjaga!')];
         } else {
-            $out[] = ['type'=>'warning','icon'=>'warning','text'=>'Pengeluaran melebihi pemasukan bulan ini. Perlu evaluasi.'];
+            $out[] = ['type'=>'warning','icon'=>'warning','text'=>__('Pengeluaran melebihi pemasukan bulan ini. Perlu evaluasi.')];
         }
 
         // Budget warnings ≥90%
@@ -100,13 +100,13 @@ class DashboardInsightService
             $pct = $spent / $b->amount * 100;
             if ($pct >= 90) {
                 $out[] = ['type'=>'warning','icon'=>'warning',
-                    'text'=>"Anggaran {$b->category} sudah " . (int) $pct . "% terpakai."];
+                    'text'=>__('Anggaran :cat sudah :p% terpakai.', ['cat' => $b->category, 'p' => (int) $pct])];
             }
         }
 
         if ($s['goalCount'] > 0 && $s['goalPct'] >= 50) {
             $out[] = ['type'=>'success','icon'=>'finance',
-                'text'=>"Tabungan sudah {$s['goalPct']}% dari total target. Lanjutkan!"];
+                'text'=>__('Tabungan sudah :p% dari total target. Lanjutkan!', ['p' => $s['goalPct']])];
         }
 
         return $out;

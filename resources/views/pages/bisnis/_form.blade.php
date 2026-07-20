@@ -56,7 +56,7 @@
             <select name="channel" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black transition-all">
                 <option value="">{{ __('— Pilih channel —') }}</option>
                 @foreach(\App\Services\BusinessService::CHANNELS as $ck => $cl)
-                <option value="{{ $ck }}">{{ $cl }}</option>
+                <option value="{{ $ck }}">{{ __($cl) }}</option>
                 @endforeach
             </select>
         </div>

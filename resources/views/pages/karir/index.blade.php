@@ -281,7 +281,7 @@ $statusMeta = [
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                     <span class="text-[9px] font-bold text-white {{ $ch['bg'] }} px-2 py-0.5 rounded-full">{{ $ch['label'] }}</span>
-                    <form method="POST" action="{{ route('karir.contact.destroy', $contact['id']) }}" onsubmit="return confirm('Hapus kontak ini?')">
+                    <form method="POST" action="{{ route('karir.contact.destroy', $contact['id']) }}" onsubmit="return confirm('{{ __('Hapus kontak ini?') }}')">
                         @csrf @method('DELETE')
                         <button type="submit" class="opacity-0 group-hover:opacity-100 transition-all w-6 h-6 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>

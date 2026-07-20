@@ -10,7 +10,7 @@ return [
     'debug' => (bool) env('APP_DEBUG', false),
     'url' => env('APP_URL', 'http://localhost'),
     'timezone' => 'Asia/Jakarta',
-    'locale' => 'id',
+    'locale' => 'en',
     'fallback_locale' => 'en',
     'faker_locale' => 'id_ID',
     'cipher' => 'AES-256-CBC',

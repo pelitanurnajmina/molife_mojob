@@ -21,12 +21,15 @@ class BusinessService
     /** key => [label, tw (tailwind color), hex (for charts)] */
     public static function statuses(): array
     {
+        // "Batal" tidak lewat __() karena kuncinya bentrok dengan tombol "Batal" (=Cancel).
+        $lost = app()->getLocale() === 'id' ? 'Batal' : 'Lost';
+
         return [
-            'lead'        => ['label' => 'Prospek',   'tw' => 'violet', 'hex' => '#a78bfa'],
-            'sent'        => ['label' => 'Terkirim',  'tw' => 'gray',   'hex' => '#6b7280'],
-            'negotiation' => ['label' => 'Negosiasi', 'tw' => 'amber',  'hex' => '#f59e0b'],
-            'won'         => ['label' => 'Deal',      'tw' => 'green',  'hex' => '#10b981'],
-            'lost'        => ['label' => 'Batal',     'tw' => 'red',    'hex' => '#ef4444'],
+            'lead'        => ['label' => __('Prospek'),   'tw' => 'violet', 'hex' => '#a78bfa'],
+            'sent'        => ['label' => __('Terkirim'),  'tw' => 'gray',   'hex' => '#6b7280'],
+            'negotiation' => ['label' => __('Negosiasi'), 'tw' => 'amber',  'hex' => '#f59e0b'],
+            'won'         => ['label' => __('Deal'),      'tw' => 'green',  'hex' => '#10b981'],
+            'lost'        => ['label' => $lost,           'tw' => 'red',    'hex' => '#ef4444'],
         ];
     }
 

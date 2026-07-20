@@ -69,12 +69,12 @@
                 <p class="text-xs font-bold text-gray-500 mb-3">{{ __('Agama / Kepercayaan') }}</p>
                 @php
                 $religions = [
-                    ['value'=>'islam',   'label'=>'Islam',       'sub'=>'Sholat 5 waktu, Rawatib, Tepat Waktu'],
-                    ['value'=>'kristen', 'label'=>'Kristen',     'sub'=>'Doa harian, Baca Alkitab, Ibadah Minggu'],
-                    ['value'=>'hindu',   'label'=>'Hindu',       'sub'=>'Sembahyang pagi/sore, Meditasi'],
-                    ['value'=>'buddha',  'label'=>'Buddha',      'sub'=>'Sembahyang pagi/sore, Meditasi'],
-                    ['value'=>'lainnya', 'label'=>'Lainnya',     'sub'=>'Praktik spiritual & jurnal syukur'],
-                    ['value'=>'none',    'label'=>'Tidak ada',   'sub'=>'Fitur spiritual disembunyikan'],
+                    ['value'=>'islam',   'label'=>'Islam',       'sub'=>__('Sholat 5 waktu, Rawatib, Tepat Waktu')],
+                    ['value'=>'kristen', 'label'=>'Kristen',     'sub'=>__('Doa harian, Baca Alkitab, Ibadah Minggu')],
+                    ['value'=>'hindu',   'label'=>'Hindu',       'sub'=>__('Sembahyang pagi/sore, Meditasi')],
+                    ['value'=>'buddha',  'label'=>'Buddha',      'sub'=>__('Sembahyang pagi/sore, Meditasi')],
+                    ['value'=>'lainnya', 'label'=>'Lainnya',     'sub'=>__('Praktik spiritual & jurnal syukur')],
+                    ['value'=>'none',    'label'=>'Tidak ada',   'sub'=>__('Fitur spiritual disembunyikan')],
                 ];
                 $currentReligion = $profile['religion'] ?? '';
                 @endphp

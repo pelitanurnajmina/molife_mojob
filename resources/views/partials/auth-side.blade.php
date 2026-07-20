@@ -36,7 +36,7 @@
                     stroke-linecap="round" transform="rotate(-90 100 100)"/>
             </g>
         </svg>
-        <p class="ml-cap">Hidup terus berprogress.</p>
+        <p class="ml-cap">{{ __('Hidup terus berprogress.') }}</p>
     </div>
 
     {{-- content --}}
@@ -47,10 +47,10 @@
 
         <div>
             <h1 class="text-4xl xl:text-[42px] font-extrabold leading-[1.06] tracking-tight">
-                Satu aplikasi,<br>seluruh hidupmu.
+                {!! __('Satu aplikasi,<br>seluruh hidupmu.') !!}
             </h1>
             <p class="text-gray-600 text-sm leading-relaxed mt-4 max-w-sm">
-                Sholat, olahraga, mood, tugas, karier, bisnis, dan keuangan dalam satu Life Score yang jujur, dirangkum tiap hari.
+                {{ __('Sholat, olahraga, mood, tugas, karier, bisnis, dan keuangan dalam satu Life Score yang jujur, dirangkum tiap hari.') }}
             </p>
         </div>
     </div>

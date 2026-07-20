@@ -27,12 +27,12 @@
                 <p class="text-xs font-bold text-gray-500 mb-3">{{ __('Olahraga') }}</p>
                 @php
                 $sportOptions = [
-                    ['value'=>'gym',         'label'=>'Gym / Fitness',      'icon'=>'M13 10V3L4 14h7v7l9-11h-7z'],
-                    ['value'=>'run',         'label'=>'Lari / Running',     'icon'=>'M22 12h-4l-3 9L9 3l-3 9H2'],
-                    ['value'=>'cycling',     'label'=>'Bersepeda',          'icon'=>'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'],
-                    ['value'=>'swimming',    'label'=>'Renang',             'icon'=>'M7 16.5c2 1 4 1 6 0s4-1 6 0M7 11.5c2 1 4 1 6 0s4-1 6 0M3 7.5c2 1 4 1 6 0m-9 9V7.5'],
-                    ['value'=>'racket',      'label'=>'Tenis / Badminton',  'icon'=>'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'],
-                    ['value'=>'custom_sport','label'=>'Olahraga Lainnya',   'icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
+                    ['value'=>'gym',         'label'=>__('Gym / Fitness'),      'icon'=>'M13 10V3L4 14h7v7l9-11h-7z'],
+                    ['value'=>'run',         'label'=>__('Lari / Running'),     'icon'=>'M22 12h-4l-3 9L9 3l-3 9H2'],
+                    ['value'=>'cycling',     'label'=>__('Bersepeda'),          'icon'=>'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'],
+                    ['value'=>'swimming',    'label'=>__('Renang'),             'icon'=>'M7 16.5c2 1 4 1 6 0s4-1 6 0M7 11.5c2 1 4 1 6 0s4-1 6 0M3 7.5c2 1 4 1 6 0m-9 9V7.5'],
+                    ['value'=>'racket',      'label'=>__('Tenis / Badminton'),  'icon'=>'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'],
+                    ['value'=>'custom_sport','label'=>__('Olahraga Lainnya'),   'icon'=>'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
                 ];
                 $currentSports = $profile['sports'] ?? [];
                 @endphp
@@ -81,38 +81,38 @@
 
         @php
         $featureGroups = [
-            ['label'=>'Life', 'items'=>[
-                ['key'=>'sholat',      'label'=>'Sholat',            'desc'=>'Tracker sholat wajib, rawatib & sunnah'],
-                ['key'=>'gym',         'label'=>'Gym',                'desc'=>'Log sesi gym dan kalori terbakar'],
-                ['key'=>'run',         'label'=>'Lari',               'desc'=>'Tracker jarak, pace, dan sesi lari'],
-                ['key'=>'cycling',     'label'=>'Bersepeda',          'desc'=>'Track km dan durasi bersepeda'],
-                ['key'=>'swimming',    'label'=>'Renang',             'desc'=>'Track lap dan durasi renang'],
-                ['key'=>'racket',      'label'=>'Tenis / Badminton',  'desc'=>'Track sesi racket sports'],
-                ['key'=>'custom_sport','label'=>'Olahraga Custom',    'desc'=>'Olahraga sesuai pilihan kamu'],
-                ['key'=>'intimasi',    'label'=>'Intimasi',           'desc'=>'Tracker keintiman bersama pasangan'],
-                ...(\App\Support\Profile::isFemale() ? [['key'=>'haid', 'label'=>'Siklus Haid', 'desc'=>'Catat haid, prediksi siklus & masa subur, sinkron hari uzur sholat']] : []),
-                ['key'=>'porn',        'label'=>'Stop Porn',          'desc'=>'Streak bebas pornografi & kontrol diri'],
-                ['key'=>'sosmed',      'label'=>'Kurangi Sosmed',     'desc'=>'Disiplin waktu media sosial'],
-                ['key'=>'motivasi',    'label'=>'Motivasi',           'desc'=>'Quote harian & dampak konsistensimu'],
-                ['key'=>'pomodoro',    'label'=>'Pomodoro',           'desc'=>'Timer fokus & riwayat sesi produktif'],
-                ['key'=>'meditasi',    'label'=>'Meditasi',           'desc'=>'Timer meditasi, suara alam & streak harian'],
-                ['key'=>'mental',      'label'=>'Mental',             'desc'=>'Mood tracker, energi, dan refleksi harian'],
-                ['key'=>'tasks',       'label'=>'Tasks & Notes',      'desc'=>'Tugas harian, mingguan & catatan'],
-                ['key'=>'journal',     'label'=>'Journal',            'desc'=>'Journaling terpandu ala Law of Attraction'],
-                ['key'=>'links',       'label'=>'Link Penting',       'desc'=>'Simpan link-link penting beserta fungsinya'],
-                ['key'=>'statistik',   'label'=>'Statistik',          'desc'=>'Grafik dan ringkasan 30 hari terakhir'],
-                ['key'=>'insights',    'label'=>'Insights',           'desc'=>'Life Score dan pola dari semua aktivitas'],
-                ['key'=>'goals',       'label'=>'Goals & Reminder',   'desc'=>'Target pribadi dan pengingat harian'],
+            ['label'=>__('Life'), 'items'=>[
+                ['key'=>'sholat',      'label'=>__('Sholat'),            'desc'=>__('Tracker sholat wajib, rawatib & sunnah')],
+                ['key'=>'gym',         'label'=>__('Gym'),                'desc'=>__('Log sesi gym dan kalori terbakar')],
+                ['key'=>'run',         'label'=>__('Lari'),               'desc'=>__('Tracker jarak, pace, dan sesi lari')],
+                ['key'=>'cycling',     'label'=>__('Bersepeda'),          'desc'=>__('Track km dan durasi bersepeda')],
+                ['key'=>'swimming',    'label'=>__('Renang'),             'desc'=>__('Track lap dan durasi renang')],
+                ['key'=>'racket',      'label'=>__('Tenis / Badminton'),  'desc'=>__('Track sesi racket sports')],
+                ['key'=>'custom_sport','label'=>__('Olahraga Custom'),    'desc'=>__('Olahraga sesuai pilihan kamu')],
+                ['key'=>'intimasi',    'label'=>__('Intimasi'),           'desc'=>__('Tracker keintiman bersama pasangan')],
+                ...(\App\Support\Profile::isFemale() ? [['key'=>'haid', 'label'=>__('Siklus Haid'), 'desc'=>__('Catat haid, prediksi siklus & masa subur, sinkron hari uzur sholat')]] : []),
+                ['key'=>'porn',        'label'=>__('Stop Porn'),          'desc'=>__('Streak bebas pornografi & kontrol diri')],
+                ['key'=>'sosmed',      'label'=>__('Kurangi Sosmed'),     'desc'=>__('Disiplin waktu media sosial')],
+                ['key'=>'motivasi',    'label'=>__('Motivasi'),           'desc'=>__('Quote harian & dampak konsistensimu')],
+                ['key'=>'pomodoro',    'label'=>__('Pomodoro'),           'desc'=>__('Timer fokus & riwayat sesi produktif')],
+                ['key'=>'meditasi',    'label'=>__('Meditasi'),           'desc'=>__('Timer meditasi, suara alam & streak harian')],
+                ['key'=>'mental',      'label'=>__('Mental'),             'desc'=>__('Mood tracker, energi, dan refleksi harian')],
+                ['key'=>'tasks',       'label'=>__('Tasks & Notes'),      'desc'=>__('Tugas harian, mingguan & catatan')],
+                ['key'=>'journal',     'label'=>__('Journal'),            'desc'=>__('Journaling terpandu ala Law of Attraction')],
+                ['key'=>'links',       'label'=>__('Link Penting'),       'desc'=>__('Simpan link-link penting beserta fungsinya')],
+                ['key'=>'statistik',   'label'=>__('Statistik'),          'desc'=>__('Grafik dan ringkasan 30 hari terakhir')],
+                ['key'=>'insights',    'label'=>__('Insights'),           'desc'=>__('Life Score dan pola dari semua aktivitas')],
+                ['key'=>'goals',       'label'=>__('Goals & Reminder'),   'desc'=>__('Target pribadi dan pengingat harian')],
             ]],
-            ['label'=>'Karir', 'items'=>[
-                ['key'=>'lamaran',     'label'=>'Lamaran Kerja',      'desc'=>'Kelola lamaran dan status interview'],
-                ['key'=>'persiapan',   'label'=>'Persiapan Melamar',  'desc'=>'Link, file, template CV & persiapan wawancara'],
+            ['label'=>__('Karir'), 'items'=>[
+                ['key'=>'lamaran',     'label'=>__('Lamaran Kerja'),      'desc'=>__('Kelola lamaran dan status interview')],
+                ['key'=>'persiapan',   'label'=>__('Persiapan Melamar'),  'desc'=>__('Link, file, template CV & persiapan wawancara')],
             ]],
-            ['label'=>'Bisnis', 'items'=>[
-                ['key'=>'bisnis',      'label'=>'Bisnis',             'desc'=>'Proposal, klien, dokumen & analitik bisnis'],
+            ['label'=>__('Bisnis'), 'items'=>[
+                ['key'=>'bisnis',      'label'=>__('Bisnis'),             'desc'=>__('Proposal, klien, dokumen & analitik bisnis')],
             ]],
-            ['label'=>'Finance', 'items'=>[
-                ['key'=>'finance',     'label'=>'Finance',            'desc'=>'Transaksi, anggaran & tujuan tabungan'],
+            ['label'=>__('Finance'), 'items'=>[
+                ['key'=>'finance',     'label'=>__('Finance'),            'desc'=>__('Transaksi, anggaran & tujuan tabungan')],
             ]],
         ];
         @endphp

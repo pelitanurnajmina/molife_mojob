@@ -8,6 +8,8 @@ class CollabTask extends Model
 {
     public const STATUSES = ['todo', 'progress', 'review', 'done'];
 
+    public const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
+
     protected $guarded = ['id'];
 
     protected $casts = ['due_date' => 'date'];

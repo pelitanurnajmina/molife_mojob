@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="id" style="background-color:#F8F9FA">
+<html lang="{{ app()->getLocale() }}" style="background-color:#F8F9FA">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=9">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=10">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -374,11 +374,11 @@
             if (request()->routeIs('settings.*') || request()->routeIs('settings')) $activeSection = 'settings';
 
             $sections = [
-                ['id'=>'life',     'label'=>'Life',     'items'=>$lifeNav],
-                ['id'=>'karir',    'label'=>'Karir',    'items'=>$careerNav],
-                ['id'=>'bisnis',   'label'=>'Bisnis',   'items'=>$businessNav],
-                ['id'=>'finance',  'label'=>'Finance',  'items'=>$financeNav],
-                ['id'=>'settings', 'label'=>'Settings & Referral', 'items'=>$settingsNav],
+                ['id'=>'life',     'label'=>__('Life'),     'items'=>$lifeNav],
+                ['id'=>'karir',    'label'=>__('Karir'),    'items'=>$careerNav],
+                ['id'=>'bisnis',   'label'=>__('Bisnis'),   'items'=>$businessNav],
+                ['id'=>'finance',  'label'=>__('Finance'),  'items'=>$financeNav],
+                ['id'=>'settings', 'label'=>__('Settings & Referral'), 'items'=>$settingsNav],
             ];
             @endphp
 
@@ -584,10 +584,10 @@
         ['route'=>'links',           'match'=>'links',        'label'=>'Link',     'icon'=>'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', 'show'=>$_f('links')],
         ['route'=>'statistik',       'match'=>'statistik',    'label'=>'Stats',                      'icon'=>$_ico['statistik'],    'show'=>$_f('statistik')],
         ['route'=>'goals',           'match'=>'goals',        'label'=>'Goals',                      'icon'=>$_ico['goals'],        'show'=>$_f('goals')],
-        ['route'=>'karir',            'match'=>'karir',         'label'=>'Karir',     'icon'=>$_ico['karir'],     'show'=>$_f('lamaran')],
+        ['route'=>'karir',            'match'=>'karir',         'label'=>__('Karir'),     'icon'=>$_ico['karir'],     'show'=>$_f('lamaran')],
         ['route'=>'lamaran.index',   'match'=>'lamaran.*',    'label'=>'Lamaran',   'icon'=>$_ico['lamaran'],   'show'=>$_f('lamaran')],
         ['route'=>'persiapan.index', 'match'=>'persiapan.*', 'label'=>'Persiapan', 'icon'=>$_ico['persiapan'], 'show'=>$_f('persiapan')],
-        ['route'=>'bisnis.index',    'match'=>'bisnis.index','label'=>'Bisnis',    'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'show'=>$_f('bisnis')],
+        ['route'=>'bisnis.index',    'match'=>'bisnis.index','label'=>__('Bisnis'),    'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'show'=>$_f('bisnis')],
         ['route'=>'bisnis.deals',    'match'=>'bisnis.deals','label'=>'Proposal',  'icon'=>'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'show'=>$_f('bisnis')],
         ['route'=>'bisnis.docs',     'match'=>'bisnis.docs', 'label'=>'Dok Bisnis','icon'=>'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', 'show'=>$_f('bisnis')],
         ['route'=>'finance.index',   'match'=>'finance.*',    'label'=>'Finance',   'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'show'=>$_f('finance')],
@@ -608,10 +608,10 @@
     };
     /* Drawer sections (reuse the sidebar nav arrays defined above) */
     $mobSections = [
-        ['Life',            $lifeNav],
+        [__('Life'),            $lifeNav],
         [__('Karier'),      $careerNav],
-        ['Bisnis',          $businessNav],
-        ['Finance',         $financeNav],
+        [__('Bisnis'),          $businessNav],
+        [__('Finance'),         $financeNav],
         [__('Pengaturan'),  $settingsNav],
     ];
 @endphp
@@ -1199,7 +1199,7 @@ window.initDatePickers = function () {
             maxDate      : maxDate,
             minDate      : minDate,
             defaultDate  : currentVal,
-            locale       : 'id',
+            locale       : @json(app()->getLocale() === 'id' ? 'id' : 'default'),
             disableMobile: true,
             onReady: function(selectedDates, dateStr, instance) {
                 fpBuildMonthPicker(instance);

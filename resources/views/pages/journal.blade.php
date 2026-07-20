@@ -89,7 +89,8 @@
                 <svg class="w-4 h-4 text-gray-300 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div class="mt-3 pl-1 space-y-3">
-                @foreach($h['content'] as $key => $val)
+                {{-- Entri lama bisa berupa teks polos, bukan array field --}}
+                @foreach((is_array($h['content']) ? $h['content'] : ['journal' => $h['content']]) as $key => $val)
                 @if(trim((string) $val) !== '')
                 <div>
                     <p class="text-[11px] font-bold text-{{ $c }}-600 uppercase tracking-wide mb-0.5">{{ $fieldLabels[$key] ?? $key }}</p>

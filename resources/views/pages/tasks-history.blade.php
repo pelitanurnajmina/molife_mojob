@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Riwayat Task')
+@section('title', __('Riwayat Task'))
 @section('page-title', __('Riwayat Task'))
 @section('breadcrumb', 'Tasks › ' . __('Riwayat'))
 
