@@ -7,7 +7,7 @@
     <title>Molife — {{ __('Password Baru') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/icon.png') }}?v=2">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=10">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=11">
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style>
 </head>
 <body class="min-h-screen bg-white">

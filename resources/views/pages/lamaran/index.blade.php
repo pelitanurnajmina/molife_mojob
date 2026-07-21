@@ -197,37 +197,12 @@
                                 {{ $statusLabels[$app['status']] ?? $app['status'] }}
                             </span>
                         </td>
-                        <td class="px-4 py-4 align-middle">
-                            <div class="flex items-center gap-1 justify-end">
-                                @if(!empty($app['job_url']))
-                                <a href="{{ $app['job_url'] }}" target="_blank"
-                                   class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
-                                   title="{{ __('Buka lowongan') }}">
-                                    <svg class="w-3.5 h-3.5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                </a>
-                                @endif
-                                <button type="button"
-                                        onclick="openView({{ json_encode($app) }})"
-                                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
-                                        title="{{ __('Lihat detail') }}">
-                                    <svg class="w-3.5 h-3.5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                </button>
-                                <button type="button"
-                                        onclick="openEdit('{{ $app['id'] }}', {{ json_encode($app) }})"
-                                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
-                                        title="Edit">
-                                    <svg class="w-3.5 h-3.5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                </button>
-                                <form action="{{ route('lamaran.destroy', $app['id']) }}" method="POST" class="contents">
-                                    @csrf @method('DELETE')
-                                    <button type="button"
-                                            onclick="askDelete(this, '{{ __('Hapus lamaran ke :company?', ['company' => addslashes($app['company'])]) }}')"
-                                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-all"
-                                            title="{{ __('Hapus') }}">
-                                        <svg class="w-3.5 h-3.5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    </button>
-                                </form>
-                            </div>
+                        <td class="px-4 py-4 align-middle text-right">
+                            <button type="button" onclick='openRowMenu(event, this, @json($app))'
+                                    class="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
+                                    title="{{ __('Menu') }}" aria-label="{{ __('Menu') }}">
+                                <svg class="w-4 h-4 block" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>
+                            </button>
                         </td>
                     </tr>
                     @endforeach
@@ -249,6 +224,34 @@
 
 
 </div>
+
+{{-- Menu aksi baris (kebab) — dirender fixed di body agar tidak terpotong tabel yang bisa di-scroll --}}
+<div id="rowMenu" class="hidden fixed z-50 w-48 bg-white rounded-2xl border border-gray-100 shadow-xl py-1.5 text-sm overflow-hidden">
+    <a id="rmOpen" href="#" target="_blank" rel="noopener"
+       class="flex items-center gap-2.5 px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition-all">
+        <svg class="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        {{ __('Buka lowongan') }}
+    </a>
+    <button type="button" id="rmView" onclick="rmAction('view')"
+            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition-all">
+        <svg class="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        {{ __('Lihat detail') }}
+    </button>
+    <button type="button" id="rmEdit" onclick="rmAction('edit')"
+            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition-all">
+        <svg class="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        {{ __('Edit') }}
+    </button>
+    <div class="my-1 border-t border-gray-50"></div>
+    <button type="button" id="rmDelete" onclick="rmAction('delete')"
+            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-500 hover:bg-red-50 transition-all">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        {{ __('Hapus') }}
+    </button>
+</div>
+<form id="rowDeleteForm" method="POST" action="" class="hidden">
+    @csrf @method('DELETE')
+</form>
 
 {{-- Modal Tambah --}}
 <div id="modal-add" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-add')">
@@ -590,8 +593,71 @@ function openView(data){
     openModal('modal-view');
 }
 
+/* ── Menu aksi baris (kebab) ── */
+var rmData = null;
+var DELETE_MSG = @json(__('Hapus lamaran ke :company?', ['company' => '__COMPANY__']));
+// Pindahkan menu ke <body> agar tidak terjebak transform view-transition & tidak terpotong tabel.
+(function () {
+    var m = document.getElementById('rowMenu');
+    if (m && m.parentElement !== document.body) document.body.appendChild(m);
+})();
+
+function openRowMenu(e, btn, data) {
+    e.stopPropagation();
+    var menu = document.getElementById('rowMenu');
+
+    // Klik tombol yang sama saat menu terbuka → tutup (toggle).
+    if (!menu.classList.contains('hidden') && rmData && rmData.id === data.id) {
+        closeRowMenu();
+        return;
+    }
+    rmData = data;
+
+    // "Buka lowongan" hanya muncul kalau ada URL.
+    document.getElementById('rmOpen').classList.toggle('hidden', !data.job_url);
+    document.getElementById('rmOpen').href = data.job_url || '#';
+
+    menu.classList.remove('hidden');
+
+    // Posisikan: rata kanan dengan tombol, muncul di bawah (atau di atas kalau mepet layar).
+    var r = btn.getBoundingClientRect();
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    var left = Math.max(8, r.right - mw);
+    var top = r.bottom + 6;
+    if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 6);
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+}
+
+function closeRowMenu() {
+    document.getElementById('rowMenu').classList.add('hidden');
+}
+
+function rmAction(kind) {
+    var data = rmData;
+    closeRowMenu();
+    if (!data) return;
+    if (kind === 'view') {
+        openView(data);
+    } else if (kind === 'edit') {
+        openEdit(data.id, data);
+    } else if (kind === 'delete') {
+        var f = document.getElementById('rowDeleteForm');
+        f.action = '{{ url('/lamaran') }}/' + data.id;
+        askDelete(f, DELETE_MSG.replace('__COMPANY__', data.company));
+    }
+}
+
+// Tutup saat klik di luar atau scroll.
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('#rowMenu')) closeRowMenu();
+});
+window.addEventListener('scroll', closeRowMenu, true);
+window.addEventListener('resize', closeRowMenu);
+
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+        closeRowMenu();
         closeModal('modal-add');
         closeModal('modal-edit');
         closeModal('modal-view');
