@@ -35,10 +35,13 @@ class GoalController extends Controller
         $prayerTimes    = PrayerTimeService::forCity($prayerCity);
         $prayerEnabled  = Profile::prayerReminders($userId);
 
+        // Target olahraga mingguan (dipakai pilar Health di Life Score).
+        $sportTarget = (int) (Profile::model($userId)->sport_target ?? 4);
+
         return view('pages.goals', compact(
             'monthKey', 'goals', 'monthDates', 'features',
             'daysSholatComplete', 'gymMonthly', 'runMonthlyCount', 'runMonthlyDist',
-            'intimacyMonthly', 'reminders',
+            'intimacyMonthly', 'reminders', 'sportTarget',
             'prayerCities', 'prayerCity', 'prayerTimes', 'prayerEnabled'
         ));
     }
@@ -50,5 +53,13 @@ class GoalController extends Controller
             ['value' => (int) $request->value]
         );
         return redirect()->back();
+    }
+
+    /** Simpan target hari aktif olahraga per minggu (untuk Life Score). */
+    public function updateSportTarget(Request $request)
+    {
+        $r = $request->validate(['sport_target' => ['required', 'integer', 'min:1', 'max:7']]);
+        Profile::model()->update(['sport_target' => $r['sport_target']]);
+        return redirect()->back()->with('toast', __('Target olahraga disimpan.'));
     }
 }

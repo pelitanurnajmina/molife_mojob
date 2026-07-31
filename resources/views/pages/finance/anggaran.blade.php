@@ -24,6 +24,9 @@
         </div>
     </div>
 
+    {{-- ── Dua kolom: form atur anggaran (kiri) + progres pengeluaran (kanan) ── --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 items-start">
+
     {{-- ── Set Budget Form ── --}}
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center justify-between mb-5">
@@ -46,7 +49,7 @@
         <form method="POST" action="{{ route('finance.anggaran.set') }}">
             @csrf
             <input type="hidden" name="month" value="{{ $monthKey }}">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+            <div class="grid grid-cols-1 gap-3 mb-5">
                 @foreach($fixedCats as $cat)
                 <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <span class="text-sm font-bold text-gray-700 flex-1 min-w-0">{{ $cat }}</span>
@@ -70,21 +73,22 @@
                         {{ __('Tambah') }}
                     </button>
                 </div>
-                <div id="customCatList" class="space-y-2">
-                    @foreach($customCats as $cat)
-                    <div class="flex items-center gap-2 custom-cat-row">
-                        <input type="text" name="custom_names[]" value="{{ $cat }}" maxlength="50"
-                            placeholder="{{ __('Nama kategori...') }}"
-                            class="flex-1 min-w-0 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:border-black transition-all">
-                        <input type="number" name="custom_amounts[]" min="0" placeholder="0" value="{{ $budget[$cat] }}"
-                            class="w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none focus:border-black transition-all text-right">
-                        <button type="button" onclick="this.closest('.custom-cat-row').remove()"
-                            class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-                    @endforeach
+                {{-- Kategori custom yang SUDAH tersimpan: nama dikunci sebagai label (biar tidak
+                     ter-rename/tertimpa tak sengaja), nominal tetap bisa diubah, bisa dihapus. --}}
+                @foreach($customCats as $cat)
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-2 custom-saved-row">
+                    <span class="text-sm font-bold text-gray-700 flex-1 min-w-0 truncate">{{ $cat }}</span>
+                    <input type="number" name="budgets[{{ $cat }}]" min="0" placeholder="0" value="{{ $budget[$cat] }}"
+                        class="w-28 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold outline-none focus:border-black transition-all text-right">
+                    <button type="button" onclick="this.closest('.custom-saved-row').remove()" title="{{ __('Hapus') }}"
+                        class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
+                @endforeach
+
+                {{-- Baris kategori BARU (ditambah lewat tombol "Tambah") --}}
+                <div id="customCatList" class="space-y-2"></div>
             </div>
 
             <button type="submit" class="w-full py-3 bg-black text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all">
@@ -94,9 +98,9 @@
     </div>
 
     {{-- ── Progress per Category ── --}}
-    @if(!empty($budget))
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <h3 class="font-bold mb-5">{{ __('Progres Pengeluaran') }} · {{ date('F Y', strtotime($monthKey . '-01')) }}</h3>
+        @if(!empty($budget))
         <div class="space-y-4">
             @foreach($budget as $cat => $limit)
             @php $spent = $spentByCategory[$cat] ?? 0; $pct = $limit > 0 ? min(100, round(($spent/$limit)*100)) : 0; @endphp
@@ -118,8 +122,18 @@
             </div>
             @endforeach
         </div>
+        @else
+        <div class="py-10 text-center">
+            <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <p class="text-sm font-medium text-gray-500">{{ __('Belum ada anggaran') }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('Isi anggaran di sebelah kiri, progresnya muncul di sini.') }}</p>
+        </div>
+        @endif
     </div>
-    @endif
+
+    </div>{{-- /grid dua kolom --}}
 
 </div>
 

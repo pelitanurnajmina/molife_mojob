@@ -209,6 +209,7 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik');
     Route::get('/goals', [GoalController::class, 'index'])->name('goals');
     Route::post('/goals/update', [GoalController::class, 'update'])->name('goals.update');
+    Route::post('/goals/sport-target', [GoalController::class, 'updateSportTarget'])->name('goals.sport-target');
     Route::post('/reminders/update', [ReminderController::class, 'update'])->name('reminders.update');
     Route::post('/reminders/prayer-city',   [ReminderController::class, 'setPrayerCity'])->name('reminders.prayer.city');
     Route::post('/reminders/prayer-toggle', [ReminderController::class, 'togglePrayer'])->name('reminders.prayer.toggle');

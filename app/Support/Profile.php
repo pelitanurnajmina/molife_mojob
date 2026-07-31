@@ -33,6 +33,7 @@ class Profile
             'gender'            => $p->gender ?? '',
             'custom_sport_name' => $p->custom_sport_name ?? '',
             'sports'            => $sports,
+            'sport_target'      => (int) ($p->sport_target ?? 4),
             'plan'              => $p->plan ?? 'freemium',
             'referral_code'     => $p->referral_code ?? '',
         ];

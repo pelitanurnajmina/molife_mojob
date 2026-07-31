@@ -164,6 +164,35 @@
         @endif
     </div>
 
+    {{-- ── Weekly Exercise Target (untuk Life Score) ── --}}
+    @php $sportOn = collect(['gym','run','cycling','swimming','racket','custom_sport'])->contains(fn($s) => $features[$s] ?? false); @endphp
+    @if($sportOn)
+    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="text-base md:text-lg font-bold">{{ __('Target Olahraga Mingguan') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Berapa hari olahraga per minggu untuk mencapai skor Kesehatan 100% di Life Score. Olahraga apa pun dihitung, dan hari istirahat tidak menurunkan skor.') }}</p>
+                <form method="POST" action="{{ route('goals.sport-target') }}" class="mt-4 sm:max-w-xs">
+                    @csrf
+                    <select name="sport_target" onchange="this.form.submit()"
+                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none focus:border-gray-400 focus:bg-white transition-all">
+                        <option value="3" {{ $sportTarget === 3 ? 'selected' : '' }}>{{ __('3x / minggu — Pemula / jaga kebugaran') }}</option>
+                        <option value="4" {{ $sportTarget === 4 ? 'selected' : '' }}>{{ __('4x / minggu — Ideal (disarankan)') }}</option>
+                        <option value="5" {{ $sportTarget === 5 ? 'selected' : '' }}>{{ __('5x / minggu — Aktif / serius') }}</option>
+                        <option value="1" {{ $sportTarget === 1 ? 'selected' : '' }}>{{ __('1x / minggu') }}</option>
+                        <option value="2" {{ $sportTarget === 2 ? 'selected' : '' }}>{{ __('2x / minggu') }}</option>
+                        <option value="6" {{ $sportTarget === 6 ? 'selected' : '' }}>{{ __('6x / minggu') }}</option>
+                        <option value="7" {{ $sportTarget === 7 ? 'selected' : '' }}>{{ __('7x / minggu') }}</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- ── Auto Prayer Times (by location) ── --}}
     @if($features['sholat'] ?? true)
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">

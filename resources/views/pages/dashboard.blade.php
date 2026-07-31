@@ -178,6 +178,36 @@
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-2">
                 <h3 class="text-base font-bold">{{ __('Life Score Hari Ini') }}</h3>
+                {{-- Tooltip edukasi "cara dapat 100%" — muncul saat hover/fokus (tanpa klik) --}}
+                <span class="relative inline-flex group">
+                    <span tabindex="0" role="button" aria-label="{{ __('Cara dapat 100%') }}"
+                        class="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 group-hover:bg-gray-900 group-hover:text-white group-focus-within:bg-gray-900 group-focus-within:text-white transition-all cursor-help outline-none">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <div role="tooltip"
+                        class="absolute left-0 top-full mt-2 z-50 w-72 p-4 bg-white rounded-2xl border border-gray-100 shadow-xl text-left opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 transition-all duration-150 pointer-events-none">
+                        <p class="text-xs font-bold text-gray-800 mb-3">{{ __('Cara mencapai Life Score 100%') }}</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-lg bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></span>
+                                <span class="text-[11px] text-gray-600 leading-relaxed"><b class="text-gray-800">{{ __('Spiritual') }}.</b> {{ __('Tunaikan 5 sholat wajib hari ini.') }}</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></span>
+                                <span class="text-[11px] text-gray-600 leading-relaxed"><b class="text-gray-800">{{ __('Kesehatan') }}.</b> {{ __('Capai target olahraga mingguanmu: :n hari aktif dalam 7 hari terakhir. Olahraga apa pun dihitung, hari istirahat aman.', ['n' => $lifeScore['sportTarget']]) }} <span class="font-bold text-gray-700">({{ __('Saat ini') }}: {{ $lifeScore['activeDays'] }}/{{ $lifeScore['sportTarget'] }})</span></span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                                <span class="text-[11px] text-gray-600 leading-relaxed"><b class="text-gray-800">{{ __('Mental') }}.</b> {{ __('Catat mood-mu dan/atau lakukan sesi meditasi.') }}</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></span>
+                                <span class="text-[11px] text-gray-600 leading-relaxed"><b class="text-gray-800">{{ __('Produktivitas') }}.</b> {{ __('Selesaikan semua tugas harian yang kamu buat.') }}</span>
+                            </li>
+                        </ul>
+                        <p class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">{{ __('Hanya pilar yang fiturnya kamu aktifkan yang dihitung. Atur target olahraga di menu Goals.') }}</p>
+                    </div>
+                </span>
                 <span class="text-xs text-gray-400">{{ date('j F Y') }}</span>
             </div>
             <a href="{{ route('statistik') }}" class="inline-flex items-center gap-1 text-xs font-bold text-gray-400 hover:text-black transition-all">
@@ -188,10 +218,10 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
             @php
                 $dims = [
-                    ['label' => __('Spiritual'),     'val' => $lifeScore['spiritual'],    'svgPath' => 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'],
-                    ['label' => __('Kesehatan'),     'val' => $lifeScore['health'],       'svgPath' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                    ['label' => __('Mental'),        'val' => $lifeScore['mental'],       'svgPath' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'empty' => !$lifeScore['hasMood']],
-                    ['label' => __('Produktivitas'), 'val' => $lifeScore['productivity'], 'svgPath' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'empty' => !$lifeScore['hasTasks']],
+                    ['label' => __('Spiritual'),     'val' => $lifeScore['spiritual'],    'svgPath' => 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z', 'empty' => !$lifeScore['spiritualOn']],
+                    ['label' => __('Kesehatan'),     'val' => $lifeScore['health'],       'svgPath' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'empty' => !$lifeScore['healthOn']],
+                    ['label' => __('Mental'),        'val' => $lifeScore['mental'],       'svgPath' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'empty' => !$lifeScore['mentalOn']],
+                    ['label' => __('Produktivitas'), 'val' => $lifeScore['productivity'], 'svgPath' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'empty' => !$lifeScore['prodOn']],
                 ];
             @endphp
             @foreach($dims as $dim)
