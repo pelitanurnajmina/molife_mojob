@@ -206,6 +206,12 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
     Route::post('/tasks/note', [TaskController::class, 'updateNote'])->name('tasks.note.update');
     Route::post('/tasks/reflection', [TaskController::class, 'updateReflection'])->name('tasks.reflection.update');
 
+    // Time blocking (kalender blok waktu ala Notion Calendar)
+    Route::get('/time-blocking', [\App\Http\Controllers\TimeBlockController::class, 'index'])->name('timeblock');
+    Route::post('/time-blocking', [\App\Http\Controllers\TimeBlockController::class, 'store'])->name('timeblock.store');
+    Route::post('/time-blocking/{id}', [\App\Http\Controllers\TimeBlockController::class, 'update'])->name('timeblock.update');
+    Route::delete('/time-blocking/{id}', [\App\Http\Controllers\TimeBlockController::class, 'destroy'])->name('timeblock.destroy');
+
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik');
     Route::get('/goals', [GoalController::class, 'index'])->name('goals');
     Route::post('/goals/update', [GoalController::class, 'update'])->name('goals.update');

@@ -7,20 +7,20 @@
 @php $rp = fn($n) => 'Rp ' . number_format($n, 0, ',', '.'); @endphp
 <div class="space-y-4 md:space-y-6">
 
-    {{-- ── Summary ── --}}
-    <div class="grid grid-cols-3 gap-3">
-        <div class="bg-white rounded-2xl p-4 text-center">
-            <p class="text-xl font-bold text-gray-800">{{ $rp($totalBudget) }}</p>
-            <p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Total Anggaran') }}</p>
+    {{-- ── Summary (mobile: baris label-nilai; sm+: 3 kartu tengah) ── --}}
+    @php $sisa = $totalBudget - $totalSpent; @endphp
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+        <div class="bg-white rounded-2xl p-3 md:p-4 flex items-center justify-between gap-2 sm:flex-col sm:justify-center sm:text-center">
+            <p class="text-[10px] text-gray-400 font-bold sm:order-2 sm:mt-1">{{ __('Total Anggaran') }}</p>
+            <p class="text-base md:text-xl font-bold text-gray-800 sm:order-1">{{ $rp($totalBudget) }}</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 text-center">
-            <p class="text-xl font-bold text-red-500">{{ $rp($totalSpent) }}</p>
-            <p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Total Terpakai') }}</p>
+        <div class="bg-white rounded-2xl p-3 md:p-4 flex items-center justify-between gap-2 sm:flex-col sm:justify-center sm:text-center">
+            <p class="text-[10px] text-gray-400 font-bold sm:order-2 sm:mt-1">{{ __('Total Terpakai') }}</p>
+            <p class="text-base md:text-xl font-bold text-red-500 sm:order-1">{{ $rp($totalSpent) }}</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 text-center">
-            @php $sisa = $totalBudget - $totalSpent; @endphp
-            <p class="text-xl font-bold {{ $sisa >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $rp($sisa) }}</p>
-            <p class="text-[10px] text-gray-400 font-bold mt-1">{{ __('Sisa Anggaran') }}</p>
+        <div class="bg-white rounded-2xl p-3 md:p-4 flex items-center justify-between gap-2 sm:flex-col sm:justify-center sm:text-center">
+            <p class="text-[10px] text-gray-400 font-bold sm:order-2 sm:mt-1">{{ __('Sisa Anggaran') }}</p>
+            <p class="text-base md:text-xl font-bold {{ $sisa >= 0 ? 'text-green-600' : 'text-red-600' }} sm:order-1">{{ $rp($sisa) }}</p>
         </div>
     </div>
 

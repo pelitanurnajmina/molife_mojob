@@ -82,6 +82,7 @@
         @php
         $featureGroups = [
             ['label'=>__('Life'), 'items'=>[
+                ['key'=>'timeblock',   'label'=>__('Time Blocking'),     'desc'=>__('Kalender blok waktu untuk menjadwalkan harimu')],
                 ['key'=>'sholat',      'label'=>__('Sholat'),            'desc'=>__('Tracker sholat wajib, rawatib & sunnah')],
                 ['key'=>'gym',         'label'=>__('Gym'),                'desc'=>__('Log sesi gym dan kalori terbakar')],
                 ['key'=>'run',         'label'=>__('Lari'),               'desc'=>__('Tracker jarak, pace, dan sesi lari')],

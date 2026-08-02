@@ -10,6 +10,7 @@ class Features
     public static function defaults(): array
     {
         return [
+            'timeblock'    => true,
             'sholat'       => true,
             'gym'          => true,
             'run'          => true,

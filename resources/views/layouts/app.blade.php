@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=14">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=19">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -326,6 +326,7 @@
                 ['route'=>'pomodoro',   'feat'=>'pomodoro',     'label'=>'Pomodoro',            'match'=>'pomodoro',    'icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['route'=>'meditasi',   'feat'=>'meditasi',     'label'=>__('Meditasi'),        'match'=>'meditasi',    'icon'=>'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'],
                 ['route'=>'mental',     'feat'=>'mental',       'label'=>__('Mental'),          'match'=>'mental',      'icon'=>'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['route'=>'timeblock',  'feat'=>'timeblock',    'label'=>__('Time Blocking'),   'match'=>'timeblock',   'icon'=>'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
                 ['route'=>'tasks',      'feat'=>'tasks',        'label'=>'Tasks & Notes',       'match'=>'tasks',       'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
                 ['route'=>'links',      'feat'=>'links',        'label'=>__('Link Penting'),    'match'=>'links',       'icon'=>'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1'],
                 ['route'=>'journal',    'feat'=>'journal',      'label'=>'Journal',             'match'=>'journal',     'icon'=>'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
@@ -795,6 +796,9 @@
                         dd.style.maxHeight = h + 'px';
                         dd.style.top       = (rect.top - Math.min(dd.offsetHeight, h) - gap) + 'px';
                     }
+                    /* Gulir ke opsi terpilih agar daftar panjang langsung tampak di posisinya */
+                    var selEl = dd.querySelector('.cs-selected');
+                    if (selEl) selEl.scrollIntoView({ block: 'nearest' });
                 });
 
                 openDropdown = dd;
