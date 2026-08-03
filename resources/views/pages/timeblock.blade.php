@@ -9,6 +9,22 @@
     $rangeLabel = Carbon::parse($weekStart)->translatedFormat('j M') . ' – ' . Carbon::parse($weekEnd)->translatedFormat('j M Y');
     $gridCols = 'grid-template-columns:52px repeat(7,minmax(0,1fr))';
 @endphp
+<style>
+/* Hover: blok mengembang penuh (lebar kolom + tinggi menyesuaikan isi) agar judul,
+   jam, dan catatan terbaca lengkap , berguna untuk blok pendek/sempit yang menumpuk. */
+.tb-block:hover {
+    left: 2px !important;
+    right: 2px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 2.5rem;
+    overflow: visible !important;
+    z-index: 50 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+}
+.tb-block:hover .tb-title { -webkit-line-clamp: unset; display: block; overflow: visible; }
+.tb-block:hover .tb-note { display: block; }
+</style>
 <div class="space-y-4">
 
     {{-- ── Toolbar ── --}}
@@ -83,9 +99,9 @@
         <div class="overflow-y-auto tb-scroll" style="max-height:64vh">
             <div class="grid" style="{{ $gridCols }}">
                 {{-- Gutter jam --}}
-                <div class="relative" style="height:1152px">
+                <div class="relative" style="height:1440px">
                     @for($h = 0; $h < 24; $h++)
-                    <div class="absolute right-1.5 -translate-y-1/2 text-[9px] font-bold text-gray-300" style="top:{{ $h * 48 }}px">{{ sprintf('%02d:00', $h) }}</div>
+                    <div class="absolute right-1.5 -translate-y-1/2 text-[9px] font-bold text-gray-300" style="top:{{ $h * 60 }}px">{{ sprintf('%02d:00', $h) }}</div>
                     @endfor
                 </div>
                 @foreach($days as $d)
@@ -126,9 +142,9 @@
         {{-- Grid waktu mobile --}}
         <div class="overflow-y-auto tb-scroll" style="max-height:62vh">
             <div class="grid" style="grid-template-columns:52px minmax(0,1fr)">
-                <div class="relative" style="height:1152px">
+                <div class="relative" style="height:1440px">
                     @for($h = 0; $h < 24; $h++)
-                    <div class="absolute right-1.5 -translate-y-1/2 text-[9px] font-bold text-gray-300" style="top:{{ $h * 48 }}px">{{ sprintf('%02d:00', $h) }}</div>
+                    <div class="absolute right-1.5 -translate-y-1/2 text-[9px] font-bold text-gray-300" style="top:{{ $h * 60 }}px">{{ sprintf('%02d:00', $h) }}</div>
                     @endfor
                 </div>
                 <div class="relative">
@@ -141,13 +157,6 @@
             </div>
         </div>
     </div>
-</div>
-
-{{-- ── Tooltip detail blok (hover), dirender di body via JS agar tidak terpotong ── --}}
-<div id="tbTip" class="hidden fixed z-[60] max-w-xs px-3 py-2 bg-gray-900 text-white rounded-xl shadow-xl pointer-events-none">
-    <p id="tbTipTitle" class="text-xs font-bold leading-snug"></p>
-    <p id="tbTipTime" class="text-[11px] text-gray-300 mt-0.5"></p>
-    <p id="tbTipNote" class="hidden text-[11px] text-gray-400 mt-1 whitespace-pre-line leading-relaxed"></p>
 </div>
 
 {{-- ── Modal blok waktu ── --}}
@@ -241,31 +250,6 @@ function tbSetDate(date) {
     if (el._flatpickr) el._flatpickr.setDate(date, false); else el.value = date;
 }
 
-/* Tooltip detail saat hover blok (untuk judul/jam yang terpotong) */
-(function () {
-    var t = document.getElementById('tbTip');
-    if (t && t.parentElement !== document.body) document.body.appendChild(t);
-})();
-function tbShowTip(el) {
-    var tip = document.getElementById('tbTip');
-    document.getElementById('tbTipTitle').textContent = el.dataset.tipTitle || '';
-    document.getElementById('tbTipTime').textContent = el.dataset.tipTime || '';
-    var noteEl = document.getElementById('tbTipNote');
-    if (el.dataset.tipNote) { noteEl.textContent = el.dataset.tipNote; noteEl.classList.remove('hidden'); }
-    else { noteEl.classList.add('hidden'); }
-
-    tip.classList.remove('hidden');
-    var r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight, gap = 8;
-    var left = r.right + gap;
-    if (left + tw > window.innerWidth - gap) left = r.left - tw - gap; // balik ke kiri
-    if (left < gap) left = gap;
-    var top = r.top;
-    if (top + th > window.innerHeight - gap) top = window.innerHeight - th - gap;
-    if (top < gap) top = gap;
-    tip.style.left = left + 'px';
-    tip.style.top = top + 'px';
-}
-function tbHideTip() { document.getElementById('tbTip').classList.add('hidden'); }
 
 function tbClose() { document.getElementById('tbModal').classList.add('hidden'); document.body.style.overflow=''; }
 function tbOpen() { document.getElementById('tbModal').classList.remove('hidden'); document.body.style.overflow='hidden'; }
@@ -348,7 +332,7 @@ function tbSelectDay(date) {
     const min = now.getHours() * 60 + now.getMinutes();
     document.querySelectorAll('.tb-now').forEach(el => { el.style.top = (min / 1440 * 100) + '%'; });
     // scroll semua grid ke sekitar jam sekarang (atau 07:00 kalau dini hari)
-    const target = Math.max(0, (Math.max(min, 420) - 180) / 1440 * 1152);
+    const target = Math.max(0, (Math.max(min, 420) - 180) / 1440 * 1440);
     document.querySelectorAll('.tb-scroll').forEach(sc => { sc.scrollTop = target; });
 })();
 </script>

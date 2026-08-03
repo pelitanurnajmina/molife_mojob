@@ -9,23 +9,27 @@
         'gray'   => 'bg-gray-100 border-gray-300 text-gray-700 hover:border-gray-400',
     ];
     $fmt = fn($m) => sprintf('%02d:%02d', intdiv($m, 60), $m % 60);
+    $hourH = 60;            // tinggi per jam (px) — dinaikkan agar blok pendek muat teks
+    $gridH = 24 * $hourH;   // 1440px
 @endphp
 <div class="tb-col relative border-l border-gray-100 {{ $date === $today ? 'bg-amber-50/20' : '' }}"
-     data-date="{{ $date }}" style="height:1152px" onclick="tbSlotClick(event, this)">
+     data-date="{{ $date }}" style="height:{{ $gridH }}px" onclick="tbSlotClick(event, this)">
 
     {{-- Garis jam --}}
     @for($h = 1; $h < 24; $h++)
-    <div class="absolute left-0 right-0 border-t border-gray-50 pointer-events-none" style="top:{{ $h * 48 }}px"></div>
+    <div class="absolute left-0 right-0 border-t border-gray-50 pointer-events-none" style="top:{{ $h * $hourH }}px"></div>
     @endfor
 
     {{-- Jadwal sholat (read-only, di belakang) --}}
+    {{-- Jadwal sholat: garis tipis + label, DI ATAS blok (z-index 14) supaya selalu terlihat --}}
     @foreach($data['prayers'] as $p)
-    <div class="absolute left-0 right-0 px-1.5 flex items-center pointer-events-none z-0"
-         style="top:{{ $p['startMin'] / 1440 * 100 }}%; height:{{ ($p['endMin'] - $p['startMin']) / 1440 * 100 }}%">
-        <div class="w-full h-full rounded-md bg-emerald-50/70 border border-dashed border-emerald-200 flex items-center gap-1 px-1.5 overflow-hidden">
-            <svg class="w-2.5 h-2.5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m2.828 9.9a5 5 0 117.072 0"/></svg>
-            <span class="text-[9px] font-bold text-emerald-700 truncate">{{ $p['title'] }} · {{ $p['timeLabel'] }}</span>
-        </div>
+    <div class="absolute left-0 right-0 flex items-center gap-1 px-1 pointer-events-none"
+         style="top:{{ $p['startMin'] / 1440 * 100 }}%; transform:translateY(-50%); z-index:14">
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold shadow-sm flex-shrink-0 whitespace-nowrap">
+            <svg class="w-2.5 h-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m2.828 9.9a5 5 0 117.072 0"/></svg>
+            {{ $p['title'] }} · {{ $p['timeLabel'] }}
+        </span>
+        <span class="flex-1 border-t border-dashed border-emerald-300"></span>
     </div>
     @endforeach
 
@@ -51,23 +55,22 @@
     @endphp
     <div class="tb-block absolute rounded-lg border px-1.5 py-1 cursor-pointer overflow-hidden transition-all {{ $cls }} {{ $shadow }}"
          style="top:{{ $e['startMin'] / 1440 * 100 }}%; height:{{ ($e['endMin'] - $e['startMin']) / 1440 * 100 }}%; left:calc({{ $left }}% + 2px); width:calc({{ $width }}% - 4px); z-index:{{ $zi }}"
-         data-tip-title="{{ $e['title'] }}"
-         data-tip-time="{{ $fmt($e['startMin']) }}–{{ $fmt($e['endMin']) }}"
-         data-tip-note="{{ $e['note'] }}"
-         onmouseenter="tbShowTip(this)" onmouseleave="tbHideTip()"
          onclick="event.stopPropagation(); tbEditBlock({{ Illuminate\Support\Js::from([
             'id' => $e['id'], 'title' => $e['title'], 'note' => $e['note'], 'color' => $e['color'],
             'date' => $date, 'start_min' => $e['startMin'], 'end_min' => $e['endMin'],
          ]) }})">
         @if($short)
-        {{-- Blok pendek: judul + jam mulai satu baris; judul truncate, jam tetap tampil --}}
+        {{-- Blok pendek: judul + jam mulai satu baris (default); saat hover blok mengembang, judul penuh --}}
         <div class="flex items-baseline gap-1">
-            <span class="text-[10px] font-bold leading-tight truncate flex-1 min-w-0">{{ $e['title'] }}</span>
+            <span class="tb-title text-[10px] font-bold leading-tight line-clamp-2 flex-1 min-w-0 break-words">{{ $e['title'] }}</span>
             <span class="text-[9px] opacity-70 leading-tight flex-shrink-0">{{ $fmt($e['startMin']) }}</span>
         </div>
         @else
-        <p class="text-[10px] font-bold leading-tight truncate">{{ $e['title'] }}</p>
+        <p class="tb-title text-[10px] font-bold leading-tight line-clamp-2 break-words">{{ $e['title'] }}</p>
         <p class="text-[9px] opacity-70 leading-tight">{{ $fmt($e['startMin']) }}–{{ $fmt($e['endMin']) }}</p>
+        @endif
+        @if(!empty($e['note']))
+        <p class="tb-note hidden text-[9px] opacity-70 leading-snug mt-1 whitespace-pre-line break-words">{{ $e['note'] }}</p>
         @endif
     </div>
     @endforeach
