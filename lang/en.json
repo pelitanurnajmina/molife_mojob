@@ -1458,5 +1458,7 @@
     "Blok waktu diperbarui.": "Time block updated.",
     "Blok waktu dihapus.": "Time block deleted.",
     "Kalender blok waktu untuk menjadwalkan harimu": "A time-blocking calendar to plan your day",
-    "Lompat ke tanggal": "Jump to date"
+    "Lompat ke tanggal": "Jump to date",
+    "Salin ke hari lain": "Copy to another day",
+    "Blok disalin ke :date.": "Block copied to :date."
 }

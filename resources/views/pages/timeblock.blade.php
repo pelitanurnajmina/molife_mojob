@@ -9,22 +9,6 @@
     $rangeLabel = Carbon::parse($weekStart)->translatedFormat('j M') . ' – ' . Carbon::parse($weekEnd)->translatedFormat('j M Y');
     $gridCols = 'grid-template-columns:52px repeat(7,minmax(0,1fr))';
 @endphp
-<style>
-/* Hover: blok mengembang penuh (lebar kolom + tinggi menyesuaikan isi) agar judul,
-   jam, dan catatan terbaca lengkap , berguna untuk blok pendek/sempit yang menumpuk. */
-.tb-block:hover {
-    left: 2px !important;
-    right: 2px !important;
-    width: auto !important;
-    height: auto !important;
-    min-height: 2.5rem;
-    overflow: visible !important;
-    z-index: 50 !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
-}
-.tb-block:hover .tb-title { -webkit-line-clamp: unset; display: block; overflow: visible; }
-.tb-block:hover .tb-note { display: block; }
-</style>
 <div class="space-y-4">
 
     {{-- ── Toolbar ── --}}
@@ -159,6 +143,13 @@
     </div>
 </div>
 
+{{-- ── Tooltip detail blok (hover), dirender di body via JS agar tidak terpotong ── --}}
+<div id="tbTip" class="hidden fixed z-[60] max-w-xs px-3 py-2 bg-gray-900 text-white rounded-xl shadow-xl pointer-events-none">
+    <p id="tbTipTitle" class="text-xs font-bold leading-snug"></p>
+    <p id="tbTipTime" class="text-[11px] text-gray-300 mt-0.5"></p>
+    <p id="tbTipNote" class="hidden text-[11px] text-gray-400 mt-1 whitespace-pre-line leading-relaxed"></p>
+</div>
+
 {{-- ── Modal blok waktu ── --}}
 <div id="tbModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this)tbClose()">
     <div class="bg-white rounded-3xl w-full max-w-md my-8">
@@ -218,7 +209,26 @@
             </div>
             <button type="submit" class="w-full mt-6 py-3 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-all" id="tbSubmit">{{ __('Simpan') }}</button>
         </form>
-        <form method="POST" action="" id="tbDeleteForm" class="hidden px-6 pb-5 -mt-2 text-center">
+
+        {{-- Salin ke hari lain (hanya saat edit) --}}
+        <div id="tbCopyRow" class="hidden px-6 pb-4 pt-1">
+            <div class="border-t border-gray-50 pt-4">
+                <label class="block text-xs font-bold text-gray-500 mb-1.5">{{ __('Salin ke hari lain') }}</label>
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <input type="date" id="tbCopyPick"
+                            class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-black focus:bg-white transition-all">
+                        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <button type="button" onclick="tbCopySubmit()"
+                        class="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 transition-all whitespace-nowrap flex-shrink-0">{{ __('Salin') }}</button>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="" id="tbCopyForm" class="hidden">@csrf<input type="hidden" name="date" id="tbCopyDate"></form>
+
+        <form method="POST" action="" id="tbDeleteForm" class="hidden px-6 pb-5 -mt-1 text-center">
             @csrf @method('DELETE')
             <button type="button" onclick="askDelete(this, '{{ __('Hapus blok waktu ini?') }}')"
                 class="text-[11px] font-bold text-gray-400 hover:text-red-500 transition-all">{{ __('Hapus blok ini') }}</button>
@@ -243,6 +253,32 @@ function tbGetMin(id) {
 }
 
 function tbJumpTo(v) { if (v) location.href = TB_URL + '?date=' + v; }
+
+/* Tooltip detail saat hover blok (blok tidak berubah ukuran → tidak berkedip) */
+(function () {
+    var t = document.getElementById('tbTip');
+    if (t && t.parentElement !== document.body) document.body.appendChild(t);
+})();
+function tbShowTip(el) {
+    var tip = document.getElementById('tbTip');
+    document.getElementById('tbTipTitle').textContent = el.dataset.tipTitle || '';
+    document.getElementById('tbTipTime').textContent = el.dataset.tipTime || '';
+    var noteEl = document.getElementById('tbTipNote');
+    if (el.dataset.tipNote) { noteEl.textContent = el.dataset.tipNote; noteEl.classList.remove('hidden'); }
+    else { noteEl.classList.add('hidden'); }
+
+    tip.classList.remove('hidden');
+    var r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight, gap = 8;
+    var left = r.right + gap;
+    if (left + tw > window.innerWidth - gap) left = r.left - tw - gap;
+    if (left < gap) left = gap;
+    var top = r.top;
+    if (top + th > window.innerHeight - gap) top = window.innerHeight - th - gap;
+    if (top < gap) top = gap;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+}
+function tbHideTip() { document.getElementById('tbTip').classList.add('hidden'); }
 
 /* Set field tanggal (flatpickr) di modal */
 function tbSetDate(date) {
@@ -275,6 +311,7 @@ function tbAdd(date, startMin) {
     tbSetTime('tbEnd', Math.min(1439, startMin + 60));
     tbPickColor('blue');
     document.getElementById('tbDeleteForm').classList.add('hidden');
+    document.getElementById('tbCopyRow').classList.add('hidden'); // salin hanya untuk blok yang sudah ada
     tbOpen();
 }
 
@@ -293,7 +330,23 @@ function tbEditBlock(e) {
     const del = document.getElementById('tbDeleteForm');
     del.action = TB_URL + '/' + e.id;
     del.classList.remove('hidden');
+    // Salin ke hari lain: default tanggal esok harinya
+    document.getElementById('tbCopyForm').action = TB_URL + '/' + e.id + '/copy';
+    const pick = document.getElementById('tbCopyPick');
+    const next = new Date(e.date + 'T00:00:00'); next.setDate(next.getDate() + 1);
+    const nextStr = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
+    if (pick._flatpickr) pick._flatpickr.setDate(nextStr, false); else pick.value = nextStr;
+    document.getElementById('tbCopyRow').classList.remove('hidden');
     tbOpen();
+}
+
+/* Salin blok ke tanggal terpilih */
+function tbCopySubmit() {
+    const pick = document.getElementById('tbCopyPick');
+    const val = pick.value;
+    if (!val) { pick.focus(); return; }
+    document.getElementById('tbCopyDate').value = val;
+    document.getElementById('tbCopyForm').submit();
 }
 
 /* Klik slot kosong → buat blok pada jam terdekat (dibulatkan 30 menit) */

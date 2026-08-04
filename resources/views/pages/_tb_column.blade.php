@@ -53,24 +53,25 @@
         $zi    = 10 + $lane;
         $shadow = $lane > 0 ? 'shadow-md' : '';
     @endphp
-    <div class="tb-block absolute rounded-lg border px-1.5 py-1 cursor-pointer overflow-hidden transition-all {{ $cls }} {{ $shadow }}"
+    <div class="tb-block absolute rounded-lg border px-1.5 py-1 cursor-pointer overflow-hidden transition-shadow {{ $cls }} {{ $shadow }}"
          style="top:{{ $e['startMin'] / 1440 * 100 }}%; height:{{ ($e['endMin'] - $e['startMin']) / 1440 * 100 }}%; left:calc({{ $left }}% + 2px); width:calc({{ $width }}% - 4px); z-index:{{ $zi }}"
+         data-tip-title="{{ $e['title'] }}"
+         data-tip-time="{{ $fmt($e['startMin']) }}–{{ $fmt($e['endMin']) }}"
+         data-tip-note="{{ $e['note'] }}"
+         onmouseenter="tbShowTip(this)" onmouseleave="tbHideTip()"
          onclick="event.stopPropagation(); tbEditBlock({{ Illuminate\Support\Js::from([
             'id' => $e['id'], 'title' => $e['title'], 'note' => $e['note'], 'color' => $e['color'],
             'date' => $date, 'start_min' => $e['startMin'], 'end_min' => $e['endMin'],
          ]) }})">
         @if($short)
-        {{-- Blok pendek: judul + jam mulai satu baris (default); saat hover blok mengembang, judul penuh --}}
+        {{-- Blok pendek: judul (boleh 2 baris) + jam mulai; detail penuh lewat tooltip hover --}}
         <div class="flex items-baseline gap-1">
-            <span class="tb-title text-[10px] font-bold leading-tight line-clamp-2 flex-1 min-w-0 break-words">{{ $e['title'] }}</span>
+            <span class="text-[10px] font-bold leading-tight line-clamp-2 flex-1 min-w-0 break-words">{{ $e['title'] }}</span>
             <span class="text-[9px] opacity-70 leading-tight flex-shrink-0">{{ $fmt($e['startMin']) }}</span>
         </div>
         @else
-        <p class="tb-title text-[10px] font-bold leading-tight line-clamp-2 break-words">{{ $e['title'] }}</p>
+        <p class="text-[10px] font-bold leading-tight line-clamp-2 break-words">{{ $e['title'] }}</p>
         <p class="text-[9px] opacity-70 leading-tight">{{ $fmt($e['startMin']) }}–{{ $fmt($e['endMin']) }}</p>
-        @endif
-        @if(!empty($e['note']))
-        <p class="tb-note hidden text-[9px] opacity-70 leading-snug mt-1 whitespace-pre-line break-words">{{ $e['note'] }}</p>
         @endif
     </div>
     @endforeach

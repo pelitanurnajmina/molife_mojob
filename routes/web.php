@@ -210,6 +210,7 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
     Route::get('/time-blocking', [\App\Http\Controllers\TimeBlockController::class, 'index'])->name('timeblock');
     Route::post('/time-blocking', [\App\Http\Controllers\TimeBlockController::class, 'store'])->name('timeblock.store');
     Route::post('/time-blocking/{id}', [\App\Http\Controllers\TimeBlockController::class, 'update'])->name('timeblock.update');
+    Route::post('/time-blocking/{id}/copy', [\App\Http\Controllers\TimeBlockController::class, 'copy'])->name('timeblock.copy');
     Route::delete('/time-blocking/{id}', [\App\Http\Controllers\TimeBlockController::class, 'destroy'])->name('timeblock.destroy');
 
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik');

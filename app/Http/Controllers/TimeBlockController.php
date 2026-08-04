@@ -139,6 +139,26 @@ class TimeBlockController extends Controller
         return redirect()->route('timeblock', ['date' => $date])->with('toast', __('Blok waktu dihapus.'));
     }
 
+    /** Salin blok ke tanggal lain (jam, judul, warna, catatan sama). */
+    public function copy(Request $request, string $id)
+    {
+        $block = TimeBlock::where('user_id', auth()->id())->findOrFail($id);
+        $r = $request->validate(['date' => 'required|date']);
+        $target = date('Y-m-d', strtotime($r['date']));
+
+        TimeBlock::create([
+            'user_id'   => auth()->id(),
+            'date'      => $target,
+            'start_min' => $block->start_min,
+            'end_min'   => $block->end_min,
+            'title'     => $block->title,
+            'color'     => $block->color,
+            'note'      => $block->note,
+        ]);
+
+        return redirect()->route('timeblock', ['date' => $target])->with('toast', __('Blok disalin ke :date.', ['date' => $target]));
+    }
+
     /** Pastikan end > start; kalau tidak, beri durasi minimal 15 menit. */
     private function normalize(array $data): array
     {
