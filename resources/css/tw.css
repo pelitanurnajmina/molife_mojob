@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Scrollbar global: tipis, warna soft, tetap terlihat ── */
+* {
+    scrollbar-width: thin;                              /* Firefox */
+    scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+}
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.35);        /* slate lembut */
+    border-radius: 9999px;
+    border: 2px solid transparent;                     /* padding → thumb terlihat lebih ramping */
+    background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.55);
+}
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
