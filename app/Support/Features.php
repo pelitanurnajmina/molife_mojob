@@ -11,6 +11,7 @@ class Features
     {
         return [
             'timeblock'    => true,
+            'ide_script'   => true,
             'sholat'       => true,
             'gym'          => true,
             'run'          => true,

@@ -83,6 +83,7 @@
         $featureGroups = [
             ['label'=>__('Life'), 'items'=>[
                 ['key'=>'timeblock',   'label'=>__('Time Blocking'),     'desc'=>__('Kalender blok waktu untuk menjadwalkan harimu')],
+                ['key'=>'ide_script',  'label'=>__('Ide & Script'),      'desc'=>__('Kumpulan ide dan script konten')],
                 ['key'=>'sholat',      'label'=>__('Sholat'),            'desc'=>__('Tracker sholat wajib, rawatib & sunnah')],
                 ['key'=>'gym',         'label'=>__('Gym'),                'desc'=>__('Log sesi gym dan kalori terbakar')],
                 ['key'=>'run',         'label'=>__('Lari'),               'desc'=>__('Tracker jarak, pace, dan sesi lari')],

@@ -213,6 +213,12 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
     Route::post('/time-blocking/{id}/copy', [\App\Http\Controllers\TimeBlockController::class, 'copy'])->name('timeblock.copy');
     Route::delete('/time-blocking/{id}', [\App\Http\Controllers\TimeBlockController::class, 'destroy'])->name('timeblock.destroy');
 
+    // Ide & Script (kumpulan ide dan script konten)
+    Route::get('/ide-script', [\App\Http\Controllers\IdeaScriptController::class, 'index'])->name('ide-script');
+    Route::post('/ide-script', [\App\Http\Controllers\IdeaScriptController::class, 'store'])->name('ide-script.store');
+    Route::post('/ide-script/{id}', [\App\Http\Controllers\IdeaScriptController::class, 'update'])->name('ide-script.update');
+    Route::delete('/ide-script/{id}', [\App\Http\Controllers\IdeaScriptController::class, 'destroy'])->name('ide-script.destroy');
+
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik');
     Route::get('/goals', [GoalController::class, 'index'])->name('goals');
     Route::post('/goals/update', [GoalController::class, 'update'])->name('goals.update');
