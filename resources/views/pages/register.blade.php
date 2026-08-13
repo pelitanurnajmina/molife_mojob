@@ -97,9 +97,9 @@
                         class="w-4 h-4 mt-0.5 rounded border-gray-300 accent-black cursor-pointer flex-shrink-0">
                     <span class="text-xs text-gray-500 leading-relaxed">
                         {{ __('Saya setuju dengan') }}
-                        <a href="#" class="font-bold text-gray-700 hover:underline">{{ __('Syarat & Ketentuan') }}</a>
+                        <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="font-bold text-gray-700 hover:underline">{{ __('Syarat & Ketentuan') }}</a>
                         {{ __('dan') }}
-                        <a href="#" class="font-bold text-gray-700 hover:underline">{{ __('Kebijakan Privasi') }}</a>
+                        <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="font-bold text-gray-700 hover:underline">{{ __('Kebijakan Privasi') }}</a>
                     </span>
                 </label>
                 @error('terms')<p class="text-xs text-red-500 -mt-1">{{ $message }}</p>@enderror

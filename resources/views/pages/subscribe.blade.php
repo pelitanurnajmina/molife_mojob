@@ -18,7 +18,7 @@
 @endphp
 <body class="min-h-screen bg-gradient-to-br from-[#f4f1fb] via-[#fbf4f8] to-[#f0f5fc] flex items-center justify-center p-4">
 
-<div class="w-full max-w-lg">
+<div class="w-full max-w-2xl">
     {{-- Akses kolaborasi (tanpa langganan) untuk user yang diundang --}}
     @if(\App\Services\CollabService::hasAny(auth()->id()))
     <a href="{{ route('kolaborasi.index') }}"
@@ -57,7 +57,31 @@
         </div>
         @endif
 
-        <div class="grid grid-cols-2 gap-3.5 mt-7">
+        @if($canApplyReferral)
+        {{-- Input kode referral manual (collapsible; kebanyakan user tak punya kode) --}}
+        <div class="mt-4 text-left">
+            <button type="button" onclick="toggleRef()" class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-all">
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+                {{ __('Punya kode referral?') }}
+                <svg id="refChevron" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div id="refBox" class="{{ session('refError') ? '' : 'hidden' }} mt-2.5 rounded-2xl bg-gray-50 border border-gray-100 p-3.5">
+                <form method="POST" action="{{ route('subscribe.referral') }}" class="flex items-center gap-2">
+                    @csrf
+                    <input type="text" name="code" maxlength="50" required placeholder="{{ __('Masukkan kode teman') }}"
+                        class="flex-1 min-w-0 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold outline-none focus:border-black transition-all uppercase">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">{{ __('Pakai') }}</button>
+                </form>
+                @if(session('refError'))
+                <p class="text-[11px] font-bold text-red-500 mt-2">{{ session('refError') }}</p>
+                @endif
+                <p class="text-[11px] text-gray-400 mt-2">{{ __('Dapat diskon 10% untuk pembayaran pertama jika pakai kode teman.') }}</p>
+            </div>
+        </div>
+        @endif
+
+        {{-- Paket: 2 kolom di HP, 4 kolom sejajar di layar lebar (hemat ruang vertikal) --}}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-7">
             @foreach($plans as $key => $p)
             {{-- Kunci array numerik di-cast PHP jadi int, samakan tipe dulu. --}}
             @php
@@ -66,18 +90,18 @@
             @endphp
             <button type="button" id="card-{{ $key }}"
                 onclick="choosePlan('{{ $key }}', {{ $finalPrice }}, '{{ $p['label'] }}')"
-                class="plan-card relative text-left p-4 rounded-2xl border-2 transition-all {{ $pop ? 'border-gray-900' : 'border-gray-100 hover:border-gray-300' }}">
+                class="plan-card relative text-left p-3.5 rounded-2xl border-2 transition-all {{ $pop ? 'border-gray-900' : 'border-gray-100 hover:border-gray-300' }}">
                 @if(!empty($badge[$key]))
-                <span class="absolute -top-2.5 left-4 whitespace-nowrap text-[8px] font-bold bg-gray-900 text-white px-2 py-0.5 rounded-full">{{ $badge[$key] }}</span>
+                <span class="absolute -top-2.5 left-3 whitespace-nowrap text-[8px] font-bold bg-gray-900 text-white px-2 py-0.5 rounded-full">{{ $badge[$key] }}</span>
                 @endif
                 <p class="text-[11px] font-bold text-gray-500">{{ $p['label'] }}</p>
                 @if($refDiscount)
                 <p class="text-[10px] text-gray-400 line-through mt-2">{{ $rp($p['price']) }}</p>
-                <p class="text-xl font-black text-green-600 leading-tight">{{ $rp($finalPrice) }}</p>
+                <p class="text-lg font-black text-green-600 leading-tight">{{ $rp($finalPrice) }}</p>
                 @else
-                <p class="text-xl font-black text-gray-900 leading-tight mt-2">{{ $rp($p['price']) }}</p>
+                <p class="text-lg font-black text-gray-900 leading-tight mt-2">{{ $rp($p['price']) }}</p>
                 @endif
-                <p class="text-[10px] text-gray-400 mt-1.5">{{ $perMonth[$key] ?? '' }}</p>
+                <p class="text-[10px] text-gray-400 mt-1">{{ $perMonth[$key] ?? '' }}</p>
                 @if(in_array((string) $key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
                 <p class="text-[9px] font-bold text-violet-600 mt-1">+ {{ __('Fitur AI') }}</p>
                 @endif
@@ -85,31 +109,38 @@
             @endforeach
         </div>
 
-        <div class="mt-5 rounded-2xl bg-violet-50 border border-violet-100 p-3.5">
-            <p class="text-[10px] font-bold text-violet-700 uppercase tracking-wide mb-1.5">{{ __('Eksklusif 6 Bulan & 1 Tahun') }}</p>
-            <p class="text-[11px] text-violet-800 leading-relaxed">{{ __('Scan Struk AI (foto struk, transaksi terisi otomatis) dan rekomendasi Lowongan Kerja dari seluruh dunia.') }}</p>
-        </div>
-
-        <div class="mt-5 pt-5 border-t border-gray-100">
-            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-3">{{ __('Semua paket termasuk') }}</p>
-            <ul class="space-y-2 text-xs">
-                @foreach(['Semua tracker Life: sholat, olahraga, pomodoro, mood, tugas','Career Hub, Bisnis & Keuangan lengkap','Statistik, insight & Life Score harian','Export data ke CSV'] as $f)
-                <li class="flex items-start gap-2">
-                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                    <span class="text-gray-600">{{ $f }}</span>
-                </li>
-                @endforeach
-            </ul>
-        </div>
-
+        {{-- CTA langsung setelah pilih paket → selalu terlihat, tak perlu scroll jauh --}}
         <button type="button" id="btnConfirm" onclick="goToPayment()"
             class="w-full mt-6 py-3.5 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-all">
             {{ __('Lanjut ke Pembayaran') }} · <span id="confirmLabel">3 Bulan</span>
         </button>
+        <p class="flex items-center justify-center gap-1.5 mt-2.5 text-[11px] text-gray-400">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            {{ __('Pembayaran aman & terenkripsi · aktif otomatis setelah lunas') }}
+        </p>
+
+        {{-- Detail pendukung (di bawah CTA): 2 kolom di layar lebar --}}
+        <div class="mt-6 pt-6 border-t border-gray-100 grid sm:grid-cols-2 gap-4">
+            <div>
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-2.5">{{ __('Semua paket termasuk') }}</p>
+                <ul class="space-y-2 text-xs">
+                    @foreach(['Semua tracker Life: sholat, olahraga, pomodoro, mood, tugas','Time Blocking, Journal, Ide & Script & lainnya','Career Hub, Bisnis & Keuangan lengkap','Statistik, insight & Life Score harian'] as $f)
+                    <li class="flex items-start gap-2">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-600">{{ $f }}</span>
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+            <div class="rounded-2xl bg-violet-50 border border-violet-100 p-3.5 self-start">
+                <p class="text-[10px] font-bold text-violet-700 uppercase tracking-wide mb-1.5">{{ __('Eksklusif 6 Bulan & 1 Tahun') }}</p>
+                <p class="text-[11px] text-violet-800 leading-relaxed">{{ __('Scan Struk AI (foto struk, transaksi terisi otomatis) dan rekomendasi Lowongan Kerja dari seluruh dunia.') }}</p>
+            </div>
+        </div>
     </div>
 
     {{-- ════ STEP 2: pembayaran QRIS ════ --}}
-    <div id="stepPay" class="hidden bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+    <div id="stepPay" class="hidden bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden max-w-md mx-auto">
         {{-- header --}}
         <div class="px-6 md:px-8 pt-6 pb-5 bg-gradient-to-br from-gray-900 to-gray-800 text-white relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-36 h-36 rounded-full" style="background:radial-gradient(circle,rgba(124,92,240,.35),transparent 70%)"></div>
@@ -168,6 +199,11 @@ const PENDING    = @json($pendingCharge ?? null); // QR pending yang masih berla
 
 /* ── Step 1: pilih paket dulu ── */
 let selectedPlan = { key: '3', price: {{ $refDiscount ? \App\Services\ReferralService::discountedPrice($plans['3']['price'] ?? 29000) : ($plans['3']['price'] ?? 29000) }}, label: '3 Bulan' };
+
+function toggleRef() {
+    document.getElementById('refBox').classList.toggle('hidden');
+    document.getElementById('refChevron').classList.toggle('rotate-180');
+}
 
 function choosePlan(key, price, label) {
     selectedPlan = { key, price, label };

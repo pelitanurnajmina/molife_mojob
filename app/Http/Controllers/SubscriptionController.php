@@ -27,11 +27,43 @@ class SubscriptionController extends Controller
         // Diskon referral 10% pembayaran pertama untuk user bawaan referral.
         $refDiscount = \App\Services\ReferralService::discountEligible(auth()->id());
 
+        // User bisa memasukkan kode referral manual jika belum teratribusi & belum pernah bayar.
+        $profile          = Profile::model(auth()->id());
+        $canApplyReferral = !$profile->referred_by && !$profile->ref_credited;
+
         // Ada QR pending yang masih berlaku? Langsung tampilkan lagi (tanpa charge baru).
         $pendingSub    = SubscriptionService::reusablePending(auth()->id());
         $pendingCharge = $pendingSub ? SubscriptionService::pendingChargeData($pendingSub) : null;
 
-        return view('pages.subscribe', compact('plans', 'pendingCharge', 'refDiscount'));
+        return view('pages.subscribe', compact('plans', 'pendingCharge', 'refDiscount', 'canApplyReferral'));
+    }
+
+    /** Terapkan kode referral manual (untuk user yang daftar tanpa link undangan). */
+    public function applyReferral(Request $request)
+    {
+        $userId = auth()->id();
+        $r = $request->validate(['code' => 'required|string|max:50']);
+        $profile = Profile::model($userId);
+
+        if ($profile->ref_credited) {
+            return back()->with('refError', __('Kamu sudah pernah membayar, kode referral tidak bisa dipakai lagi.'));
+        }
+        if ($profile->referred_by) {
+            return back()->with('refError', __('Kamu sudah memakai kode referral.'));
+        }
+
+        $code     = trim($r['code']);
+        $referrer = \App\Models\UserProfile::where('referral_code', $code)->first();
+        if (!$referrer) {
+            return back()->with('refError', __('Kode referral tidak ditemukan.'));
+        }
+        if ($referrer->user_id === $userId) {
+            return back()->with('refError', __('Tidak bisa memakai kode referralmu sendiri.'));
+        }
+
+        \App\Services\ReferralService::attachReferrer($userId, $code);
+
+        return back()->with('toast', __('Kode referral diterapkan! Diskon 10% untuk pembayaran pertama aktif.'));
     }
 
     /** Polled by the subscribe/langganan page to detect activation or renewal (e.g. after gateway webhook). */

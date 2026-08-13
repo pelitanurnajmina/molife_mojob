@@ -50,6 +50,10 @@ Route::get('/', function () {
 /* ── Blog (public, SEO) ── */
 Route::get('/blog',          [\App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}',   [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
+
+/* ── Halaman legal (publik) ── */
+Route::view('/syarat-ketentuan', 'pages.legal.terms')->name('terms');
+Route::view('/kebijakan-privasi', 'pages.legal.privacy')->name('privacy');
 Route::get('/sitemap.xml',   [\App\Http\Controllers\BlogController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', function () {
     $body = "User-agent: *\nAllow: /\n\nSitemap: " . route('sitemap') . "\n";
@@ -81,6 +85,7 @@ Route::middleware('auth.simple')->group(function () {
 // Subscription paywall + activation (auth + onboarded, but NOT behind the paywall itself)
 Route::middleware(['auth.simple', 'require.onboarding'])->group(function () {
     Route::get('/subscribe',            [SubscriptionController::class, 'page'])->name('subscribe');
+    Route::post('/subscribe/referral',  [SubscriptionController::class, 'applyReferral'])->name('subscribe.referral');
     Route::get('/subscription/status',  [SubscriptionController::class, 'status'])->name('subscription.status');
     Route::post('/subscription/charge', [SubscriptionController::class, 'charge'])->name('subscription.charge');
 });

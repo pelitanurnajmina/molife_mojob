@@ -50,8 +50,8 @@ class OnboardingController extends Controller
             Features::set($userId, $sport, in_array($sport, $sports));
         }
 
-        // Other opt-in features chosen in step 4
-        foreach (['tasks', 'pomodoro', 'mental', 'motivasi', 'finance', 'lamaran', 'intimasi', 'porn', 'sosmed'] as $feat) {
+        // Other opt-in features chosen in step 3 (daftar lengkap, sinkron dengan view onboarding)
+        foreach (SettingsController::ONBOARDING_FEATURES as $feat) {
             Features::set($userId, $feat, in_array($feat, $features));
         }
 

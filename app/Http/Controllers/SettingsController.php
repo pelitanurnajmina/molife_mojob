@@ -130,10 +130,13 @@ class SettingsController extends Controller
         $request->validate([
             'sports'            => 'nullable|array',
             'custom_sport_name' => 'nullable|string|max:50',
+            'features'          => 'nullable|array',
+            'features.*'        => 'string|max:30',
         ]);
 
-        $userId = auth()->id();
-        $sports = $request->sports ?? [];
+        $userId   = auth()->id();
+        $sports   = $request->sports ?? [];
+        $features = $request->features ?? [];
 
         // Molife is Islam-focused — keep religion fixed and the sholat tracker on.
         Profile::model($userId)->update([
@@ -147,8 +150,20 @@ class SettingsController extends Controller
             Features::set($userId, $sport, in_array($sport, $sports));
         }
 
+        // Fitur pilihan di step 3: aktif kalau dicentang user.
+        foreach (self::ONBOARDING_FEATURES as $feat) {
+            Features::set($userId, $feat, in_array($feat, $features));
+        }
+
         return back()->with('toast', __('Preferensi berhasil disimpan.'));
     }
+
+    /** Fitur yang bisa dipilih user di onboarding step 3 (selain olahraga & sholat). */
+    public const ONBOARDING_FEATURES = [
+        'timeblock', 'tasks', 'pomodoro', 'meditasi', 'mental', 'motivasi',
+        'journal', 'ide_script', 'links', 'goals', 'finance', 'lamaran', 'bisnis',
+        'intimasi', 'porn', 'sosmed',
+    ];
 
     public function updatePassword(Request $request)
     {
