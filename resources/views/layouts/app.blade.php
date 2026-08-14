@@ -441,7 +441,9 @@
     </aside>
 
     {{-- Main Content --}}
-    <main class="md:ml-64 flex-1 p-4 md:p-8 w-full">
+    {{-- min-w-0: cegah flex item melebar mengikuti konten (mis. teks panjang tanpa spasi)
+         yang bikin seluruh halaman scroll horizontal & elemen header ke-dorong keluar layar. --}}
+    <main class="md:ml-64 flex-1 min-w-0 p-4 md:p-8 w-full">
         <header class="flex justify-between items-center gap-3 mb-3 md:mb-4">
             <div class="flex items-center gap-2.5 min-w-0">
                 {{-- Hamburger (mobile) — far left --}}
