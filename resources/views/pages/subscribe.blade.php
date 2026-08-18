@@ -53,7 +53,7 @@
         @if($refDiscount)
         <div class="mt-5 rounded-2xl bg-green-50 border border-green-200 p-3.5 flex items-start gap-2.5">
             <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
-            <p class="text-[11px] text-green-800 leading-relaxed"><b>{{ __('Diskon referral 10% aktif!') }}</b> {{ __('Karena kamu daftar lewat undangan teman, pembayaran pertamamu otomatis lebih murah 10%.') }}</p>
+            <p class="text-[11px] text-green-800 leading-relaxed"><b>{{ __('Diskon :n% aktif!', ['n' => $discountPercent]) }}</b> {{ __('Karena kamu daftar lewat undangan/kode, pembayaran pertamamu otomatis lebih murah :n%.', ['n' => $discountPercent]) }}</p>
         </div>
         @endif
 
@@ -75,7 +75,7 @@
                 @if(session('refError'))
                 <p class="text-[11px] font-bold text-red-500 mt-2">{{ session('refError') }}</p>
                 @endif
-                <p class="text-[11px] text-gray-400 mt-2">{{ __('Dapat diskon 10% untuk pembayaran pertama jika pakai kode teman.') }}</p>
+                <p class="text-[11px] text-gray-400 mt-2">{{ __('Punya kode promo influencer atau kode teman? Masukkan untuk diskon pembayaran pertama.') }}</p>
             </div>
         </div>
         @endif
@@ -86,7 +86,7 @@
             {{-- Kunci array numerik di-cast PHP jadi int, samakan tipe dulu. --}}
             @php
                 $pop = (string) $key === '3';
-                $finalPrice = $refDiscount ? \App\Services\ReferralService::discountedPrice($p['price']) : $p['price'];
+                $finalPrice = $refDiscount ? \App\Services\ReferralService::discountedPrice($p['price'], auth()->id()) : $p['price'];
             @endphp
             <button type="button" id="card-{{ $key }}"
                 onclick="choosePlan('{{ $key }}', {{ $finalPrice }}, '{{ $p['label'] }}')"
@@ -198,7 +198,7 @@ const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 const PENDING    = @json($pendingCharge ?? null); // QR pending yang masih berlaku (dipakai ulang)
 
 /* ── Step 1: pilih paket dulu ── */
-let selectedPlan = { key: '3', price: {{ $refDiscount ? \App\Services\ReferralService::discountedPrice($plans['3']['price'] ?? 29000) : ($plans['3']['price'] ?? 29000) }}, label: '3 Bulan' };
+let selectedPlan = { key: '3', price: {{ $refDiscount ? \App\Services\ReferralService::discountedPrice($plans['3']['price'] ?? 29000, auth()->id()) : ($plans['3']['price'] ?? 29000) }}, label: '3 Bulan' };
 
 function toggleRef() {
     document.getElementById('refBox').classList.toggle('hidden');

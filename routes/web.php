@@ -332,3 +332,14 @@ Route::middleware(['auth.simple', 'require.onboarding', 'require.subscription'])
         Route::delete('/qa/{id}',              [PersiapanController::class, 'destroyQA'])->name('qa.destroy');
     });
 });
+
+// ── Super Admin (di luar paywall/onboarding, hanya untuk akun is_admin) ──
+Route::middleware(['auth.simple', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/',            [\App\Http\Controllers\Admin\AdminController::class, 'index'])->name('dashboard');
+    Route::get('/users',       [\App\Http\Controllers\Admin\AdminController::class, 'users'])->name('users');
+
+    Route::get('/influencers',            [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'index'])->name('influencers');
+    Route::post('/influencers',           [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'store'])->name('influencers.store');
+    Route::post('/influencers/{code}/toggle', [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'toggle'])->name('influencers.toggle');
+    Route::post('/grant',                 [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'grant'])->name('grant');
+});

@@ -24,8 +24,10 @@ class SubscriptionController extends Controller
         }
         $plans = SubscriptionService::PLANS;
 
-        // Diskon referral 10% pembayaran pertama untuk user bawaan referral.
-        $refDiscount = \App\Services\ReferralService::discountEligible(auth()->id());
+        // Diskon pembayaran pertama untuk user bawaan referral/promo. Persen bisa
+        // berbeda kalau user daftar lewat kode promo influencer.
+        $refDiscount     = \App\Services\ReferralService::discountEligible(auth()->id());
+        $discountPercent = \App\Services\ReferralService::discountPercent(auth()->id());
 
         // User bisa memasukkan kode referral manual jika belum teratribusi & belum pernah bayar.
         $profile          = Profile::model(auth()->id());
@@ -35,7 +37,7 @@ class SubscriptionController extends Controller
         $pendingSub    = SubscriptionService::reusablePending(auth()->id());
         $pendingCharge = $pendingSub ? SubscriptionService::pendingChargeData($pendingSub) : null;
 
-        return view('pages.subscribe', compact('plans', 'pendingCharge', 'refDiscount', 'canApplyReferral'));
+        return view('pages.subscribe', compact('plans', 'pendingCharge', 'refDiscount', 'discountPercent', 'canApplyReferral'));
     }
 
     /** Terapkan kode referral manual (untuk user yang daftar tanpa link undangan). */
@@ -52,18 +54,17 @@ class SubscriptionController extends Controller
             return back()->with('refError', __('Kamu sudah memakai kode referral.'));
         }
 
-        $code     = trim($r['code']);
-        $referrer = \App\Models\UserProfile::where('referral_code', $code)->first();
-        if (!$referrer) {
-            return back()->with('refError', __('Kode referral tidak ditemukan.'));
-        }
-        if ($referrer->user_id === $userId) {
-            return back()->with('refError', __('Tidak bisa memakai kode referralmu sendiri.'));
+        $code = trim($r['code']);
+
+        // Terima kode promo influencer ATAU kode referral personal.
+        $type = \App\Services\ReferralService::attachReferrer($userId, $code);
+
+        if ($type === null) {
+            return back()->with('refError', __('Kode tidak ditemukan atau tidak berlaku.'));
         }
 
-        \App\Services\ReferralService::attachReferrer($userId, $code);
-
-        return back()->with('toast', __('Kode referral diterapkan! Diskon 10% untuk pembayaran pertama aktif.'));
+        $percent = \App\Services\ReferralService::discountPercent($userId);
+        return back()->with('toast', __('Kode diterapkan! Diskon :n% untuk pembayaran pertama aktif.', ['n' => $percent]));
     }
 
     /** Polled by the subscribe/langganan page to detect activation or renewal (e.g. after gateway webhook). */
@@ -93,10 +94,10 @@ class SubscriptionController extends Controller
         $userId = auth()->id();
         $plan   = SubscriptionService::plan($request->plan);
 
-        // Diskon referral 10%: hanya untuk user bawaan referral yang belum pernah bayar.
+        // Diskon pembayaran pertama untuk user bawaan referral/promo yang belum pernah bayar.
         $price = (int) $plan['price'];
         if (\App\Services\ReferralService::discountEligible($userId)) {
-            $price = \App\Services\ReferralService::discountedPrice($price);
+            $price = \App\Services\ReferralService::discountedPrice($price, $userId);
         }
 
         // Pakai ulang QR pending paket yang sama selama masih berlaku — tanpa hit Midtrans.

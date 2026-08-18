@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=25">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=26">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -390,6 +390,13 @@
                 {{ request()->routeIs($homeNav['match']) ? 'text-black' : 'text-gray-400' }}">
                 <span class="text-[10px] uppercase font-bold tracking-widest">{{ $homeNav['label'] }}</span>
             </a>
+            @if(auth()->user()->is_admin)
+            <a href="{{ route('admin.dashboard') }}"
+                class="w-full flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg hover:bg-orange-50 transition-all text-orange-600">
+                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-[10px] uppercase font-bold tracking-widest">Admin Panel</span>
+            </a>
+            @endif
             <div class="sidebar-divider h-px bg-gray-100 my-1.5"></div>
 
             {{-- Collapsible sections --}}
@@ -636,6 +643,13 @@
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $homeNav['icon'] }}"/></svg>
                 <span class="text-sm font-bold">Home</span>
             </a>
+
+            @if(auth()->user()->is_admin)
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-orange-600 hover:bg-orange-50">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-sm font-bold">Admin Panel</span>
+            </a>
+            @endif
 
             @foreach($mobSections as [$secTitle, $secItems])
                 @php $visible = array_filter($secItems, fn($it) => !isset($it['feat']) || $_f($it['feat'])); @endphp

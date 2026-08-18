@@ -46,6 +46,40 @@ class SubscriptionService
         return $active !== null && in_array((string) $active->plan, self::PREMIUM_PLANS, true);
     }
 
+    /**
+     * Beri akses Pro GRATIS (comp) ke user — dipakai admin untuk influencer / hadiah.
+     * Memperpanjang dari tanggal habis aktif bila masih berlangganan, else mulai hari ini.
+     * Tercatat sebagai subscription harga 0 berstatus active (bukan lewat gateway).
+     */
+    public static function grantFree(int $userId, int $months, ?string $note = null): Subscription
+    {
+        $active = self::active($userId);
+        $start  = $active ? $active->ends_at->copy()->addDay() : now();
+        $end    = $start->copy()->addMonths($months);
+
+        // Simpan sebagai plan yang cocok bila bulannya standar (1/3/6/12), else '0'.
+        $planKey = array_key_exists((string) $months, self::PLANS) ? (string) $months : '0';
+
+        $sub = Subscription::create([
+            'user_id'   => $userId,
+            'plan'      => $planKey,
+            'months'    => $months,
+            'price'     => 0,
+            'status'    => 'active',
+            'ref'       => 'COMP-' . $userId . '-' . now()->format('YmdHis'),
+            'starts_at' => $start->toDateString(),
+            'ends_at'   => $end->toDateString(),
+            'paid_at'   => now(),
+        ]);
+
+        // Tandai profil sebagai pro (dipakai gating fitur di beberapa tempat).
+        $p = \App\Support\Profile::model($userId);
+        $p->plan = 'pro';
+        $p->save();
+
+        return $sub;
+    }
+
     /** Full subscription history, newest first. */
     public static function history(int $userId)
     {
