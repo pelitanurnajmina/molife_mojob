@@ -4,7 +4,7 @@
 @section('content')
 @php $rp = fn($n) => 'Rp ' . number_format((int)$n, 0, ',', '.'); @endphp
 
-<div class="max-w-6xl">
+<div class="w-full">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
         <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Pengguna</h1>
         <span class="text-sm text-gray-400">{{ number_format($users->total(),0,',','.') }} total</span>

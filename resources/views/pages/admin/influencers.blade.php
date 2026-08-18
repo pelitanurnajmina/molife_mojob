@@ -4,7 +4,7 @@
 @section('content')
 @php $rp = fn($n) => 'Rp ' . number_format((int)$n, 0, ',', '.'); @endphp
 
-<div class="max-w-6xl">
+<div class="w-full">
     <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-1">Influencer & Kode Promo</h1>
     <p class="text-gray-500 text-sm mb-6">Daftarkan influencer, beri akses gratis, dan buat kode promo dengan diskon audiens + komisi mereka.</p>
 

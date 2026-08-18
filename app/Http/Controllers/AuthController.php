@@ -31,6 +31,10 @@ class AuthController extends Controller
         // Always "remember" so users stay logged in across sessions (long-lived cookie).
         if (auth()->attempt([$field => $credentials['login'], 'password' => $credentials['password']], true)) {
             $request->session()->regenerate();
+            // Akun admin langsung ke panel admin (tak perlu onboarding/langganan).
+            if (auth()->user()->is_admin) {
+                return redirect()->intended(route('admin.dashboard'));
+            }
             return redirect()->intended(route('dashboard'));
         }
 

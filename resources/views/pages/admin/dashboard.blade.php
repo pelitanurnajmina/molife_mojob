@@ -6,7 +6,7 @@
     $rp = fn($n) => 'Rp ' . number_format((int)$n, 0, ',', '.');
 @endphp
 
-<div class="max-w-5xl">
+<div class="w-full">
     <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-1">Ringkasan</h1>
     <p class="text-gray-500 text-sm mb-6">Sekilas pertumbuhan & pendapatan Molife.</p>
 
