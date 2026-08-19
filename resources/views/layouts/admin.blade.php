@@ -81,5 +81,6 @@
     });
 </script>
 @yield('scripts')
+@include('partials.custom-select')
 </body>
 </html>
