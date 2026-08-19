@@ -102,15 +102,16 @@
     <div class="mt-4 flex items-center justify-between text-sm">
         <div class="text-gray-400">Hal. {{ $users->currentPage() }} / {{ $users->lastPage() }}</div>
         <div class="flex gap-2">
+            @php $arrowL = 'M10 19l-7-7m0 0l7-7m-7 7h18'; $arrowR = 'M14 5l7 7m0 0l-7 7m7-7H3'; @endphp
             @if($users->onFirstPage())
-                <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-300 font-semibold">← Sebelumnya</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-300 font-semibold"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $arrowL }}"/></svg>Sebelumnya</span>
             @else
-                <a href="{{ $users->previousPageUrl() }}" class="px-3 py-1.5 rounded-lg bg-white border border-gray-200 font-semibold hover:bg-gray-50">← Sebelumnya</a>
+                <a href="{{ $users->previousPageUrl() }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-gray-200 font-semibold hover:bg-gray-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $arrowL }}"/></svg>Sebelumnya</a>
             @endif
             @if($users->hasMorePages())
-                <a href="{{ $users->nextPageUrl() }}" class="px-3 py-1.5 rounded-lg bg-white border border-gray-200 font-semibold hover:bg-gray-50">Berikutnya →</a>
+                <a href="{{ $users->nextPageUrl() }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-gray-200 font-semibold hover:bg-gray-50">Berikutnya<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $arrowR }}"/></svg></a>
             @else
-                <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-300 font-semibold">Berikutnya →</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-300 font-semibold">Berikutnya<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $arrowR }}"/></svg></span>
             @endif
         </div>
     </div>

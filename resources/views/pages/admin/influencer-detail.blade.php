@@ -8,7 +8,10 @@
 @endphp
 
 <div class="w-full">
-    <a href="{{ route('admin.influencers') }}" class="text-sm font-semibold text-gray-400 hover:text-black">← Kembali ke daftar</a>
+    <a href="{{ route('admin.influencers') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-400 hover:text-black">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Kembali ke daftar
+    </a>
 
     {{-- Header --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-5 md:p-6 mt-3 mb-5">

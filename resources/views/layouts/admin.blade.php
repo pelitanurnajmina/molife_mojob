@@ -44,7 +44,10 @@
             <a href="{{ route('admin.influencers') }}" class="adm-link {{ $r==='admin.influencers'?'active':'' }} px-3 py-2.5 rounded-xl hover:bg-gray-100 transition">Influencer & Promo</a>
         </nav>
         <div class="mt-auto flex flex-col gap-1 text-sm font-semibold pt-4 border-t border-gray-100">
-            <a href="{{ route('dashboard') }}" class="px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-100 transition">← Ke aplikasi</a>
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-100 transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Ke aplikasi
+            </a>
             <form method="POST" action="{{ route('logout') }}">@csrf
                 <button class="w-full text-left px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition">Keluar</button>
             </form>
@@ -74,11 +77,46 @@
     <script>setTimeout(()=>document.getElementById('toast')?.remove(), 4000);</script>
 @endif
 
+{{-- Modal konfirmasi bergaya Molife (menggantikan confirm() bawaan browser) --}}
+<div id="admConfirm" class="fixed inset-0 hidden items-center justify-center p-4" style="z-index:100">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="admCloseConfirm()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <div class="w-11 h-11 mx-auto mb-3 rounded-full bg-orange-50 flex items-center justify-center">
+            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        </div>
+        <p id="admConfirmMsg" class="text-center text-sm text-gray-600 mb-6 leading-relaxed font-semibold"></p>
+        <div class="flex gap-3">
+            <button type="button" onclick="admCloseConfirm()" class="flex-1 py-3 bg-gray-100 rounded-2xl font-bold text-sm hover:bg-gray-200 transition">Batal</button>
+            <button type="button" id="admConfirmOk" class="flex-1 py-3 bg-black text-white rounded-2xl font-bold text-sm hover:bg-gray-800 transition">Ya, lanjut</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // CSRF for POST forms already via @csrf; small helper for confirm-toggles.
-    document.querySelectorAll('[data-confirm]').forEach(f => {
-        f.addEventListener('submit', e => { if(!confirm(f.dataset.confirm)) e.preventDefault(); });
-    });
+    // Konfirmasi bergaya kita untuk form yang punya data-confirm.
+    (function () {
+        var pending = null;
+        var modal = document.getElementById('admConfirm');
+        var msgEl = document.getElementById('admConfirmMsg');
+
+        window.admCloseConfirm = function () {
+            modal.classList.add('hidden'); modal.classList.remove('flex'); pending = null;
+        };
+
+        document.querySelectorAll('form[data-confirm]').forEach(function (f) {
+            f.addEventListener('submit', function (e) {
+                e.preventDefault();
+                pending = f;
+                msgEl.textContent = f.dataset.confirm;
+                modal.classList.remove('hidden'); modal.classList.add('flex');
+            });
+        });
+
+        document.getElementById('admConfirmOk').addEventListener('click', function () {
+            if (pending) { var f = pending; pending = null; f.submit(); } // .submit() lewati listener → langsung kirim
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') window.admCloseConfirm(); });
+    })();
 </script>
 @yield('scripts')
 @include('partials.custom-select')
