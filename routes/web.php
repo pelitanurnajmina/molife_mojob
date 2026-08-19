@@ -339,6 +339,7 @@ Route::middleware(['auth.simple', 'admin'])->prefix('admin')->name('admin.')->gr
     Route::get('/users',       [\App\Http\Controllers\Admin\AdminController::class, 'users'])->name('users');
 
     Route::get('/influencers',            [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'index'])->name('influencers');
+    Route::get('/influencers/{code}',     [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'show'])->name('influencers.show');
     Route::post('/influencers',           [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'store'])->name('influencers.store');
     Route::post('/influencers/{code}/toggle', [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'toggle'])->name('influencers.toggle');
     Route::post('/grant',                 [\App\Http\Controllers\Admin\AdminInfluencerController::class, 'grant'])->name('grant');

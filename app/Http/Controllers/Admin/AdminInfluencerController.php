@@ -108,6 +108,59 @@ class AdminInfluencerController extends Controller
         return back()->with('toast', $msg . ' ' . __('Akun sudah ada sebelumnya.'));
     }
 
+    /** Detail satu influencer/kode: penghasilan + daftar audiens yang pakai kodenya. */
+    public function show(PromoCode $code)
+    {
+        $owner        = $code->owner;
+        $ownerProfile = Profile::model($code->owner_user_id);
+
+        // Riwayat pencairan influencer.
+        $payouts       = \App\Models\ReferralPayout::where('user_id', $code->owner_user_id)->latest()->get();
+        $pendingPayout = (int) $payouts->where('status', 'pending')->sum('amount');
+        $paidPayout    = (int) $payouts->where('status', 'paid')->sum('amount');
+
+        // Audiens yang daftar pakai kode ini.
+        $audProfiles = \App\Models\UserProfile::where('promo_code_id', $code->id)->get();
+        $audIds      = $audProfiles->pluck('user_id')->all();
+        $audUsers    = User::whereIn('id', $audIds)->get()->keyBy('id');
+        $paidSubs    = Subscription::whereIn('user_id', $audIds)
+            ->whereNotNull('paid_at')->where('price', '>', 0)
+            ->orderBy('paid_at')->get()->groupBy('user_id');
+
+        $rows = $audProfiles->map(function ($p) use ($audUsers, $paidSubs, $code) {
+            $u          = $audUsers->get($p->user_id);
+            $subs       = $paidSubs->get($p->user_id);
+            $first      = $subs ? $subs->first() : null;
+            $paidAmount = $first ? (int) $first->price : 0;
+            $totalPaid  = $subs ? (int) $subs->sum('price') : 0;
+            // Komisi = pembayaran pertama x rate kode (hanya bila sudah dikreditkan).
+            $commission = ($first && $p->ref_credited) ? (int) round($paidAmount * $code->commission_percent / 100) : 0;
+
+            return [
+                'name'        => $p->display_name ?: ($u->username ?? $u->name ?? '—'),
+                'email'       => $u->email ?? '—',
+                'joined'      => $u && $u->created_at ? $u->created_at->format('Y-m-d') : '—',
+                'paid'        => (bool) $first,
+                'paid_at'     => $first && $first->paid_at ? $first->paid_at->format('Y-m-d') : null,
+                'paid_amount' => $paidAmount,
+                'total_paid'  => $totalPaid,
+                'commission'  => $commission,
+            ];
+        })->sortByDesc('paid')->values();
+
+        $stats = [
+            'balance'      => (int) $ownerProfile->ref_earnings,
+            'pending'      => $pendingPayout,
+            'paid_out'     => $paidPayout,
+            'total_comm'   => (int) $rows->sum('commission'),
+            'revenue'      => (int) $rows->sum('total_paid'),
+            'signups'      => $audProfiles->count(),
+            'payers'       => $rows->where('paid', true)->count(),
+        ];
+
+        return view('pages.admin.influencer-detail', compact('code', 'owner', 'rows', 'stats'));
+    }
+
     /** Aktif/nonaktifkan kode promo. */
     public function toggle(PromoCode $code)
     {

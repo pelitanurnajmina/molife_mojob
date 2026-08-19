@@ -108,19 +108,22 @@
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-mono font-bold text-base">{{ $c['code'] }}</span>
+                                    <a href="{{ route('admin.influencers.show', $c['id']) }}" class="font-mono font-bold text-base hover:underline">{{ $c['code'] }}</a>
                                     @if(!$c['active'])<span class="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">NONAKTIF</span>@endif
                                 </div>
                                 <div class="text-sm text-gray-500 truncate">{{ $c['owner_name'] }} · {{ $c['owner_email'] }}</div>
                                 @if($c['label'])<div class="text-xs text-gray-400 mt-0.5">{{ $c['label'] }}</div>@endif
                             </div>
-                            <form method="POST" action="{{ route('admin.influencers.toggle', $c['id']) }}"
-                                  data-confirm="{{ $c['active'] ? 'Nonaktifkan kode ini?' : 'Aktifkan lagi kode ini?' }}">
-                                @csrf
-                                <button class="text-xs font-semibold px-3 py-1.5 rounded-lg {{ $c['active'] ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100' }}">
-                                    {{ $c['active'] ? 'Nonaktifkan' : 'Aktifkan' }}
-                                </button>
-                            </form>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <a href="{{ route('admin.influencers.show', $c['id']) }}" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">Detail</a>
+                                <form method="POST" action="{{ route('admin.influencers.toggle', $c['id']) }}"
+                                      data-confirm="{{ $c['active'] ? 'Nonaktifkan kode ini?' : 'Aktifkan lagi kode ini?' }}">
+                                    @csrf
+                                    <button class="text-xs font-semibold px-3 py-1.5 rounded-lg {{ $c['active'] ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100' }}">
+                                        {{ $c['active'] ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-center">
                             <div class="bg-gray-50 rounded-xl py-2">
