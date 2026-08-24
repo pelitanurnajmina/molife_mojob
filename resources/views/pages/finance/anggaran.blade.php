@@ -31,13 +31,23 @@
     <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8">
         <div class="flex items-center justify-between mb-5">
             <h3 class="font-bold">{{ __('Atur Anggaran') }}</h3>
-            <form method="GET" action="{{ route('finance.anggaran') }}" style="display:inline-flex">
-                <div class="relative">
-                    <input type="month" name="month" value="{{ $monthKey }}" max="{{ date('Y-m') }}"
-                        onchange="this.form.submit()"
-                        class="px-3 py-2 pr-9 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:border-black transition-all">
-                    <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </div>
+            @php
+                // Dropdown bulan (24 bulan terakhir s/d bulan ini) — pakai custom-select app
+                // biar seragam dengan bagian lain, bukan pemilih bawaan browser.
+                $monthOpts = [];
+                $cur = \Carbon\Carbon::now()->startOfMonth();
+                for ($i = 0; $i < 24; $i++) {
+                    $monthOpts[$cur->format('Y-m')] = $cur->translatedFormat('F Y');
+                    $cur->subMonth();
+                }
+            @endphp
+            <form method="GET" action="{{ route('finance.anggaran') }}" class="w-44">
+                <select name="month" onchange="this.form.submit()"
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:border-black transition-all">
+                    @foreach($monthOpts as $val => $label)
+                        <option value="{{ $val }}" @selected($val === $monthKey)>{{ $label }}</option>
+                    @endforeach
+                </select>
             </form>
         </div>
 
