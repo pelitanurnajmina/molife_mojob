@@ -116,11 +116,12 @@
                         <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Prioritas') }}</th>
                         <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Assign') }}</th>
                         <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Tenggat') }}</th>
+                        <th class="w-10 px-4 py-3"><span class="sr-only">{{ __('Ubah') }}</span></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @forelse($allTasks as $t)
-                    <tr onclick='openTaskModal(@json($t))' class="hover:bg-gray-50/70 cursor-pointer align-top">
+                    <tr onclick='openTaskModal(@json($t))' class="group hover:bg-gray-50/70 cursor-pointer align-top">
                         <td class="px-4 py-3">
                             <p class="font-bold text-gray-800 leading-snug">{{ $t['title'] }}</p>
                             @if($t['note'])<p class="text-[11px] text-gray-400 mt-0.5 leading-relaxed line-clamp-1">{{ $t['note'] }}</p>@endif
@@ -156,9 +157,15 @@
                             <span class="text-gray-300">—</span>
                             @endif
                         </td>
+                        <td class="px-4 py-3 text-right">
+                            <span title="{{ __('Ubah') }}"
+                                class="inline-flex w-7 h-7 items-center justify-center rounded-lg text-gray-300 group-hover:text-gray-600 group-hover:bg-gray-100 transition-all">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </span>
+                        </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400 text-sm">{{ __('Belum ada tugas.') }}</td></tr>
+                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 text-sm">{{ __('Belum ada tugas.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
