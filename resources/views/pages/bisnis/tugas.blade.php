@@ -11,11 +11,26 @@
             <h3 class="font-bold">{{ __('Papan Tugas Semua Bisnis') }}</h3>
             <p class="text-xs text-gray-400 mt-0.5">{{ __('Satu pandangan untuk tugas dari semua proyekmu, plus tugas umum di luar proyek. Seret kartu untuk mengubah status.') }}</p>
         </div>
-        <button type="button" onclick="openTaskModal()"
-            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all flex-shrink-0">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-            {{ __('Buat Tugas') }}
-        </button>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            {{-- Toggle tampilan: Kartu (kanban) / Tabel --}}
+            <div class="inline-flex items-center bg-gray-100 rounded-xl p-0.5">
+                <button type="button" data-view-btn="card" onclick="setTaskView('card')"
+                    class="tv-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h6v6H4zM14 5h6v6h-6zM4 13h6v6H4zM14 13h6v6h-6z"/></svg>
+                    {{ __('Kartu') }}
+                </button>
+                <button type="button" data-view-btn="table" onclick="setTaskView('table')"
+                    class="tv-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    {{ __('Tabel') }}
+                </button>
+            </div>
+            <button type="button" onclick="openTaskModal()"
+                class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-gray-800 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                {{ __('Buat Tugas') }}
+            </button>
+        </div>
     </div>
 
     @php
@@ -26,7 +41,7 @@
             'done'     => ['label' => __('Selesai'),    'dot' => 'bg-emerald-500'],
         ];
     @endphp
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+    <div id="view-card" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         @foreach($taskCols as $st => $meta)
         <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100 transition-all"
              ondragover="taskDragOver(event, this)"
@@ -78,6 +93,76 @@
             </button>
         </div>
         @endforeach
+    </div>
+
+    {{-- ── View: Tabel ── --}}
+    @php
+        // Ratakan semua tugas jadi satu daftar, urut sesuai kolom (todo→done).
+        $allTasks = [];
+        foreach ($taskCols as $st => $meta) {
+            foreach ($tasks[$st] ?? [] as $t) {
+                $allTasks[] = $t + ['_status' => $st, '_statusLabel' => $meta['label'], '_dot' => $meta['dot']];
+            }
+        }
+    @endphp
+    <div id="view-table" class="hidden bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-400 text-[11px] uppercase tracking-wide">
+                    <tr>
+                        <th class="text-left font-bold px-4 py-3">{{ __('Tugas') }}</th>
+                        <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Proyek') }}</th>
+                        <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Status') }}</th>
+                        <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Prioritas') }}</th>
+                        <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Assign') }}</th>
+                        <th class="text-left font-bold px-4 py-3 whitespace-nowrap">{{ __('Tenggat') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($allTasks as $t)
+                    <tr onclick='openTaskModal(@json($t))' class="hover:bg-gray-50/70 cursor-pointer align-top">
+                        <td class="px-4 py-3">
+                            <p class="font-bold text-gray-800 leading-snug">{{ $t['title'] }}</p>
+                            @if($t['note'])<p class="text-[11px] text-gray-400 mt-0.5 leading-relaxed line-clamp-1">{{ $t['note'] }}</p>@endif
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $t['project'] ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500' }}">{{ $t['project'] ?? __('Umum') }}</span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600">
+                                <span class="w-2 h-2 rounded-full {{ $t['_dot'] }}"></span>{{ $t['_statusLabel'] }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            @include('pages.bisnis.collab._priority_chip', ['p' => $t['priority']])
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            @if($t['assignee'])
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-gray-900 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">{{ strtoupper(substr($t['assignee'], 0, 1)) }}</span>
+                                <span class="text-xs font-bold text-gray-600">{{ $t['assignee'] }}</span>
+                            </span>
+                            @else
+                            <span class="text-[11px] font-bold text-gray-300">{{ __('Belum di-assign') }}</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            @if($t['due_label'])
+                            <span class="text-[11px] font-bold inline-flex items-center gap-1 {{ $t['overdue'] ? 'text-red-500' : 'text-gray-500' }}">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                {{ $t['due_label'] }}
+                            </span>
+                            @else
+                            <span class="text-gray-300">—</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400 text-sm">{{ __('Belum ada tugas.') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </div>
@@ -271,5 +356,24 @@ function openTaskModal(t, presetStatus){
 
     openModal('modal-task');
 }
+
+/* ── Toggle tampilan Kartu / Tabel ── */
+function setTaskView(v){
+    document.getElementById('view-card').classList.toggle('hidden', v !== 'card');
+    document.getElementById('view-table').classList.toggle('hidden', v !== 'table');
+    document.querySelectorAll('.tv-btn').forEach(function(b){
+        var active = b.dataset.viewBtn === v;
+        b.classList.toggle('bg-white', active);
+        b.classList.toggle('shadow-sm', active);
+        b.classList.toggle('text-black', active);
+        b.classList.toggle('text-gray-500', !active);
+    });
+    try { localStorage.setItem('bisnisTugasView', v); } catch(e) {}
+}
+(function(){
+    var v = 'card';
+    try { v = localStorage.getItem('bisnisTugasView') || 'card'; } catch(e) {}
+    setTaskView(v);
+})();
 </script>
 @endpush
