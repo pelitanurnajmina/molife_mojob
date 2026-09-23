@@ -1318,5 +1318,10 @@ function doConfirm() {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeConfirm(); });
 </script>
+
+{{-- Animasi isi-otomatis KHUSUS akun peraga/marketing. User biasa tidak memuat ini. --}}
+@if(auth()->check() && auth()->user()->is_showcase)
+    @include('partials.showcase-mode')
+@endif
 </body>
 </html>
