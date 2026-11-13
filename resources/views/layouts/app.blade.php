@@ -6,9 +6,6 @@
     @include('partials.pwa-head')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Molife — @yield('title', 'Dashboard')</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/icon.png') }}?v=2">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/icon.png') }}?v=2">
-    <link rel="shortcut icon" href="{{ asset('images/icon.png') }}?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
