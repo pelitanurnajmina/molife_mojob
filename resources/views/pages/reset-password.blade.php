@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{-- URL halaman ini memuat token reset DAN alamat email
+         (/reset-password/{token}?email=...). Karena itu:
+         1. Meta Pixel sengaja TIDAK dimuat di sini.
+         2. no-referrer mencegah URL ini bocor sebagai referrer ke halaman
+            berikutnya, termasuk /login yang memuat pixel. --}}
+    <meta name="referrer" content="no-referrer">
     @include('partials.pwa-head')
     <title>Molife — {{ __('Password Baru') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=25">
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style>
-    @include('partials.meta-pixel')
 </head>
 <body class="min-h-screen bg-white">
 <div class="min-h-screen flex">

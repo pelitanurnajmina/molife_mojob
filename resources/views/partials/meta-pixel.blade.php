@@ -11,6 +11,25 @@
     seksual pengguna, yang dilarang Ketentuan Meta Business Tools sekaligus
     bertentangan dengan janji di Kebijakan Privasi Molife.
 --}}
+@php
+    /**
+     * Pengaman URL.
+     *
+     * Meta Pixel SELALU mengirim URL halaman lengkap (parameter dl) beserta
+     * referrer (rl) pada setiap event. Jadi memasang pixel di halaman yang
+     * URL-nya memuat token atau email sama saja dengan mengirimkan rahasia
+     * itu ke Meta.
+     *
+     * Partial ini menolak memuat pixel bila jalur atau query terlihat
+     * membawa data rahasia, supaya halaman baru yang dibuat kemudian tidak
+     * bisa membocorkannya tanpa sengaja. Kode referral (?ref=) sengaja
+     * TIDAK diblokir karena bukan data pribadi.
+     */
+    $mlPath = '/' . trim(request()->path(), '/') . '/';
+    $mlPixelAllowed = ! preg_match('#/(reset-password|forgot-password/[^/]|verify|verifikasi|terima|invite|undangan)/#i', $mlPath)
+        && ! request()->hasAny(['token', 'email', 'password', 'signature', 'api_token', 'remember_token']);
+@endphp
+@if($mlPixelAllowed)
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -53,9 +72,10 @@ window.mlFbTrack = function (name, params, dedupKey) {
      dan tetap selamat walau sempat melewati beberapa redirect. --}}
 @php($mlFbEvent = session()->pull('fb_event'))
 @if($mlFbEvent)
-<script>window.mlFbTrack(@json($mlFbEvent), {}, @json('srv_' . $mlFbEvent . '_' . substr(md5(session()->getId()), 0, 12)));</script>
+<script>window.mlFbTrack && window.mlFbTrack(@json($mlFbEvent), {}, @json('srv_' . $mlFbEvent . '_' . substr(md5(session()->getId()), 0, 12)));</script>
 @endif
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=979836518073745&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
+@endif
