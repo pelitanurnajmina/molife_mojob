@@ -286,9 +286,20 @@ async function createCharge() {
             return;
         }
         renderPayment(d);
+        trackCheckoutStart(d);
     } catch (e) {
         if (seq === chargeSeq) showChargeError('{{ __('Gagal terhubung. Periksa koneksi lalu coba lagi.') }}');
     }
+}
+
+/* Meta Pixel: checkout dimulai (tagihan QRIS berhasil dibuat).
+   Dikunci per nomor pesanan, jadi klik ulang atau reload tidak menggandakan. */
+function trackCheckoutStart(d) {
+    if (!d || !d.order_id || !window.mlFbTrack) return;
+    window.mlFbTrack('InitiateCheckout', {
+        value: Number(d.amount) || 0,
+        currency: 'IDR',
+    }, 'checkout_' + d.order_id);
 }
 
 function showChargeError(msg) {
@@ -305,6 +316,7 @@ if (PENDING && PENDING.qr_url) {
     document.getElementById('stepPlans').classList.add('hidden');
     document.getElementById('stepPay').classList.remove('hidden');
     renderPayment(PENDING);
+    trackCheckoutStart(PENDING); // pesanan sama → terkunci, tidak dobel
 }
 
 /* ── Deteksi otomatis pembayaran lunas (via webhook Midtrans) ── */
@@ -313,7 +325,27 @@ window.__subPoll = setInterval(async () => {
     try {
         const r = await fetch(STATUS_URL, { headers: { 'Accept': 'application/json' } });
         const d = await r.json();
-        if (d.active) window.location.href = '{{ route('dashboard') }}';
+        if (!d.active) return;
+
+        // Hentikan polling dulu supaya tidak ada pengalihan ganda.
+        clearInterval(window.__subPoll);
+
+        // Meta Pixel: pembelian. Nominal & nomor pesanan berasal dari server
+        // dan hanya terisi setelah webhook menandai pembayaran lunas, jadi
+        // event ini tidak pernah mendahului konfirmasi backend.
+        let sent = false;
+        if (d.order_id && d.amount && window.mlFbTrack) {
+            sent = window.mlFbTrack('Purchase', {
+                value: Number(d.amount) || 0,
+                currency: 'IDR',
+            }, 'purchase_' + d.order_id);
+        }
+
+        // Jeda singkat hanya bila event baru dikirim, agar sempat terkirim
+        // sebelum halaman berpindah. Tujuan akhirnya tetap sama.
+        setTimeout(function () {
+            window.location.href = '{{ route('dashboard') }}';
+        }, sent ? 600 : 0);
     } catch (e) {}
 }, 5000);
 </script>

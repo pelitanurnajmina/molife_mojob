@@ -79,6 +79,12 @@ class AuthController extends Controller
         // Daftar lewat link referral? Catat pengundangnya (komisi cair saat dia bayar pertama).
         \App\Services\ReferralService::attachReferrer($user->id, $request->input('ref'));
 
+        // Meta Pixel: registrasi berhasil. Dititipkan di session (bukan flash)
+        // karena user masih melewati redirect dashboard → onboarding sebelum
+        // sampai di halaman yang memuat pixel. Partial pixel akan mengambil
+        // sekaligus menghapusnya, jadi terkirim tepat sekali.
+        session(['fb_event' => 'CompleteRegistration']);
+
         // New user → middleware mengarahkan ke /onboarding lalu paywall langganan.
         return redirect()->route('dashboard');
     }
@@ -135,6 +141,10 @@ class AuthController extends Controller
             // Hanya AKUN BARU yang diatribusikan ke pengundang (user lama yang
             // sekadar login Google tidak boleh tersenggol referral nyasar).
             \App\Services\ReferralService::attachReferrer($user->id, session('google_ref'));
+
+            // Meta Pixel: hitung sebagai registrasi hanya saat akun benar-benar
+            // baru dibuat; login Google akun lama tidak mengirim event apa pun.
+            session(['fb_event' => 'CompleteRegistration']);
         }
 
         session()->forget('google_ref');

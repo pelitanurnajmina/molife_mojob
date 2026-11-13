@@ -71,9 +71,17 @@ class SubscriptionController extends Controller
     public function status()
     {
         $active = SubscriptionService::active(auth()->id());
+
+        // Data pesanan dikirim HANYA untuk langganan berbayar yang sudah lunas
+        // (paid_at terisi oleh webhook). Akses gratis dari admin (harga 0)
+        // sengaja tidak dilaporkan supaya tidak terhitung sebagai pembelian.
+        $paid = $active && (int) $active->price > 0 && $active->paid_at !== null;
+
         return response()->json([
-            'active'  => $active !== null,
-            'ends_at' => $active?->ends_at->toDateString(),
+            'active'   => $active !== null,
+            'ends_at'  => $active?->ends_at->toDateString(),
+            'order_id' => $paid ? $active->ref : null,
+            'amount'   => $paid ? (int) $active->price : null,
         ]);
     }
 
