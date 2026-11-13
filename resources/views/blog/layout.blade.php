@@ -99,6 +99,7 @@
         @media(max-width:700px){.related-grid{grid-template-columns:1fr}}
     </style>
     @endverbatim
+    @include('partials.meta-pixel')
 </head>
 <body>
 

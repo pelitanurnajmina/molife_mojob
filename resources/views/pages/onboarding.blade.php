@@ -28,6 +28,7 @@
         @keyframes slideIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
         .step-panel.active { animation: slideIn .3s ease; }
     </style>
+    @include('partials.meta-pixel')
 </head>
 <body class="min-h-screen bg-[#F8F9FA] flex flex-col items-center justify-center p-4">
 
