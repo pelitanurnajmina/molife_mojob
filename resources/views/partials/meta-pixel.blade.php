@@ -26,7 +26,29 @@
      * TIDAK diblokir karena bukan data pribadi.
      */
     $mlPath = '/' . trim(request()->path(), '/') . '/';
-    $mlPixelAllowed = ! preg_match('#/(reset-password|forgot-password/[^/]|verify|verifikasi|terima|invite|undangan)/#i', $mlPath)
+
+    /**
+     * Pengaman lingkungan.
+     *
+     * Pixel memakai ID dataset yang sama di mana pun ia dimuat, jadi membuka
+     * halaman di XAMPP saat mengembangkan fitur akan terkirim ke Meta sebagai
+     * kunjungan sungguhan. Event palsu itu ikut dipakai Meta untuk belajar
+     * mengenali calon pelanggan, padahal tidak ada orang di baliknya.
+     *
+     * Sengaja memeriksa NAMA HOST, bukan APP_ENV. Kalau suatu saat APP_ENV di
+     * server salah terisi, pemeriksaan APP_ENV akan mematikan pixel di situs
+     * sungguhan tanpa ada tanda apa pun, dan iklan berjalan tanpa data. Dengan
+     * daftar host pengembangan, kesalahan paling buruk hanya membuat pixel
+     * tetap menyala di tempat yang memang seharusnya menyala.
+     */
+    $mlHost    = strtolower(request()->getHost());
+    $mlIsLocal = in_array($mlHost, ['localhost', '127.0.0.1', '::1', '0.0.0.0'], true)
+        || str_ends_with($mlHost, '.localhost')
+        || str_ends_with($mlHost, '.test')
+        || str_ends_with($mlHost, '.local');
+
+    $mlPixelAllowed = ! $mlIsLocal
+        && ! preg_match('#/(reset-password|forgot-password/[^/]|verify|verifikasi|terima|invite|undangan)/#i', $mlPath)
         && ! request()->hasAny(['token', 'email', 'password', 'signature', 'api_token', 'remember_token']);
 @endphp
 @if($mlPixelAllowed)
