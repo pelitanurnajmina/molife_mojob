@@ -320,14 +320,18 @@ if (PENDING && PENDING.qr_url) {
 }
 
 /* ── Deteksi otomatis pembayaran lunas (via webhook Midtrans) ── */
-if (window.__subPoll) clearInterval(window.__subPoll);
-window.__subPoll = setInterval(async () => {
+let subChecking = false, subDone = false;
+
+async function checkSubscriptionStatus() {
+    if (subChecking || subDone) return;
+    subChecking = true;
     try {
         const r = await fetch(STATUS_URL, { headers: { 'Accept': 'application/json' } });
         const d = await r.json();
         if (!d.active) return;
 
-        // Hentikan polling dulu supaya tidak ada pengalihan ganda.
+        // Tandai selesai & hentikan polling supaya tidak ada pengalihan ganda.
+        subDone = true;
         clearInterval(window.__subPoll);
 
         // Meta Pixel: pembelian. Nominal & nomor pesanan berasal dari server
@@ -346,8 +350,27 @@ window.__subPoll = setInterval(async () => {
         setTimeout(function () {
             window.location.href = '{{ route('dashboard') }}';
         }, sent ? 600 : 0);
-    } catch (e) {}
-}, 5000);
+    } catch (e) {
+        // Abaikan; percobaan berikutnya yang menangani.
+    } finally {
+        subChecking = false;
+    }
+}
+
+if (window.__subPoll) clearInterval(window.__subPoll);
+window.__subPoll = setInterval(checkSubscriptionStatus, 5000);
+
+/* Pembayaran QRIS hampir selalu membuat pengguna pindah ke aplikasi m-banking.
+   Saat tab berada di latar belakang, browser HP memperlambat atau menghentikan
+   setInterval, sehingga pembayaran yang sudah lunas bisa terlambat terdeteksi.
+   Karena itu begitu pengguna KEMBALI ke halaman ini, status langsung diperiksa
+   saat itu juga. pageshow ikut dipasang untuk kasus halaman dipulihkan dari
+   cache browser saat menekan tombol kembali. */
+document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) checkSubscriptionStatus();
+});
+window.addEventListener('focus', checkSubscriptionStatus);
+window.addEventListener('pageshow', checkSubscriptionStatus);
 </script>
 </body>
 </html>
