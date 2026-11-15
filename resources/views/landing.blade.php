@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{{-- Verifikasi kepemilikan domain molife.space untuk Meta Business.
+     Harus tetap berada di dalam <head> halaman utama dan tidak boleh dihapus,
+     karena Meta sesekali memeriksa ulang. Tidak memengaruhi tampilan. --}}
+<meta name="facebook-domain-verification" content="g1iuxuqsldo1i4nocxjagkxfbiiqij" />
     @include('partials.pwa-head')
 <title>molife · Satu aplikasi. Seluruh kehidupanmu.</title>
 <meta name="description" content="Sholat, olahraga, mood, tugas, karier, dan keuangan dalam satu dasbor yang tenang. molife merangkum seluruh hidupmu jadi satu Life Score yang jujur." />
