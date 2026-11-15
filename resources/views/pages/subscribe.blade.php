@@ -8,12 +8,16 @@
     <title>Molife — {{ __('Aktifkan Langganan') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=25">
-    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style>
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } @view-transition { navigation: auto; } ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
+    /* Paket terpilih. Pakai !important supaya tidak kalah oleh hover:border-gray-300,
+       yang dulu membuat garis hitam hilang saat kursor masih di atas kartu. */
+    .plan-card.is-selected { border-color: #111827 !important; }</style>
     @include('partials.meta-pixel')
 </head>
 @php
     $rp = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
-    $perMonth = ['1'=>'± Rp 11.000/bln','3'=>'± Rp 9.700/bln','6'=>'± Rp 8.200/bln','12'=>'± Rp 7.400/bln'];
+    // Nominal per bulan dipisah dari satuannya supaya satuan bisa diterjemahkan.
+    $perMonth = ['1'=>11000,'3'=>9700,'6'=>8200,'12'=>7400];
     $badge    = ['3'=>'Paling Populer','6'=>'Hemat 26%','12'=>'Hemat 33%'];
 @endphp
 <body class="min-h-screen bg-gradient-to-br from-[#f4f1fb] via-[#fbf4f8] to-[#f0f5fc] flex items-center justify-center p-4">
@@ -89,19 +93,19 @@
                 $finalPrice = $refDiscount ? \App\Services\ReferralService::discountedPrice($p['price'], auth()->id()) : $p['price'];
             @endphp
             <button type="button" id="card-{{ $key }}"
-                onclick="choosePlan('{{ $key }}', {{ $finalPrice }}, '{{ $p['label'] }}')"
-                class="plan-card relative text-left p-3.5 rounded-2xl border-2 transition-all {{ $pop ? 'border-gray-900' : 'border-gray-100 hover:border-gray-300' }}">
+                onclick="choosePlan('{{ $key }}', {{ $finalPrice }}, '{{ __($p['label']) }}')"
+                class="plan-card relative text-left p-3.5 rounded-2xl border-2 transition-all border-gray-100 hover:border-gray-300 {{ $pop ? 'is-selected' : '' }}">
                 @if(!empty($badge[$key]))
-                <span class="absolute -top-2.5 left-3 whitespace-nowrap text-[8px] font-bold bg-gray-900 text-white px-2 py-0.5 rounded-full">{{ $badge[$key] }}</span>
+                <span class="absolute -top-2.5 left-3 whitespace-nowrap text-[8px] font-bold bg-gray-900 text-white px-2 py-0.5 rounded-full">{{ __($badge[$key]) }}</span>
                 @endif
-                <p class="text-[11px] font-bold text-gray-500">{{ $p['label'] }}</p>
+                <p class="text-[11px] font-bold text-gray-500">{{ __($p['label']) }}</p>
                 @if($refDiscount)
                 <p class="text-[10px] text-gray-400 line-through mt-2">{{ $rp($p['price']) }}</p>
                 <p class="text-lg font-black text-green-600 leading-tight">{{ $rp($finalPrice) }}</p>
                 @else
                 <p class="text-lg font-black text-gray-900 leading-tight mt-2">{{ $rp($p['price']) }}</p>
                 @endif
-                <p class="text-[10px] text-gray-400 mt-1">{{ $perMonth[$key] ?? '' }}</p>
+                <p class="text-[10px] text-gray-400 mt-1">@isset($perMonth[$key])± {{ $rp($perMonth[$key]) }}/{{ __('bln') }}@endisset</p>
                 @if(in_array((string) $key, \App\Services\SubscriptionService::PREMIUM_PLANS, true))
                 <p class="text-[9px] font-bold text-violet-600 mt-1">+ {{ __('Fitur AI') }}</p>
                 @endif
@@ -112,7 +116,7 @@
         {{-- CTA langsung setelah pilih paket → selalu terlihat, tak perlu scroll jauh --}}
         <button type="button" id="btnConfirm" onclick="goToPayment()"
             class="w-full mt-6 py-3.5 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-all">
-            {{ __('Lanjut ke Pembayaran') }} · <span id="confirmLabel">3 Bulan</span>
+            {{ __('Lanjut ke Pembayaran') }} · <span id="confirmLabel">{{ __('3 Bulan') }}</span>
         </button>
         <p class="flex items-center justify-center gap-1.5 mt-2.5 text-[11px] text-gray-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -124,7 +128,7 @@
             <div>
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-2.5">{{ __('Semua paket termasuk') }}</p>
                 <ul class="space-y-2 text-xs">
-                    @foreach(['Semua tracker Life: sholat, olahraga, pomodoro, mood, tugas','Time Blocking, Journal, Ide & Script & lainnya','Career Hub, Bisnis & Keuangan lengkap','Statistik, insight & Life Score harian'] as $f)
+                    @foreach([__('Semua tracker Life: sholat, olahraga, pomodoro, mood, tugas'), __('Time Blocking, Journal, Ide & Script & lainnya'), __('Career Hub, Bisnis & Keuangan lengkap'), __('Statistik, insight & Life Score harian')] as $f)
                     <li class="flex items-start gap-2">
                         <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                         <span class="text-gray-600">{{ $f }}</span>
@@ -198,7 +202,7 @@ const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 const PENDING    = @json($pendingCharge ?? null); // QR pending yang masih berlaku (dipakai ulang)
 
 /* ── Step 1: pilih paket dulu ── */
-let selectedPlan = { key: '3', price: {{ $refDiscount ? \App\Services\ReferralService::discountedPrice($plans['3']['price'] ?? 29000, auth()->id()) : ($plans['3']['price'] ?? 29000) }}, label: '3 Bulan' };
+let selectedPlan = { key: '3', price: {{ $refDiscount ? \App\Services\ReferralService::discountedPrice($plans['3']['price'] ?? 29000, auth()->id()) : ($plans['3']['price'] ?? 29000) }}, label: @json(__('3 Bulan')) };
 
 function toggleRef() {
     document.getElementById('refBox').classList.toggle('hidden');
@@ -207,9 +211,8 @@ function toggleRef() {
 
 function choosePlan(key, price, label) {
     selectedPlan = { key, price, label };
-    document.querySelectorAll('.plan-card').forEach(c => { c.classList.remove('border-gray-900'); c.classList.add('border-gray-100'); });
-    const card = document.getElementById('card-' + key);
-    card.classList.add('border-gray-900'); card.classList.remove('border-gray-100');
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('is-selected'));
+    document.getElementById('card-' + key).classList.add('is-selected');
     document.getElementById('confirmLabel').textContent = label;
 }
 
